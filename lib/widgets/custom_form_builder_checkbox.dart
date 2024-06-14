@@ -1,4 +1,4 @@
-// @dart=2.9
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -70,10 +70,10 @@ class CustomFormBuilderCheckbox extends FormBuilderField<bool> {
   /// Creates a single Checkbox field
   CustomFormBuilderCheckbox({
     //From Super
-    Key key,
-    @required String name,
-    FormFieldValidator<bool> validator,
-    bool initialValue,
+    required Key key,
+     String? name,
+      FormFieldValidator<bool>? validator,
+     bool? initialValue,
     InputDecoration decoration = const InputDecoration(
       border: InputBorder.none,
       focusedBorder: InputBorder.none,
@@ -81,18 +81,18 @@ class CustomFormBuilderCheckbox extends FormBuilderField<bool> {
       errorBorder: InputBorder.none,
       disabledBorder: InputBorder.none,
     ),
-    ValueChanged onChanged,
-    ValueTransformer<bool> valueTransformer,
+    required ValueChanged onChanged,
+    ValueTransformer<bool?>? valueTransformer,
     bool enabled = true,
-    FormFieldSetter<bool> onSaved,
+    FormFieldSetter<bool?>? onSaved,
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled,
-    VoidCallback onReset,
-    FocusNode focusNode,
-    this.activeColor,
-    @required this.label,
-    this.checkColor,
-    this.subtitle,
-    this.secondary,
+    VoidCallback? onReset,
+    FocusNode? focusNode,
+    required this.activeColor,
+    required this.label,
+    required this.checkColor,
+    required this.subtitle,
+    required this.secondary,
     this.controlAffinity = ListTileControlAffinity.leading,
     this.contentPadding = EdgeInsets.zero,
     this.autofocus = false,
@@ -101,7 +101,7 @@ class CustomFormBuilderCheckbox extends FormBuilderField<bool> {
   }) : super(
           key: key,
           initialValue: initialValue,
-          name: name,
+          name: name!,
           validator: validator,
           valueTransformer: valueTransformer,
           onChanged: onChanged,
@@ -109,18 +109,19 @@ class CustomFormBuilderCheckbox extends FormBuilderField<bool> {
           onSaved: onSaved,
           enabled: enabled,
           onReset: onReset,
-          decoration: decoration,
+          // decoration: decoration,
           focusNode: focusNode,
           builder: (FormFieldState<bool> field) {
             final state = field as _CustomFormBuilderCheckboxState;
 
             return InputDecorator(
-              decoration: state.decoration,
+              // decoration: state.decoration,
+              decoration: InputDecoration(),
               child: GestureDetector(
                 onTap: state.enabled
                     ? () {
                         final newValue = !(field.value ?? false);
-                        state.requestFocus();
+                        // state.requestFocus();
                         state.didChange(newValue);
                       }
                     : null,
@@ -139,7 +140,7 @@ class CustomFormBuilderCheckbox extends FormBuilderField<bool> {
                                 : state.value,
                             onChanged: state.enabled
                                 ? (val) {
-                                    state.requestFocus();
+                                    // state.requestFocus();
                                     state.didChange(val);
                                   }
                                 : null,

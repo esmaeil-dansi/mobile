@@ -1,8 +1,8 @@
-// @dart=2.9
+//
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:device_info/device_info.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -13,7 +13,7 @@ import 'package:frappe_app/model/offline_storage.dart';
 import 'package:frappe_app/services/storage_service.dart';
 import 'package:frappe_app/utils/frappe_alert.dart';
 import 'package:frappe_app/utils/navigation_helper.dart';
-import 'package:frappe_app/views/login/login_view.dart';
+import 'package:frappe_app/views/login/login_page.dart';
 import 'package:frappe_app/widgets/frappe_button.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -49,12 +49,12 @@ downloadFile(String fileUrl, String downloadPath) async {
 
   await FlutterDownloader.enqueue(
     headers: {
-      HttpHeaders.cookieHeader: DioHelper.cookies,
+      HttpHeaders.cookieHeader: DioHelper.cookies!,
     },
     url: absoluteUrl,
     savedDir: downloadPath,
-    showNotification:
-        true, // show download progress in status bar (for Android)
+    showNotification: true,
+    // show download progress in status bar (for Android)
     openFileFromNotification:
         true, // click on notification to open downloaded file (for Android)
   );
@@ -77,11 +77,11 @@ String toTitleCase(String str) {
           RegExp(
               r'[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+'),
           (Match m) =>
-              "${m[0][0].toUpperCase()}${m[0].substring(1).toLowerCase()}")
+              "${m[0]?[0].toUpperCase()}${m[0]?.substring(1).toLowerCase()}")
       .replaceAll(RegExp(r'(_|-)+'), ' ');
 }
 
-DateTime parseDate(val) {
+DateTime? parseDate(val) {
   if (val == null || val == "") {
     return null;
   } else if (val == "Today") {
@@ -102,10 +102,10 @@ List generateFieldnames(String doctype, DoctypeDoc meta) {
   ];
 
   if (hasTitle(meta)) {
-    fields.add(meta.titleField);
+    fields.add(meta.titleField!);
   }
 
-  if (meta.fieldsMap.containsKey('status')) {
+  if (meta.fieldsMap!.containsKey('status')) {
     fields.add('status');
   } else {
     fields.add('docstatus');
@@ -166,7 +166,7 @@ clearLoginInfo() async {
   var cookie = await DioHelper.getCookiePath();
   if (Config().uri != null) {
     cookie.delete(
-      Config().uri,
+      Config().uri!,
     );
   }
 
@@ -183,9 +183,9 @@ handle403(BuildContext context) async {
 }
 
 handleError({
-  @required ErrorResponse error,
-  @required BuildContext context,
-  Function onRetry,
+  required ErrorResponse error,
+  required BuildContext context,
+  Function? onRetry,
   bool hideAppBar = false,
 }) {
   if (error.statusCode == HttpStatus.forbidden) {
@@ -213,43 +213,44 @@ handleError({
 }
 
 Future<void> showNotification({
-  @required String title,
-  @required String subtitle,
+  required String title,
+  required String subtitle,
   int index = 0,
 }) async {
   const AndroidNotificationDetails androidPlatformChannelSpecifics =
       AndroidNotificationDetails(
     'FrappeChannelId',
     'FrappeChannelName',
-    'FrappeChannelDescription',
+    // 'FrappeChannelDescription',
     // importance: Importance.max,
     // priority: Priority.high,
     ticker: 'ticker',
   );
   const NotificationDetails platformChannelSpecifics =
       NotificationDetails(android: androidPlatformChannelSpecifics);
-  await flutterLocalNotificationsPlugin.show(
-    index,
-    title,
-    subtitle,
-    platformChannelSpecifics,
-  );
+  // await flutterLocalNotificationsPlugin.show(
+  //   index,
+  //   title,
+  //   subtitle,
+  //   platformChannelSpecifics,
+  // );
 }
 
 Future<int> getActiveNotifications() async {
-  final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-  if (!(androidInfo.version.sdkInt >= 23)) {
-    return 0;
-  }
-
-  final List<ActiveNotification> activeNotifications =
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.getActiveNotifications();
-
-  return activeNotifications.length;
+  return 0;
+  // final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  // final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+  // if (!(androidInfo.version.sdkInt >= 23)) {
+  //   return 0;
+  // }
+  //
+  // final List<ActiveNotification> activeNotifications =
+  //     await flutterLocalNotificationsPlugin
+  //         .resolvePlatformSpecificImplementation<
+  //             AndroidFlutterLocalNotificationsPlugin>()!
+  //         .getActiveNotifications();
+  //
+  // return activeNotifications.length;
 }
 
 Map extractChangedValues(Map original, Map updated) {
@@ -309,15 +310,15 @@ initLocalNotifications() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('app_icon');
 
-  final IOSInitializationSettings initializationSettingsIOS =
-      IOSInitializationSettings();
+  final DarwinInitializationSettings initializationSettingsIOS =
+      DarwinInitializationSettings();
   final InitializationSettings initializationSettings = InitializationSettings(
     iOS: initializationSettingsIOS,
     android: initializationSettingsAndroid,
   );
-  await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-  );
+  // await flutterLocalNotificationsPlugin.initialize(
+  //   initializationSettings,
+  // );
 }
 
 initAwesomeItems() async {
@@ -365,7 +366,7 @@ noInternetAlert(
 }
 
 executeJS({
-  @required String jsString,
+  required String jsString,
 }) {
   JavascriptRuntime flutterJs = getJavascriptRuntime();
   try {

@@ -67,7 +67,7 @@ class CommentBox extends StatelessWidget {
                             return AlertDialog(
                               title: Text('Are you sure'),
                               actions: <Widget>[
-                                FlatButton(
+                                ElevatedButton(
                                   child: Text('Yes'),
                                   onPressed: () async {
                                     Navigator.of(context).pop();
@@ -76,7 +76,7 @@ class CommentBox extends StatelessWidget {
                                     callback();
                                   },
                                 ),
-                                FlatButton(
+                                ElevatedButton(
                                   child: Text('No'),
                                   onPressed: () {
                                     Navigator.of(context).pop();

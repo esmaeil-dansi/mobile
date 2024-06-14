@@ -20,7 +20,7 @@ class MultiSelect extends StatefulWidget {
 
   final Map? doc;
   final FutureOr<List<dynamic>> Function(String)? findSuggestions;
-  final dynamic Function(List<dynamic>)? valueTransformer;
+  final dynamic Function(List<dynamic>?)? valueTransformer;
   final Function(List<dynamic>)? onChanged;
   final Key? key;
   final Widget? prefixIcon;
@@ -39,11 +39,13 @@ class MultiSelect extends StatefulWidget {
     this.color,
     this.chipColor,
   });
+
   @override
   _MultiSelectState createState() => _MultiSelectState();
 }
 
-class _MultiSelectState extends State<MultiSelect> with Control, ControlInput {
+class _MultiSelectState extends State<MultiSelect>
+    implements Control, ControlInput {
   @override
   Widget build(BuildContext context) {
     List<String? Function(dynamic)> validators = [];
@@ -75,7 +77,7 @@ class _MultiSelectState extends State<MultiSelect> with Control, ControlInput {
     }
 
     return FormBuilderChipsInput(
-      key: widget.key,
+      TextOverflow.ellipsis,
       onChanged: (val) {
         if (widget.onControlChanged != null) {
           FieldValue(
@@ -87,7 +89,7 @@ class _MultiSelectState extends State<MultiSelect> with Control, ControlInput {
       validator: FormBuilderValidators.compose(validators),
       valueTransformer: widget.valueTransformer ??
           (value) {
-            return value
+            return value!
                 .map((v) {
                   if (v is Map) {
                     return v["value"];
@@ -109,7 +111,7 @@ class _MultiSelectState extends State<MultiSelect> with Control, ControlInput {
               )
             : null,
       ),
-      name: widget.doctypeField.fieldname,
+      name: widget!.doctypeField!.fieldname!,
       initialValue: initialValue,
       findSuggestions: widget.findSuggestions ??
           (String query) async {
@@ -156,6 +158,41 @@ class _MultiSelectState extends State<MultiSelect> with Control, ControlInput {
           onTap: () => state.selectSuggestion(profile),
         );
       },
+      maxChips: 3,
+      textStyle: TextStyle(),
+      actionLabel: '',
+      suggestionsBoxMaxHeight: 1.0,
     );
+  }
+
+  @override
+  getModelValue(Map doc, String fieldname) {
+    // TODO: implement getModelValue
+    throw UnimplementedError();
+  }
+
+  @override
+  refresh() {
+    // TODO: implement refresh
+    throw UnimplementedError();
+  }
+
+  @override
+  bool setBold(DoctypeField doctypeField) {
+    // TODO: implement setBold
+    throw UnimplementedError();
+  }
+
+  @override
+  String? Function(dynamic p1) Function(BuildContext p1, {String errorText})?
+      setMandatory(DoctypeField doctypeField) {
+    // TODO: implement setMandatory
+    throw UnimplementedError();
+  }
+
+  @override
+  int toggle(bool show) {
+    // TODO: implement toggle
+    throw UnimplementedError();
   }
 }

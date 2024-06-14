@@ -252,7 +252,7 @@ class AddFilter extends StatelessWidget {
                           isScrollControlled: true,
                           builder: (context) => EditFilterBottomSheetView(
                             page: 2,
-                            filter: filter,
+                            filter: filter, fields: [],
                           ),
                         );
 
@@ -301,7 +301,7 @@ class AddFilter extends StatelessWidget {
                           isScrollControlled: true,
                           builder: (context) => EditFilterBottomSheetView(
                             page: 3,
-                            filter: filter,
+                            filter: filter, fields: [],
                           ),
                         );
 

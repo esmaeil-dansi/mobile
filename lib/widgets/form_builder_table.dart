@@ -78,14 +78,14 @@ class FormBuilderTable<T> extends FormBuilderField<T> {
                         value,
                         allowRowHighlight: true,
                         rowHighlightColor: FrappePalette.grey[100],
-                        onRowHold: (index) {
-                          var idx = selectedRowsIdxs.indexOf(index);
-                          if (idx != -1) {
-                            selectedRowsIdxs.removeAt(idx);
-                          } else {
-                            selectedRowsIdxs.add(index);
-                          }
-                        },
+                        // onRowHold: (index) {
+                        //   var idx = selectedRowsIdxs.indexOf(index);
+                        //   if (idx != -1) {
+                        //     selectedRowsIdxs.removeAt(idx);
+                        //   } else {
+                        //     selectedRowsIdxs.add(index);
+                        //   }
+                        // },
                         onRowSelect: (index, val) async {
                           var v = await Navigator.of(context).push(
                                 MaterialPageRoute(
@@ -106,8 +106,8 @@ class FormBuilderTable<T> extends FormBuilderField<T> {
                             field.didChange(value);
                           }
                         },
-                        tableCellBuilder: (cellValue, index) {
-                          var isNum = double.tryParse(cellValue) != null;
+                        tableCellBuilder: (index) {
+                          // var isNum = double.tryParse(cellValue) != null;
                           return Container(
                             padding: EdgeInsets.symmetric(
                               horizontal: 4.0,
@@ -132,9 +132,8 @@ class FormBuilderTable<T> extends FormBuilderField<T> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                cellValue,
-                                textAlign:
-                                    isNum ? TextAlign.end : TextAlign.start,
+                                index,
+                                textAlign: TextAlign.start,
                                 style: TextStyle(
                                   fontSize: 14.0,
                                 ),
@@ -142,7 +141,7 @@ class FormBuilderTable<T> extends FormBuilderField<T> {
                             ),
                           );
                         },
-                        tableHeaderBuilder: (header, index) {
+                        tableHeaderBuilder: (header) {
                           return ConstrainedBox(
                             constraints: BoxConstraints(
                               minWidth:
@@ -154,15 +153,9 @@ class FormBuilderTable<T> extends FormBuilderField<T> {
                                 vertical: 2.0,
                               ),
                               decoration: BoxDecoration(
-                                borderRadius: index == 0
-                                    ? BorderRadius.only(
-                                        topLeft: Radius.circular(6),
-                                      )
-                                    : index == columns.length - 1
-                                        ? BorderRadius.only(
-                                            topRight: Radius.circular(6),
-                                          )
-                                        : null,
+                                borderRadius: BorderRadius.only(
+                                  topRight: Radius.circular(6),
+                                ),
                                 border: Border.all(width: 0.1),
                               ),
                               child: Padding(

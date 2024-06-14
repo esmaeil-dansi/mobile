@@ -6,9 +6,13 @@ import '../model/offline_storage.dart';
 import '../model/config.dart';
 
 initApiConfig() async {
-  if (Config().baseUrl != null) {
-    await DioHelper.init(Config().baseUrl!);
-    await DioHelper.initCookies();
+  try {
+    if (Config().baseUrl != null) {
+      // await DioHelper.init(Config().baseUrl!);
+      // await DioHelper.initCookies();
+    }
+  } catch (e) {
+    print(e);
   }
 }
 

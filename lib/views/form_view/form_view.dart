@@ -72,7 +72,7 @@ class FormView extends StatelessWidget {
               builder: (context) {
                 if (model.error != null) {
                   return handleError(
-                      error: model.error,
+                      error: model.error!,
                       context: context,
                       onRetry: () {
                         model.communicationOnly = true;
@@ -533,17 +533,17 @@ class DocInfoItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 60,
-      child: FlatButton(
+      child: ElevatedButton(
         onPressed: onTap,
-        shape: showBorder
-            ? Border(
-                bottom: BorderSide(
-                  color: FrappePalette.grey[200]!,
-                  width: 2,
-                ),
-              )
-            : null,
-        padding: EdgeInsets.symmetric(vertical: 14),
+        // shape: showBorder
+        //     ? Border(
+        //         bottom: BorderSide(
+        //           color: FrappePalette.grey[200]!,
+        //           width: 2,
+        //         ),
+        //       )
+        //     : null,
+        // padding: EdgeInsets.symmetric(vertical: 14),
         child: Row(
           children: [
             Text(

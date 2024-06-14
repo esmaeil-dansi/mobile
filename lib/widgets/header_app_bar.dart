@@ -20,10 +20,11 @@ AppBar buildAppBar({
     automaticallyImplyLeading: !expanded,
     titleSpacing: titleSpacing,
     centerTitle: false,
-    title: FlatButton(
-      visualDensity: VisualDensity(
-        horizontal: -4,
-      ),
+    title: ElevatedButton(
+      //todo
+      // visualDensity: VisualDensity(
+      //   horizontal: -4,
+      // ),
       onPressed: onPressed,
       child: Row(
         mainAxisSize: MainAxisSize.min,

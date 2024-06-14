@@ -150,13 +150,13 @@ class AwesomBarViewModel extends BaseViewModel {
         var deskItems = await locator<Api>().getDeskSideBarItems();
         var module = deskItems.message
             .firstWhere((element) => element.name == awesomeBarItem.value);
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) {
-              return DeskView(module);
-            },
-          ),
-        );
+        // Navigator.of(context).push(
+        //   // MaterialPageRoute(
+        //   //   builder: (context) {
+        //   //     return DeskView(module);
+        //   //   },
+        //   // ),
+        // );
       }
     } catch (e) {
       error = e as ErrorResponse;

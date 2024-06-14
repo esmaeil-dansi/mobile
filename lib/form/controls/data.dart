@@ -7,7 +7,7 @@ import 'package:frappe_app/model/doctype_response.dart';
 import 'base_input.dart';
 import 'base_control.dart';
 
-class Data extends StatelessWidget with Control, ControlInput {
+class Data extends StatelessWidget implements Control, ControlInput {
   final DoctypeField doctypeField;
   final Widget? prefixIcon;
   final Color? color;
@@ -56,5 +56,35 @@ class Data extends StatelessWidget with Control, ControlInput {
       ),
       validator: FormBuilderValidators.compose(validators),
     );
+  }
+
+  @override
+  getModelValue(Map doc, String fieldname) {
+    // TODO: implement getModelValue
+    throw UnimplementedError();
+  }
+
+  @override
+  refresh() {
+    // TODO: implement refresh
+    throw UnimplementedError();
+  }
+
+  @override
+  bool setBold(DoctypeField doctypeField) {
+    // TODO: implement setBold
+    throw UnimplementedError();
+  }
+
+  @override
+  String? Function(dynamic p1) Function(BuildContext p1, {String errorText})? setMandatory(DoctypeField doctypeField) {
+    // TODO: implement setMandatory
+    throw UnimplementedError();
+  }
+
+  @override
+  int toggle(bool show) {
+    // TODO: implement toggle
+    throw UnimplementedError();
   }
 }

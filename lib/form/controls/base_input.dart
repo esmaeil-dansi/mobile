@@ -10,7 +10,7 @@ class ControlInput {
     DoctypeField doctypeField,
   ) {
     if (doctypeField.reqd == 1) {
-      return FormBuilderValidators.required;
+      // return FormBuilderValidators.required;
     } else {
       return null;
     }

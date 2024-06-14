@@ -11,7 +11,7 @@ import '../../model/doctype_response.dart';
 import 'base_control.dart';
 import 'base_input.dart';
 
-class Select extends StatelessWidget with Control, ControlInput {
+class Select extends StatelessWidget implements Control, ControlInput {
   final DoctypeField doctypeField;
   final OnControlChanged? onControlChanged;
 
@@ -63,7 +63,7 @@ class Select extends StatelessWidget with Control, ControlInput {
           ? doc![doctypeField.fieldname]
           : doctypeField.defaultValue,
       name: doctypeField.fieldname,
-      hint: Text(doctypeField.label!),
+      // hint: Text(doctypeField.label!),
       decoration: Palette.formFieldDecoration(
         label: doctypeField.label,
       ),
@@ -82,5 +82,36 @@ class Select extends StatelessWidget with Control, ControlInput {
         );
       }).toList(),
     );
+  }
+
+  @override
+  getModelValue(Map doc, String fieldname) {
+    // TODO: implement getModelValue
+    throw UnimplementedError();
+  }
+
+  @override
+  refresh() {
+    // TODO: implement refresh
+    throw UnimplementedError();
+  }
+
+  @override
+  bool setBold(DoctypeField doctypeField) {
+    // TODO: implement setBold
+    throw UnimplementedError();
+  }
+
+  @override
+  String? Function(dynamic p1) Function(BuildContext p1, {String errorText})?
+      setMandatory(DoctypeField doctypeField) {
+    // TODO: implement setMandatory
+    throw UnimplementedError();
+  }
+
+  @override
+  int toggle(bool show) {
+    // TODO: implement toggle
+    throw UnimplementedError();
   }
 }

@@ -1,4 +1,3 @@
-// @dart=2.9
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:frappe_app/config/frappe_icons.dart';
@@ -20,10 +19,10 @@ class EditFilterBottomSheetView extends StatelessWidget {
   final Filter filter;
 
   const EditFilterBottomSheetView({
-    @required this.page,
-    this.fields,
-    this.filter,
-    Key key,
+    required this.page,
+    required this.fields,
+    required this.filter,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -34,7 +33,7 @@ class EditFilterBottomSheetView extends StatelessWidget {
         model.filter = filter;
       },
       builder: (context, model, child) {
-        Widget widget;
+        Widget? widget;
         if (model.pageNumber == 1) {
           widget = SelectFilterField(
             fields: fields,
@@ -74,16 +73,16 @@ class EditFilterBottomSheetView extends StatelessWidget {
 }
 
 class SelectFilterField extends StatelessWidget {
-  final Function onActionButtonPress;
-  final Function leadingOnPressed;
+  final Function? onActionButtonPress;
+  final Function? leadingOnPressed;
   final List<DoctypeField> fields;
   final EditFilterBottomSheetViewModel model;
 
   SelectFilterField({
     this.onActionButtonPress,
     this.leadingOnPressed,
-    @required this.fields,
-    @required this.model,
+    required this.fields,
+    required this.model,
   });
 
   @override
@@ -115,7 +114,7 @@ class SelectFilterField extends StatelessWidget {
             },
             visualDensity: VisualDensity(vertical: -4),
             title: Text(
-              field.label,
+              field.label!,
               style: TextStyle(
                 color: FrappePalette.grey[700],
               ),
@@ -137,9 +136,9 @@ class SelectFilterOperator extends StatelessWidget {
   final EditFilterBottomSheetViewModel model;
 
   SelectFilterOperator({
-    this.onActionButtonPress,
-    this.leadingOnPressed,
-    this.model,
+    required this.onActionButtonPress,
+    required this.leadingOnPressed,
+    required this.model,
   });
 
   @override
@@ -151,7 +150,7 @@ class SelectFilterOperator extends StatelessWidget {
           color: FrappePalette.blue[500],
         ),
       ),
-      leadingOnPressed: model.filter.isInit ? leadingOnPressed : null,
+      leadingOnPressed: model.filter.isInit ? leadingOnPressed() : null,
       leadingText: model.filter.isInit ? "Back" : null,
       onActionButtonPress: () {
         if (model.filter.isInit) {
@@ -214,9 +213,9 @@ class EditValue extends StatefulWidget {
   final EditFilterBottomSheetViewModel model;
 
   EditValue({
-    this.onActionButtonPress,
-    this.leadingOnPressed,
-    this.model,
+    required this.onActionButtonPress,
+    required this.leadingOnPressed,
+    required this.model,
   });
 
   @override
@@ -225,13 +224,14 @@ class EditValue extends StatefulWidget {
 
 class _EditValueState extends State<EditValue> {
   final GlobalKey<FormBuilderState> _fbKey = GlobalKey<FormBuilderState>();
+
   @override
   Widget build(BuildContext context) {
     return FrappeBottomSheet(
       title: 'Edit Value',
       leadingText: widget.model.filter.isInit ? 'Back' : null,
       leadingOnPressed:
-          widget.model.filter.isInit ? widget.leadingOnPressed : null,
+          widget.model.filter.isInit ? widget.leadingOnPressed() : null,
       trailing: Text(
         'Done',
         style: TextStyle(
@@ -239,8 +239,8 @@ class _EditValueState extends State<EditValue> {
         ),
       ),
       onActionButtonPress: () {
-        _fbKey.currentState.save();
-        var v = _fbKey.currentState.value[widget.model.filter.field.fieldname];
+        _fbKey.currentState?.save();
+        var v = _fbKey.currentState?.value[widget.model.filter.field.fieldname];
         widget.model.updateValue(v);
         widget.onActionButtonPress(widget.model.filter);
       },

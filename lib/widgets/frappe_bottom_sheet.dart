@@ -41,7 +41,7 @@ class FrappeBottomSheet extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             showLeading
-                ? FlatButton(
+                ? ElevatedButton(
                     child: Text(
                       leadingText ?? 'Cancel',
                       style: TextStyle(
@@ -50,15 +50,15 @@ class FrappeBottomSheet extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    padding: EdgeInsets.zero,
-                    minWidth: 70,
+                    // padding: EdgeInsets.zero,
+                    // minWidth: 70,
                     onPressed: leadingOnPressed ??
                         () {
                           Navigator.of(context).pop();
                         },
                   )
-                : FlatButton(
-                    padding: EdgeInsets.zero,
+                : ElevatedButton(
+                    // padding: EdgeInsets.zero,
                     child: Container(),
                     onPressed: null,
                   ),

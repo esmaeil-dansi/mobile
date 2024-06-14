@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:injectable/injectable.dart';
 
 import '../utils/enums.dart';
@@ -17,7 +17,7 @@ class ConnectivityService {
       // Use Connectivity() here to gather more info if you need t
 
       connectionStatusController.add(_getStatusFromResult(result));
-    });
+    } as void Function(List<ConnectivityResult> event)?);
   }
 
   // Convert from the third part enum to our own enum

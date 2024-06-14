@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:flutter_pagewise/flutter_pagewise.dart' as flutter_pagewise;
 import 'package:form_builder_validators/form_builder_validators.dart';
 
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -8,7 +9,7 @@ import 'package:frappe_app/config/frappe_icons.dart';
 import 'package:frappe_app/config/palette.dart';
 import 'package:frappe_app/model/common.dart';
 import 'package:frappe_app/utils/frappe_icon.dart';
-import 'package:frappe_app/widgets/form_builder_typeahead.dart';
+import 'package:frappe_app/widgets/form_builder_typeahead.dart' ;
 
 import '../../model/doctype_response.dart';
 
@@ -25,8 +26,8 @@ class AutoComplete extends StatefulWidget {
   final void Function(dynamic)? onSuggestionSelected;
   final Widget? suffixIcon;
   final Key? key;
-  final ItemBuilder? itemBuilder;
-  final SuggestionsCallback? suggestionsCallback;
+  final flutter_pagewise.ItemBuilder? itemBuilder;
+  // final Future<List<Product>>? suggestionsCallback;
   final SelectionToTextTransformer? selectionToTextTransformer;
   final InputDecoration? inputDecoration;
   final TextEditingController? controller;
@@ -41,7 +42,7 @@ class AutoComplete extends StatefulWidget {
     this.key,
     this.onSuggestionSelected,
     this.itemBuilder,
-    this.suggestionsCallback,
+    // this.suggestionsCallback,
     this.selectionToTextTransformer,
   });
 
@@ -50,7 +51,7 @@ class AutoComplete extends StatefulWidget {
 }
 
 class _AutoCompleteState extends State<AutoComplete>
-    with Control, ControlInput {
+    implements Control, ControlInput {
   TextEditingController? _typeAheadController;
 
   @override
@@ -73,69 +74,100 @@ class _AutoCompleteState extends State<AutoComplete>
 
     return Theme(
       data: Theme.of(context).copyWith(primaryColor: Colors.black),
-      child: FormBuilderTypeAhead(
-        key: widget.key,
-        controller: _typeAheadController,
-        onSuggestionSelected: widget.onSuggestionSelected,
-        onChanged: (val) {
-          if (widget.onControlChanged != null) {
-            widget.onControlChanged!(
-              FieldValue(
-                field: widget.doctypeField,
-                value: val,
-              ),
-            );
-          }
-        },
-        direction: AxisDirection.up,
-        validator: FormBuilderValidators.compose(validators),
-        decoration: widget.inputDecoration ??
-            Palette.formFieldDecoration(
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  widget.suffixIcon ??
-                      FrappeIcon(
-                        FrappeIcons.select,
-                      ),
-                ],
-              ),
-            ),
-        selectionToTextTransformer: widget.selectionToTextTransformer ??
-            (item) {
-              return item.toString();
-            },
-        name: widget.doctypeField.fieldname,
-        itemBuilder: widget.itemBuilder ??
-            (context, item) {
-              return ListTile(
-                title: Text(
-                  item.toString(),
-                ),
-              );
-            },
-        initialValue: widget.doc != null
-            ? widget.doc![widget.doctypeField.fieldname]
-            : null,
-        suggestionsCallback: widget.suggestionsCallback ??
-            (query) {
-              var lowercaseQuery = query.toLowerCase();
-              List opts;
-              if (widget.doctypeField.options is String) {
-                opts = widget.doctypeField.options.split('\n');
-              } else {
-                opts = widget.doctypeField.options ?? [];
-              }
-              return opts
-                  .where(
-                    (option) => option.toLowerCase().contains(
-                          lowercaseQuery,
-                        ),
-                  )
-                  .toList();
-            },
-      ),
+      child: Text("from"),
+      // child: FormBuilderTypeAhead(
+      //   key: widget.key!,
+      //   controller: _typeAheadController!,
+      //   onSuggestionSelected: widget.onSuggestionSelected,
+      //   onChanged: (val) {
+      //     if (widget.onControlChanged != null) {
+      //       widget.onControlChanged!(
+      //         FieldValue(
+      //           field: widget.doctypeField,
+      //           value: val,
+      //         ),
+      //       );
+      //     }
+      //   },
+      //   direction: AxisDirection.up,
+      //   validator: FormBuilderValidators.compose(validators),
+      //   decoration: widget.inputDecoration ??
+      //       Palette.formFieldDecoration(
+      //         suffixIcon: Row(
+      //           mainAxisSize: MainAxisSize.min,
+      //           mainAxisAlignment: MainAxisAlignment.center,
+      //           children: [
+      //             widget.suffixIcon ??
+      //                 FrappeIcon(
+      //                   FrappeIcons.select,
+      //                 ),
+      //           ],
+      //         ),
+      //       ),
+      //   selectionToTextTransformer: widget.selectionToTextTransformer ??
+      //       (item) {
+      //         return item.toString();
+      //       },
+      //   name: widget.doctypeField.fieldname,
+      //   itemBuilder: widget.itemBuilder ??
+      //       (context, item) {
+      //         return ListTile(
+      //           title: Text(
+      //             item.toString(),
+      //           ),
+      //         );
+      //       },
+      //   initialValue: widget.doc != null
+      //       ? widget.doc![widget.doctypeField.fieldname]
+      //       : null,
+      //   // suggestionsCallback: widget.suggestionsCallback ??
+      //   //     (query) {
+      //   //       var lowercaseQuery = query.toLowerCase();
+      //   //       List opts;
+      //   //       if (widget.doctypeField.options is String) {
+      //   //         opts = widget.doctypeField.options.split('\n');
+      //   //       } else {
+      //   //         opts = widget.doctypeField.options ?? [];
+      //   //       }
+      //   //       return opts
+      //   //           .where(
+      //   //             (option) => option.toLowerCase().contains(
+      //   //                   lowercaseQuery,
+      //   //                 ),
+      //   //           )
+      //   //           .toList();
+      //   //     },
+      // ),
     );
+  }
+
+  @override
+  getModelValue(Map doc, String fieldname) {
+    // TODO: implement getModelValue
+    throw UnimplementedError();
+  }
+
+  @override
+  refresh() {
+    // TODO: implement refresh
+    throw UnimplementedError();
+  }
+
+  @override
+  bool setBold(DoctypeField doctypeField) {
+    // TODO: implement setBold
+    throw UnimplementedError();
+  }
+
+  @override
+  String? Function(dynamic p1) Function(BuildContext p1, {String errorText})? setMandatory(DoctypeField doctypeField) {
+    // TODO: implement setMandatory
+    throw UnimplementedError();
+  }
+
+  @override
+  int toggle(bool show) {
+    // TODO: implement toggle
+    throw UnimplementedError();
   }
 }

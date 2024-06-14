@@ -11,7 +11,7 @@ import '../../widgets/custom_form_builder_checkbox.dart';
 import 'base_control.dart';
 import 'base_input.dart';
 
-class Check extends StatelessWidget with Control, ControlInput {
+class Check extends StatelessWidget implements Control, ControlInput {
   final DoctypeField doctypeField;
   final OnControlChanged? onControlChanged;
   final Key? key;
@@ -40,14 +40,14 @@ class Check extends StatelessWidget with Control, ControlInput {
 
     return CustomFormBuilderCheckbox(
       name: doctypeField.fieldname,
-      key: key,
+      // key: key,
       enabled:
           doctypeField.readOnly != null ? doctypeField.readOnly == 0 : true,
       valueTransformer: (val) {
         return val == true ? 1 : 0;
       },
       activeColor: FrappePalette.blue,
-      initialValue: doc != null ? doc![doctypeField.fieldname] == 1 : null,
+      initialValue: doc != null ? doc![doctypeField.fieldname] == 1 : false,
       onChanged: (val) {
         if (onControlChanged != null) {
           onControlChanged!(
@@ -72,6 +72,41 @@ class Check extends StatelessWidget with Control, ControlInput {
         field: "check",
       ),
       validator: FormBuilderValidators.compose(validators),
+      key: key!,
+      checkColor: Colors.white,
+      secondary: Text(""),
+      subtitle: Text("');"),
     );
+  }
+
+  @override
+  getModelValue(Map doc, String fieldname) {
+    // TODO: implement getModelValue
+    throw UnimplementedError();
+  }
+
+  @override
+  refresh() {
+    // TODO: implement refresh
+    throw UnimplementedError();
+  }
+
+  @override
+  bool setBold(DoctypeField doctypeField) {
+    // TODO: implement setBold
+    throw UnimplementedError();
+  }
+
+  @override
+  String? Function(dynamic p1) Function(BuildContext p1, {String errorText})?
+      setMandatory(DoctypeField doctypeField) {
+    // TODO: implement setMandatory
+    throw UnimplementedError();
+  }
+
+  @override
+  int toggle(bool show) {
+    // TODO: implement toggle
+    throw UnimplementedError();
   }
 }

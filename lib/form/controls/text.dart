@@ -8,7 +8,7 @@ import 'base_control.dart';
 import 'base_input.dart';
 
 // appended control due to naming conflict with Text widget
-class ControlText extends StatelessWidget with Control, ControlInput {
+class ControlText extends StatelessWidget implements Control, ControlInput {
   final DoctypeField doctypeField;
   final void Function(String?)? onChanged;
 
@@ -44,5 +44,35 @@ class ControlText extends StatelessWidget with Control, ControlInput {
       ),
       validator: FormBuilderValidators.compose(validators),
     );
+  }
+
+  @override
+  getModelValue(Map doc, String fieldname) {
+    // TODO: implement getModelValue
+    throw UnimplementedError();
+  }
+
+  @override
+  refresh() {
+    // TODO: implement refresh
+    throw UnimplementedError();
+  }
+
+  @override
+  bool setBold(DoctypeField doctypeField) {
+    // TODO: implement setBold
+    throw UnimplementedError();
+  }
+
+  @override
+  String? Function(dynamic p1) Function(BuildContext p1, {String errorText})? setMandatory(DoctypeField doctypeField) {
+    // TODO: implement setMandatory
+    throw UnimplementedError();
+  }
+
+  @override
+  int toggle(bool show) {
+    // TODO: implement toggle
+    throw UnimplementedError();
   }
 }

@@ -9,7 +9,7 @@ import '../../utils/helpers.dart';
 import 'base_control.dart';
 import 'base_input.dart';
 
-class DatetimeField extends StatelessWidget with Control, ControlInput {
+class DatetimeField extends StatelessWidget implements Control, ControlInput {
   final DoctypeField doctypeField;
 
   final Key? key;
@@ -55,5 +55,35 @@ class DatetimeField extends StatelessWidget with Control, ControlInput {
       ),
       validator: FormBuilderValidators.compose(validators),
     );
+  }
+
+  @override
+  getModelValue(Map doc, String fieldname) {
+    // TODO: implement getModelValue
+    throw UnimplementedError();
+  }
+
+  @override
+  refresh() {
+    // TODO: implement refresh
+    throw UnimplementedError();
+  }
+
+  @override
+  bool setBold(DoctypeField doctypeField) {
+    // TODO: implement setBold
+    throw UnimplementedError();
+  }
+
+  @override
+  String? Function(dynamic p1) Function(BuildContext p1, {String errorText})? setMandatory(DoctypeField doctypeField) {
+    // TODO: implement setMandatory
+    throw UnimplementedError();
+  }
+
+  @override
+  int toggle(bool show) {
+    // TODO: implement toggle
+    throw UnimplementedError();
   }
 }
