@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/message_service.dart';
 import 'package:frappe_app/views/message/new_message_page.dart';
+import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
@@ -45,20 +46,7 @@ class _MessagesViewState extends State<MessagesView> {
                 ),
               )
             : null,
-        appBar: AppBar(
-          backgroundColor: MAIN_COLOR,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_sharp, color: Colors.white),
-            onPressed: () {
-              Get.back();
-            },
-          ),
-          title: Text(
-            "پیام",
-            style: TextStyle(color: Colors.white),
-          ),
-          // backgroundColor: Colors.green,
-        ),
+        appBar: appSliverAppBar("پیام"),
         body: Container(
           margin: EdgeInsets.all(8),
           decoration: BoxDecoration(

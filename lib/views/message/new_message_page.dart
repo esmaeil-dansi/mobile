@@ -5,6 +5,7 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:frappe_app/model/message_user.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/message_service.dart';
+import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:frappe_app/widgets/file_picker_widget.dart';
 import 'package:get/get.dart';
@@ -69,20 +70,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
           },
         ),
       ),
-      appBar: AppBar(
-        backgroundColor: MAIN_COLOR,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_sharp, color: Colors.white),
-          onPressed: () {
-            Get.back();
-          },
-        ),
-        // backgroundColor: Colors.green,
-        title: Text(
-          "پیام جدید",
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
+      appBar: appSliverAppBar("پیام جدید"),
       body: SingleChildScrollView(
         child: Container(
           width: double.infinity,

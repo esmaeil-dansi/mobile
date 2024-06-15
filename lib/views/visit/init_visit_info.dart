@@ -1,143 +1,33 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:frappe_app/model/agentInfo.dart';
-import 'package:frappe_app/services/visit_service.dart';
-import 'package:frappe_app/widgets/checkBox.dart';
+import 'package:frappe_app/model/init_visit_Info.dart';
 import 'package:frappe_app/widgets/constant.dart';
-import 'package:frappe_app/widgets/date.dart';
 import 'package:frappe_app/widgets/image_view.dart';
-import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:frappe_app/widgets/select_location.dart';
-import 'package:frappe_app/widgets/sliver_body.dart';
-import 'package:get/get.dart';
-import 'package:get_it/get_it.dart';
-import 'package:latlong2/latlong.dart';
 
-import '../../widgets/app_sliver_app_bar.dart';
+import '../../widgets/checkBox.dart';
 
-class AddInitialReport extends StatefulWidget {
-  @override
-  State<AddInitialReport> createState() => _AddInitialReportState();
-}
+class InitVisitInfoPage extends StatelessWidget {
+  InitVisitInfoModel initVisitInfo;
 
-class _AddInitialReportState extends State<AddInitialReport> {
-  @override
-  void initState() {
-    this.time = DateTime.now().millisecondsSinceEpoch;
-    super.initState();
-  }
-
-  var time = 0;
-  Rxn<AgentInfo> agentInfo = Rxn();
-
-  LatLng? _latLng;
-
-  var _date = "";
-
-  final _dateController = TextEditingController();
-
-  final _visitService = GetIt.I.get<VisitService>();
-  final _imagePath = "".obs;
-  final _tarh = TextEditingController();
-  final _noe_jaygah = TextEditingController();
-  final _quality_water = TextEditingController();
-  final _tamin_water = TextEditingController();
-  final _ajor_madani = TextEditingController(text: "دارد");
-  final _sang_namak = TextEditingController();
-  final _vaziat = TextEditingController();
-  final _adavat = TextEditingController();
-  final _kaf_jaygah = TextEditingController();
-  final _sayer = TextEditingController();
-  final _eghdamat = TextEditingController();
-  final _status = TextEditingController();
-  final _noe_dam = TextEditingController();
-  final _malekiyat = TextEditingController();
-  final _nationId = TextEditingController();
-
-  var _sayeban = 0;
-  var _adam_hesar = 0;
-  var _astarkeshi = 0;
-  var _mahal_negahdari = 0;
-  var _adam_abkhor = 0;
-  var _adam_noor = 0;
-  var _adam_tahvie = 0;
-  var _dam = 0.obs;
-
-  void _fetchAgentInfo() {
-    this
-        ._visitService
-        .getAgentInfo(_nationId.text)
-        .then((value) => agentInfo.value = value);
-  }
+  InitVisitInfoPage(this.initVisitInfo);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(left: 20, bottom: 10),
-        child: FloatingActionButton(
-          backgroundColor: MAIN_COLOR,
-          child: Icon(
-            Icons.check,
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(gradient: LinearGradient(colors: test)),
+      child: Container(
+        margin: EdgeInsets.only(left: 7, right: 7, top: 9, bottom: 10),
+        decoration: BoxDecoration(
+            border: Border.all(),
             color: Colors.white,
-            size: 40,
-          ),
-          onPressed: () async {
-            if (_latLng != null) {
-              Progressbar.showProgress();
-              var res = await _visitService.saveInitVisit(
-                time: time,
-                nationId: _nationId.text,
-                agentInfo: agentInfo.value ?? AgentInfo(),
-                date: _date,
-                imagePath: _imagePath.value,
-                tarh: _tarh.text,
-                noe_jaygah: _noe_jaygah.text,
-                quality_water: _quality_water.text,
-                tamin_water: _tamin_water.text,
-                ajor_madani: _ajor_madani.text,
-                sang_namak: _sang_namak.text,
-                adavat: _adavat.text,
-                kaf_jaygah: _kaf_jaygah.text,
-                sayeban: _sayeban,
-                status: _status.text,
-                adam_hesar: _adam_hesar,
-                astarkeshi: _astarkeshi,
-                mahal_negahdari: _mahal_negahdari,
-                adam_abkhor: _adam_abkhor,
-                adam_noor: _adam_noor,
-                adam_tahvie: _adam_tahvie,
-                sayer: _sayer.text,
-                eghdamat: _eghdamat.text,
-                dam: _dam.value,
-                noe_dam: _noe_dam.text,
-                malekiyat: _malekiyat.text,
-                vaziat: _vaziat.text,
-                latLng: _latLng!,
-              );
-              Progressbar.dismiss();
-              if (res) {
-                Get.back();
-              }
-            } else {
-              Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
-            }
-            // Get.back();
-          },
-        ),
-      ),
-      appBar: appSliverAppBar("اضافه کردن بازدید"),
-      body: SingleChildScrollView(
-        child: Container(
-          width: double.infinity,
-          child: Container(
-            margin: EdgeInsets.only(left: 7, right: 7, top: 9, bottom: 90),
-            decoration: BoxDecoration(
-                border: Border.all(),
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10)),
+            borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.only(top: 20),
               child: Column(
                 children: [
                   Padding(
@@ -158,14 +48,11 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 70,
                             child: TextField(
-                              controller: _nationId,
+                              readOnly: true,
+                              controller: TextEditingController(
+                                  text: initVisitInfo.nationalId),
                               keyboardType: TextInputType.number,
                               maxLength: 10,
-                              onChanged: (_) {
-                                if (_.length == 10) {
-                                  _fetchAgentInfo();
-                                }
-                              },
                               decoration: InputDecoration(
                                 labelText: "کد ملی",
                                 border: OutlineInputBorder(
@@ -177,136 +64,125 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 10,
                           ),
-                          Obx(() => agentInfo.value != null
-                              ? Column(
-                                  children: [
-                                    SizedBox(
-                                      height: 60,
-                                      child: TextField(
-                                        readOnly: true,
-                                        controller: TextEditingController(
-                                            text: agentInfo.value!.full_name),
-                                        decoration: InputDecoration(
-                                          labelText: "نام و نام خانوادگی",
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(20.0),
-                                          ),
-                                        ),
-                                      ),
+                          Column(
+                            children: [
+                              SizedBox(
+                                height: 60,
+                                child: TextField(
+                                  readOnly: true,
+                                  controller: TextEditingController(
+                                      text: initVisitInfo.name),
+                                  decoration: InputDecoration(
+                                    labelText: "نام و نام خانوادگی",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
-                                    SizedBox(
-                                      height: 10,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              SizedBox(
+                                height: 60,
+                                child: TextField(
+                                  readOnly: true,
+                                  controller: TextEditingController(
+                                      text: initVisitInfo.province),
+                                  decoration: InputDecoration(
+                                    labelText: "استان",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
-                                    SizedBox(
-                                      height: 60,
-                                      child: TextField(
-                                        readOnly: true,
-                                        controller: TextEditingController(
-                                            text: agentInfo.value!.province),
-                                        decoration: InputDecoration(
-                                          labelText: "استان",
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(20.0),
-                                          ),
-                                        ),
-                                      ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              SizedBox(
+                                height: 60,
+                                child: TextField(
+                                  readOnly: true,
+                                  controller: TextEditingController(
+                                      text: initVisitInfo.city),
+                                  decoration: InputDecoration(
+                                    labelText: "شهرستان",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    SizedBox(
-                                      height: 60,
-                                      child: TextField(
-                                        readOnly: true,
-                                        controller: TextEditingController(
-                                            text: agentInfo.value!.city),
-                                        decoration: InputDecoration(
-                                          labelText: "شهرستان",
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(20.0),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    TextField(
-                                      maxLines: 3,
-                                      readOnly: true,
-                                      controller: TextEditingController(
-                                          text: agentInfo.value!.address),
-                                      decoration: InputDecoration(
-                                        labelText: "آدرس",
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    TextField(
-                                      readOnly: true,
-                                      controller: TextEditingController(
-                                          text: agentInfo.value!.mobile),
-                                      decoration: InputDecoration(
-                                        labelText: "َشماره تلفن",
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    TextField(
-                                      readOnly: true,
-                                      controller: TextEditingController(
-                                          text: agentInfo.value!.rahbar),
-                                      decoration: InputDecoration(
-                                        labelText: "َراهبر اصلی",
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    TextField(
-                                      readOnly: true,
-                                      controller: TextEditingController(
-                                          text: agentInfo.value!.department),
-                                      decoration: InputDecoration(
-                                        labelText: "اداره کمیته امداد",
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : SizedBox.shrink()),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              TextField(
+                                maxLines: 3,
+                                readOnly: true,
+                                controller: TextEditingController(
+                                    text: initVisitInfo.address),
+                                decoration: InputDecoration(
+                                  labelText: "آدرس",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              TextField(
+                                readOnly: true,
+                                controller: TextEditingController(
+                                    text: initVisitInfo.mobile),
+                                decoration: InputDecoration(
+                                  labelText: "َشماره تلفن",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              TextField(
+                                readOnly: true,
+                                controller: TextEditingController(
+                                    text: initVisitInfo.rahbar),
+                                decoration: InputDecoration(
+                                  labelText: "َراهبر اصلی",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              TextField(
+                                readOnly: true,
+                                controller: TextEditingController(
+                                    text: initVisitInfo.department),
+                                decoration: InputDecoration(
+                                  labelText: "اداره کمیته امداد",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                           SizedBox(
                             height: 10,
                           ),
                           SizedBox(
                             height: 50,
                             child: TextField(
-                              onTap: () => selectDate((_) {
-                                _date = _;
-                              }, _dateController),
                               readOnly: true,
                               canRequestFocus: false,
-                              controller: _dateController,
+                              controller: TextEditingController(
+                                  text: initVisitInfo.vDate),
                               decoration: InputDecoration(
                                 labelText: "تاریخ بازدید",
                                 border: OutlineInputBorder(
@@ -321,6 +197,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(
+                              value: initVisitInfo.tarh,
                               decoration: InputDecoration(
                                 labelText: "نوع طرح",
                                 border: OutlineInputBorder(
@@ -340,95 +217,94 @@ class _AddInitialReportState extends State<AddInitialReport> {
                                         child: Text(e),
                                       ))
                                   .toList(),
-                              onChanged: (value) {
-                                _tarh.text = value!;
-                              },
+                              onChanged: (value) {},
                             ),
                           ),
                           SizedBox(
                             height: 5,
                           ),
                           TitleCheckBox("آیا متقاضی دام/طیور دارد؟", (c) {
-                            _dam.value = c ? 1 : 0;
-                          }),
+                            // _dam.value = c ? 1 : 0;
+                          }, value: initVisitInfo.dam! == 1),
                           SizedBox(
                             height: 5,
                           ),
-                          Obx(() => _dam.value == 1
-                              ? Column(
-                                  children: [
-                                    SizedBox(
-                                      height: 70,
-                                      child: DropdownButtonFormField<String>(
-                                        decoration: InputDecoration(
-                                          labelText: "نوع دام/طیور",
-                                          border: OutlineInputBorder(
-                                            borderSide: const BorderSide(
-                                                width: 2, color: Colors.red),
-                                            //<-- SEE HERE
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                        ),
-                                        items: [
-                                          "میش مولد",
-                                          "بره",
-                                          "بز مولد",
-                                          "بزغاله",
-                                          "قوچ",
-                                          "بز نر",
-                                          "گاو شیری",
-                                          "گوساله",
-                                          "گاو نر",
-                                          "مرغ/جوجه گوشتی",
-                                          "مرغ/جوجه محلی"
-                                        ]
-                                            .map(
-                                                (e) => DropdownMenuItem<String>(
-                                                      value: e,
-                                                      child: Text(e),
-                                                    ))
-                                            .toList(),
-                                        onChanged: (value) {
-                                          _noe_dam.text = value!;
-                                        },
-                                      ),
+                          Column(
+                            children: [
+                              SizedBox(
+                                height: 70,
+                                child: DropdownButtonFormField<String>(
+                                  value: (initVisitInfo.noeDam ?? "").isNotEmpty
+                                      ? initVisitInfo.noeDam
+                                      : null,
+                                  decoration: InputDecoration(
+                                    labelText: "نوع دام/طیور",
+                                    border: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                          width: 2, color: Colors.red),
+                                      //<-- SEE HERE
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
-                                    SizedBox(
-                                      height: 10,
+                                  ),
+                                  items: [
+                                    "میش مولد",
+                                    "بره",
+                                    "بز مولد",
+                                    "بزغاله",
+                                    "قوچ",
+                                    "بز نر",
+                                    "گاو شیری",
+                                    "گوساله",
+                                    "گاو نر",
+                                    "مرغ/جوجه گوشتی",
+                                    "مرغ/جوجه محلی"
+                                  ]
+                                      .map((e) => DropdownMenuItem<String>(
+                                            value: e,
+                                            child: Text(e),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    // _noe_dam.text = value!;
+                                  },
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              SizedBox(
+                                height: 70,
+                                child: DropdownButtonFormField<String>(
+                                  value:
+                                      (initVisitInfo.malekiyat ?? "").isNotEmpty
+                                          ? initVisitInfo.malekiyat
+                                          : null,
+                                  decoration: InputDecoration(
+                                    labelText: "نوع  مالکبت دام/طیور",
+                                    border: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                          width: 2, color: Colors.red),
+                                      //<-- SEE HERE
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
-                                    SizedBox(
-                                      height: 70,
-                                      child: DropdownButtonFormField<String>(
-                                        decoration: InputDecoration(
-                                          labelText: "نوع  مالکیت دام/طیور",
-                                          border: OutlineInputBorder(
-                                            borderSide: const BorderSide(
-                                                width: 2, color: Colors.red),
-                                            //<-- SEE HERE
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                        ),
-                                        items: [
-                                          "مالک",
-                                          "حق العملی",
-                                          "امانی",
-                                        ]
-                                            .map(
-                                                (e) => DropdownMenuItem<String>(
-                                                      value: e,
-                                                      child: Text(e),
-                                                    ))
-                                            .toList(),
-                                        onChanged: (value) {
-                                          _malekiyat.text = value!;
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : SizedBox.shrink())
+                                  ),
+                                  items: [
+                                    "مالک",
+                                    "حق العملی",
+                                    "امانی",
+                                  ]
+                                      .map((e) => DropdownMenuItem<String>(
+                                            value: e,
+                                            child: Text(e),
+                                          ))
+                                      .toList(),
+                                  onChanged: (value) {
+                                    // _malekiyat.text = value!;
+                                  },
+                                ),
+                              ),
+                            ],
+                          )
                         ],
                       ),
                     ),
@@ -454,6 +330,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(
+                              value: initVisitInfo.vaziat,
                               decoration: InputDecoration(
                                 labelText: "وضعیت جایگاه نگهداری دام",
                                 border: OutlineInputBorder(
@@ -470,7 +347,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                                       ))
                                   .toList(),
                               onChanged: (value) {
-                                _vaziat.text = value!;
+                                // _vaziat.text = value!;
                               },
                             ),
                           ),
@@ -480,6 +357,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(
+                              value: initVisitInfo.noeJaygah,
                               decoration: InputDecoration(
                                 labelText: "نوع جایگاه",
                                 border: OutlineInputBorder(
@@ -496,7 +374,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                                       ))
                                   .toList(),
                               onChanged: (value) {
-                                _noe_jaygah.text = value!;
+                                // _noe_jaygah.text = value!;
                               },
                             ),
                           ),
@@ -506,6 +384,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(
+                              value: initVisitInfo.qualityWater,
                               decoration: InputDecoration(
                                 labelText: "کیفیت آب",
                                 border: OutlineInputBorder(
@@ -522,7 +401,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                                       ))
                                   .toList(),
                               onChanged: (value) {
-                                _quality_water.text = value!;
+                                // _quality_water.text = value!;
                               },
                             ),
                           ),
@@ -532,6 +411,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(
+                              value: initVisitInfo.taminWater,
                               decoration: InputDecoration(
                                 labelText: "منبع تامین آب",
                                 border: OutlineInputBorder(
@@ -549,7 +429,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                                           ))
                                       .toList(),
                               onChanged: (value) {
-                                _tamin_water.text = value!;
+                                // _tamin_water.text = value!;
                               },
                             ),
                           ),
@@ -559,6 +439,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(
+                              value: initVisitInfo.ajorMadani,
                               decoration: InputDecoration(
                                 labelText: "آجر معدنی",
                                 border: OutlineInputBorder(
@@ -578,7 +459,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                                       ))
                                   .toList(),
                               onChanged: (value) {
-                                _ajor_madani.text = value!;
+                                // _ajor_madani.text = value!;
                               },
                             ),
                           ),
@@ -588,6 +469,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(
+                              value: initVisitInfo.sangNamak,
                               decoration: InputDecoration(
                                 labelText: "سنگ نمک",
                                 border: OutlineInputBorder(
@@ -607,7 +489,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                                       ))
                                   .toList(),
                               onChanged: (value) {
-                                _sang_namak.text = value!;
+                                // _sang_namak.text = value!;
                               },
                             ),
                           ),
@@ -617,6 +499,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(
+                              value: initVisitInfo.adavat,
                               decoration: InputDecoration(
                                 labelText: "ادوات",
                                 border: OutlineInputBorder(
@@ -640,7 +523,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                                       ))
                                   .toList(),
                               onChanged: (value) {
-                                _adavat.text = value!;
+                                // _adavat.text = value!;
                               },
                             ),
                           ),
@@ -650,6 +533,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(
+                              value: initVisitInfo.kafJaygah,
                               decoration: InputDecoration(
                                 labelText: "کف جایگاه",
                                 border: OutlineInputBorder(
@@ -669,20 +553,23 @@ class _AddInitialReportState extends State<AddInitialReport> {
                                       ))
                                   .toList(),
                               onChanged: (value) {
-                                _kaf_jaygah.text = value!;
+                                // _kaf_jaygah.text = value!;
                               },
                             ),
                           ),
                           SizedBox(
                             height: 10,
                           ),
-                          ImageView(_imagePath, ""),
+                          // ImageView(_imagePath, ""),
                           SizedBox(
                             height: 10,
                           ),
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(
+                              value: (initVisitInfo.status ?? "").isNotEmpty
+                                  ? initVisitInfo.status
+                                  : null,
                               decoration: InputDecoration(
                                 labelText: "وضعیت اجرای طرح",
                                 border: OutlineInputBorder(
@@ -694,7 +581,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                               ),
                               items: [
                                 "جایگاه دام مورد تایید نیست",
-                                "طلاحیت متقاضی مورد تایید نیست",
+                                "صلاحیت متقاضی مورد تایید نیست",
                                 "آماده اجرای طرح می باشد",
                               ]
                                   .map((e) => DropdownMenuItem<String>(
@@ -703,7 +590,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                                       ))
                                   .toList(),
                               onChanged: (value) {
-                                _status.text = value!;
+                                // _status.text = value!;
                               },
                             ),
                           ),
@@ -728,36 +615,38 @@ class _AddInitialReportState extends State<AddInitialReport> {
                       child: Column(
                         children: [
                           TitleCheckBox("عدم سایه بان مناسب", (c) {
-                            _sayeban = c ? 1 : 0;
-                          }),
+                            // _sayeban = c ? 1 : 0;
+                          }, value: initVisitInfo.sayeban! == 1),
                           TitleCheckBox("عدم حصارکشی مناسب", (c) {
-                            _adam_hesar = c ? 1 : 0;
-                          }),
+                            // _adam_hesar = c ? 1 : 0;
+                          }, value: initVisitInfo.adamHesar == 1),
                           TitleCheckBox(
                               "آسترکشی دیوارهای داخلی جایگاه انجام نشده", (c) {
-                            _astarkeshi = c ? 1 : 0;
-                          }),
+                            // _astarkeshi = c ? 1 : 0;
+                          }, value: initVisitInfo.astarkeshi! == 1),
                           TitleCheckBox("محل نگهداری خوراک دام مناسب نیست",
                               (c) {
-                            _mahal_negahdari = c ? 1 : 0;
-                          }),
+                            // _mahal_negahdari = c ? 1 : 0;
+                          }, value: initVisitInfo.mahalNegahdari! == 1),
                           TitleCheckBox("عدم وجود آبخور وآبشخور مناسب ", (c) {
-                            _adam_abkhor = c ? 1 : 0;
-                          }),
+                            // _adam_abkhor = c ? 1 : 0;
+                          }, value: initVisitInfo.adamAbkhor! == 1),
                           TitleCheckBox("عدم برخورداری جایگاه از نور مناسب ",
                               (c) {
-                            _adam_noor = c ? 1 : 0;
-                          }),
+                            // _adam_noor = c ? 1 : 0;
+                          }, value: initVisitInfo.adamNoor! == 1),
                           TitleCheckBox("عدم برخورداری جایگاه از تهویه لازم ",
                               (c) {
-                            _adam_tahvie = c ? 1 : 0;
-                          }),
+                            // _adam_tahvie = c ? 1 : 0;
+                          }, value: initVisitInfo.adamTahvie! == 1),
                           SizedBox(
                             height: 10,
                           ),
                           TextField(
                             maxLines: 4,
-                            controller: _sayer,
+                            readOnly: true,
+                            controller: TextEditingController(
+                                text: initVisitInfo.sayer),
                             decoration: InputDecoration(
                               labelText: "سایر ایرادات",
                               border: OutlineInputBorder(
@@ -769,7 +658,8 @@ class _AddInitialReportState extends State<AddInitialReport> {
                             height: 10,
                           ),
                           TextField(
-                            controller: _eghdamat,
+                            controller: TextEditingController(
+                                text: initVisitInfo.eghdamat),
                             maxLines: 4,
                             decoration: InputDecoration(
                               labelText:
@@ -786,14 +676,17 @@ class _AddInitialReportState extends State<AddInitialReport> {
                   const SizedBox(
                     height: 10,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: SelectLocation(
-                      onSelected: (_) {
-                        _latLng = _;
-                      },
+                  if (initVisitInfo.geolocation != null)
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: SelectLocation(
+                        latLng: initVisitInfo.geolocation,
+                        // latLng: initVisitInfo.geolocation,
+                        onSelected: (_) {
+                          // _latLng = _;
+                        },
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

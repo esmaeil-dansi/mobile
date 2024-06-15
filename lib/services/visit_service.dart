@@ -13,7 +13,10 @@ import 'package:frappe_app/repo/RequestRepo.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/utils/city_utils.dart';
+
 import 'package:frappe_app/widgets/progressbar_wating.dart';
+import 'package:get/get.dart' as g;
+
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:latlong2/latlong.dart';
@@ -29,6 +32,20 @@ class VisitService {
   final _httpService = GetIt.I.get<HttpService>();
   final _requestRepo = GetIt.I.get<RequestRepo>();
   var _logger = Logger();
+  g.RxMap<String, String?> avgPrices = <String, String?>{}.obs;
+
+  Future<void> fetchPricess() async {
+    ["شتر پرواری", "گاو شیری", "جو دامی وارداتی", "گوسفند داشتی"]
+        .forEach((element) async {
+      try {
+        var result = await _httpService.get(
+            "/app/livestock-breeds?dam_typ=$element", FormData.fromMap({}));
+        avgPrices[element] = result?.data["avg"].toString() ?? "";
+      } catch (e) {
+        _logger.e(e);
+      }
+    });
+  }
 
   Future<List<Agent>> getInitialAgents(String txt) async {
     return fetchAgents(txt: txt);
@@ -795,5 +812,45 @@ class VisitService {
       _logger.e(e);
     }
     return null;
+  }
+
+  Future<List<String>> getAnimalType(String type, {String q = ""}) async {
+    try {
+      var resul = await _httpService.post(
+          "/api/method/frappe.desk.reportview.get",
+          FormData.fromMap({
+            'doctype': 'Livestock breeds',
+            'fields': json.encode([
+              "`tabLivestock breeds`.`name`",
+              "`tabLivestock breeds`.`owner`",
+              "`tabLivestock breeds`.`creation`",
+              "`tabLivestock breeds`.`modified`",
+              "`tabLivestock breeds`.`modified_by`",
+              "`tabLivestock breeds`.`_user_tags`",
+              "`tabLivestock breeds`.`_comments`",
+              "`tabLivestock breeds`.`_assign`",
+              "`tabLivestock breeds`.`_liked_by`",
+              "`tabLivestock breeds`.`docstatus`",
+              "`tabLivestock breeds`.`idx`",
+              "`tabLivestock breeds`.`dam_type`"
+            ]),
+            'filters': json.encode([
+              ["Livestock breeds", "dam_type", "=", "$type"],
+              ["Livestock breeds", "name", "like", "%$q%"]
+            ]),
+            'start': 0,
+            'page_length': 20,
+            'view': 'List',
+            'group_by': '`tabLivestock breeds`.`name`',
+            'with_comment_count': 1
+          }));
+
+      return (resul?.data["message"]["values"] as List<dynamic>)
+          .map((e) => (e as List<dynamic>)[0].toString())
+          .toList();
+    } catch (e) {
+      _logger.e(e);
+    }
+    return [];
   }
 }

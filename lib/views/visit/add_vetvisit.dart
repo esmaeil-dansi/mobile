@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:frappe_app/model/agent.dart';
 import 'package:frappe_app/services/visit_service.dart';
+import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/checkBox.dart';
 import 'package:frappe_app/widgets/city_selector.dart';
 import 'package:frappe_app/widgets/constant.dart';
@@ -257,44 +258,28 @@ class _AddVetVisitState extends State<AddVetVisit> {
             },
           ),
         ),
-        appBar: AppBar(
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_sharp,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Get.back();
-            },
-          ),
-          backgroundColor: MAIN_COLOR,
-          title: Text(
-            "ویزیت دامپزشکی جدید",
-            style: TextStyle(color: Colors.white),
-          ),
-          bottom: const TabBar(
-            tabs: [
-              Tab(
-                text: "صفحه 1",
-              ),
-              Tab(
-                text: "صفحه 2",
-              ),
-              Tab(
-                text: "صفحه 3",
-              ),
-              Tab(
-                text: " صدور گواهی",
-              )
-            ],
-          ),
-        ),
+        appBar: appSliverAppBar("ویزیت دامپزشکی جدید",
+            bottom: TabBar(
+              tabs: [
+                Tab(
+                  text: "صفحه 1",
+                ),
+                Tab(
+                  text: "صفحه 2",
+                ),
+                Tab(
+                  text: "صفحه 3",
+                ),
+                Tab(
+                  text: " صدور گواهی",
+                )
+              ],
+            )),
         body: TabBarView(
           children: [
             SingleChildScrollView(
               child: Container(
                 width: double.infinity,
-
                 child: Container(
                   margin:
                       EdgeInsets.only(left: 7, right: 7, top: 9, bottom: 90),
