@@ -7,6 +7,7 @@ class Progressbar {
   static void showProgress() {
     if (_context != null) {
       Navigator.pop(_context!);
+      _context = null;
     }
     showDialog(
         barrierDismissible: false,

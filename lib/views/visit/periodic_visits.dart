@@ -5,8 +5,10 @@ import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/views/visit/add_periodic_visit.dart';
 import 'package:frappe_app/views/visit/periodic_visit_info.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
+import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:frappe_app/widgets/city_selector.dart';
 import 'package:frappe_app/widgets/constant.dart';
+import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:frappe_app/widgets/sliver_body.dart';
 import 'package:get/get.dart';
@@ -26,7 +28,7 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
   final province = "".obs;
   String city = "";
   final _noResult = false.obs;
-  final _startSearch = false.obs;
+  final _startSearch = true.obs;
   final _hasFilter = false.obs;
 
   @override
@@ -35,7 +37,10 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
     city = _athService.getCity();
     _visitService
         .fetchPeriodicReport(province: province.value, city: city)
-        .then((value) => reports.addAll(value));
+        .then((value) {
+      _startSearch.value = false;
+      reports.addAll(value);
+    });
 
     super.initState();
   }
@@ -69,21 +74,8 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: appSliverAppBar("بازدید دوره ای"),
-        floatingActionButton: _athService.isRahbar()
-            ? Padding(
-                padding: const EdgeInsets.only(bottom: 25, left: 20),
-                child: FloatingActionButton(
-                  backgroundColor: MAIN_COLOR,
-                  child: Icon(
-                    Icons.add,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {
-                    Get.to(() => AddPeriodicReport());
-                  },
-                ),
-              )
-            : null,
+        floatingActionButton:
+            _athService.isRahbar() ? newFormWidget(AddPeriodicReport()) : null,
         body: Container(
           margin: EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -207,13 +199,20 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
                             children: [
                               SizedBox(
                                   width: Get.width * 0.3,
-                                  child: Center(child: Text("شناسه"))),
+                                  child: Center(
+                                      child: Text("شناسه",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)))),
                               SizedBox(
                                   width: Get.width * 0.3,
-                                  child: Text("نام و نام خانوادگی")),
+                                  child: Text("نام و نام خانوادگی",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
                               SizedBox(
                                   width: Get.width * 0.3,
-                                  child: Text("شهرستان")),
+                                  child: Text("شهرستان",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
                             ],
                           ),
                           Divider(),
@@ -237,8 +236,8 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
                                           .getPeriodicVisitInfo(record.id);
                                       Progressbar.dismiss();
                                       if (res != null) {
-                                        Get.bottomSheet(
-                                            PeriodicVisitInfo(res));
+                                        Get.bottomSheet(bottomSheetTemplate(
+                                            PeriodicVisitInfo(res)));
                                       }
                                     },
                                     child: Container(

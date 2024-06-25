@@ -1,14 +1,26 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:logger/logger.dart';
 import 'aut_service.dart';
+import 'package:http/http.dart' as http;
 
 class HttpService {
-  var _logger = Logger();
   final _autService = GetIt.I.get<AutService>();
-  final _dio = Dio(BaseOptions(baseUrl: "https://icasp.ir"));
+  final _dio = Dio(BaseOptions(
+    baseUrl: "https://icasp.ir",
+    contentType: Headers.jsonContentType,
+    validateStatus: (int? status) {
+      return status != null;
+      // return status != null && status >= 200 && status < 300;
+    },
+    receiveTimeout: const Duration(seconds: 20),
+    connectTimeout: const Duration(seconds: 20),
+  ));
 
   List<Cookie> cookies = [];
 
@@ -27,25 +39,90 @@ class HttpService {
 
   Future<void> _initCookie() async {
     CookieJar cookieJar = CookieJar();
-    cookies = await cookieJar.loadForRequest(Uri.parse("https://icasp.ir/"));
+    cookies = await cookieJar.loadForRequest(Uri.parse("https://icasp.ir"));
   }
 
-  Future<Response<dynamic>?> post(String path, FormData data) async {
-    return await _dio.post(path,
+  Future<Response<dynamic>?> post(String path, FormData data,
+      {Map<String, dynamic>? map}) async {
+    // Map<String, dynamic> map = {};
+    // data.fields.forEach((element) {
+    //   map[element.key] = element.value;
+    //   // if(element.key =="fields"){
+    //   //   map[element.key] = json.encode(element.value);
+    //   // }
+    //   // if(element.key =="filters"){
+    //   //   map[element.key] = json.encode(element.value);
+    //   // }
+    // });
+    // try {
+    //   var response = await http.post(
+    //       Uri.parse(
+    //         "https://icasp.ir"+path,
+    //       ),
+    //       body: map,
+    //       headers: {
+    //         'cookie': getCookie(),
+    //         'Content-Type': 'application/x-www-form-urlencoded',
+    //       });
+    //   print(response.statusCode.toString());
+    // } catch (e) {
+    //   print(e);
+    // }
+    // try {
+    //   var res = await Dio().get(
+    //       "https://icasp.ir/api/method/frappe.desk.form.load.getdoc?doctype=Initial%20Visit&name=5189676560&_=1718879485110",
+    //       options: Options(
+    //         headers: {
+    //           'cookie': getCookie(),
+    //         },
+    //       ));
+    //   print(res);
+    // } catch (e) {
+    //   print(e);
+    // }
+
+    Map<String, dynamic> ma = {};
+
+    data.fields.forEach((element) {
+      ma[element.key] = element.value;
+    });
+
+    return _dio.post(path,
         data: data,
         options: Options(
           headers: {
-            'cookie': getCookie(),
+            "cookie": getCookie(),
+            'X-Frappe-Csrf-Token':
+                "80b201c014cd400bbc4c5e6b197a68e473a2a7ad56366c36d71f71c0",
+            'Origin': "https://icasp.ir",
+            'Host': "icasp.ir",
           },
-        ));
+        ),
+        queryParameters: ma);
   }
 
-  Future<Response<dynamic>?> get(String path, FormData data) async {
+  Future<Response<dynamic>?> get(String path) async {
     return await _dio.get(path,
         options: Options(
           headers: {
-            'cookie': getCookie(),
+            'cookie': await getCookie(),
           },
         ));
+  }
+}
+
+class ErrorInterceptor extends Interceptor {
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    final status = response.statusCode;
+    final isValid = status != null && status >= 200 && status < 300;
+    if (!isValid) {
+      throw DioException.badResponse(
+        statusCode: status!,
+        requestOptions: response.requestOptions,
+        response: response,
+      );
+    }
+    super.onResponse(response, handler);
   }
 }

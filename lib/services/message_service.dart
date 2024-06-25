@@ -62,7 +62,11 @@ class MessageService {
           messages.add(msg);
         }
       }
-      return messages;
+      return messages
+          .where((element) =>
+              element.owner.contains(_autService.getFullNameChar()) ||
+              element.modified.contains(_autService.getFullNameChar()))
+          .toList();
     } catch (e) {
       _logger.e(e);
     }

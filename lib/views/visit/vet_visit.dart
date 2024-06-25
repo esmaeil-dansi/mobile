@@ -6,10 +6,10 @@ import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/views/visit/add_vetvisit.dart';
 import 'package:frappe_app/views/visit/vervisit_info.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
+import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:frappe_app/widgets/city_selector.dart';
-import 'package:frappe_app/widgets/constant.dart';
+import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
-import 'package:frappe_app/widgets/sliver_body.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
@@ -26,7 +26,7 @@ class _VetVisitState extends State<VetVisit> {
   final province = "".obs;
   String city = "";
   final _noResult = false.obs;
-  final _startSearch = false.obs;
+  final _startSearch = true.obs;
   final _hasFilter = false.obs;
 
   @override
@@ -35,7 +35,10 @@ class _VetVisitState extends State<VetVisit> {
     city = _athService.getCity();
     _visitService
         .fetchVetVisitReport(province: province.value, city: city)
-        .then((value) => reports.addAll(value));
+        .then((value) {
+      _startSearch.value = false;
+      reports.addAll(value);
+    });
     super.initState();
   }
 
@@ -63,21 +66,8 @@ class _VetVisitState extends State<VetVisit> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        floatingActionButton: _athService.isRahbar()
-            ? Padding(
-                padding: const EdgeInsets.only(bottom: 25, left: 20),
-                child: FloatingActionButton(
-                  backgroundColor: MAIN_COLOR,
-                  child: Icon(
-                    Icons.add,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {
-                    Get.to(() => AddVetVisit());
-                  },
-                ),
-              )
-            : null,
+        floatingActionButton:
+            _athService.isRahbar() ? newFormWidget(AddVetVisit()) : null,
         appBar: appSliverAppBar("بازدید دامپزشکی"),
         body: Container(
           margin: EdgeInsets.all(8),
@@ -181,16 +171,24 @@ class _VetVisitState extends State<VetVisit> {
                             children: [
                               SizedBox(
                                   width: Get.width * 0.25,
-                                  child: Text("شناسه")),
+                                  child: Text("شناسه",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
                               SizedBox(
                                   width: Get.width * 0.3,
-                                  child: Text("کارشناس")),
+                                  child: Text("کارشناس",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
                               SizedBox(
                                   width: Get.width * 0.20,
-                                  child: Text("متقاضی")),
+                                  child: Text("متقاضی",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
                               SizedBox(
                                   width: Get.width * 0.20,
-                                  child: Text("ترکیب")),
+                                  child: Text("ترکیب",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold))),
                             ],
                           ),
                           Divider(),
@@ -215,7 +213,8 @@ class _VetVisitState extends State<VetVisit> {
                                               int.parse(record.id));
                                       Progressbar.dismiss();
                                       if (res != null) {
-                                        Get.bottomSheet(VetVisitInfo(res));
+                                        Get.bottomSheet(bottomSheetTemplate(
+                                            VetVisitInfo(res)));
                                       }
                                     },
                                     child: Container(

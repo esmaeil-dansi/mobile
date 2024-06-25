@@ -1,6 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:frappe_app/methods.dart';
 import 'package:frappe_app/services/visit_service.dart';
-import 'package:weather_icons/weather_icons.dart';
 import 'package:frappe_app/model/shop_group.dart';
 import 'package:frappe_app/model/shop_type.dart';
 import 'package:frappe_app/services/aut_service.dart';
@@ -31,7 +33,7 @@ class _HomeViewState extends State<HomeView> {
     _visitService.fetchPricess();
     _selectedCity.value = _autService.getSelectedCity();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkSelectedCity(force: false);
+       _checkSelectedCity(force: false);
     });
     super.initState();
   }
@@ -82,9 +84,8 @@ class _HomeViewState extends State<HomeView> {
                     child: Container(
                         height: 50,
                         decoration: BoxDecoration(
-                            border: Border.all(),
                             borderRadius: BorderRadius.circular(20),
-                            gradient: LinearGradient(colors: test)),
+                            gradient: LinearGradient(colors: GRADIANT_COLOR)),
                         width: double.infinity,
                         child: Center(
                             child: Text(
@@ -125,11 +126,11 @@ class _HomeViewState extends State<HomeView> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
-                      _checkSelectedCity(force: true);
+                       _checkSelectedCity(force: true);
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: test),
+                        gradient: LinearGradient(colors: GRADIANT_COLOR),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Padding(
@@ -197,11 +198,11 @@ class _HomeViewState extends State<HomeView> {
                                           MainAxisAlignment.start,
                                       children: [
                                         Icon(
-                                          _getWeatherDescription(element.main,
+                                          getWeatherDescription(element.main,
                                                   element.description)
                                               .$2,
                                           size: 30,
-                                          color: _getWeatherDescription(
+                                          color: getWeatherDescription(
                                                   element.main,
                                                   element.description)
                                               .$3,
@@ -242,15 +243,24 @@ class _HomeViewState extends State<HomeView> {
                                           ],
                                         ),
                                         Text(
-                                          _getWeatherDescription(
+                                          getWeatherDescription(
                                             element.main,
                                             element.description,
                                           ).$1,
                                           style: TextStyle(fontSize: 13),
                                         ),
-                                        Text(
-                                          element.date,
-                                          style: TextStyle(fontSize: 12),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(element.w),
+                                            SizedBox(
+                                              width: 4,
+                                            ),
+                                            Text(
+                                              element.date,
+                                              style: TextStyle(fontSize: 12),
+                                            ),
+                                          ],
                                         )
                                       ],
                                     ),
@@ -263,7 +273,8 @@ class _HomeViewState extends State<HomeView> {
                       )),
               ),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
@@ -276,13 +287,13 @@ class _HomeViewState extends State<HomeView> {
                           _buildReport(
                               "گوسفند داشتی(راس)",
                               _visitService.avgPrices["گوسفند داشتی"] ??
-                                  '122,521,010',
+                                  '122521010',
                               0.03,
                               false),
                           _buildReport(
                               "گاو شیری(راس)",
                               _visitService.avgPrices["گاو شیری"] ??
-                                  '901,022,622',
+                                  '901022622',
                               0.01,
                               true),
                         ],
@@ -296,13 +307,13 @@ class _HomeViewState extends State<HomeView> {
                           _buildReport(
                               "شتر پرواری(نفر)",
                               _visitService.avgPrices['شتر پرواری'] ??
-                                  '198,334,285',
+                                  '198334285',
                               0.02,
                               true),
                           _buildReport(
                               "قیمت جو(کیلوگرم)",
                               _visitService.avgPrices['جو دامی وارداتی'] ??
-                                  '116,616',
+                                  '116616',
                               0,
                               true),
                         ],
@@ -420,7 +431,7 @@ class _HomeViewState extends State<HomeView> {
         width: MediaQuery.of(context).size.width * 0.22,
         height: 100,
         decoration: BoxDecoration(
-            gradient: LinearGradient(colors: test),
+            gradient: LinearGradient(colors: GRADIANT_COLOR),
             borderRadius: BorderRadius.circular(5)),
         child: Padding(
           padding: const EdgeInsets.all(1.0),
@@ -520,41 +531,17 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  (String, IconData, Color) _getWeatherDescription(String main, String d) {
-    if (main == "Clear" && d == "clear") {
-      return ("آفتابی", WeatherIcons.day_sunny, Colors.amber);
-    }
-    if (main == "Clouds" && d == "few") {
-      return ("نیمه ابری", WeatherIcons.cloud, Colors.black);
-    }
-    if (main == "Rain" && d == "light") {
-      return ("نیمه ابری", WeatherIcons.rain_mix, Colors.black);
-    }
-    if (main == "Rain" && d == "light") {
-      return ("بارانی", WeatherIcons.rain_mix, Colors.blue);
-    }
-    if (main == "Clear") {
-      return ("آفتابی", WeatherIcons.day_sunny, Colors.amber);
-    }
-    if (main == "Clouds") {
-      return ("نیمه ابری", WeatherIcons.cloud, Colors.black);
-    }
-    if (main == "Rain") {
-      return ("بارانی", WeatherIcons.rain_mix, Colors.blue);
-    }
-    return ("آفتابی", WeatherIcons.day_sunny, Colors.amber);
-  }
-
   Widget _buildReport(String s, String count, double d, bool increase) {
     return Container(
       height: 71,
       width: 162,
       decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: test,
-          ),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all()),
+        gradient: LinearGradient(
+          colors: GRADIANT_COLOR,
+        ),
+        borderRadius: BorderRadius.circular(10),
+        // border: Border.all()
+      ),
       child: Padding(
         padding: const EdgeInsets.all(1),
         child: Container(
@@ -576,7 +563,7 @@ class _HomeViewState extends State<HomeView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      count.toString(),
+                      _splitPrice(count.toString()),
                       style: TextStyle(fontSize: 15),
                     ),
                     SizedBox(
@@ -614,5 +601,26 @@ class _HomeViewState extends State<HomeView> {
         ),
       ),
     );
+  }
+
+  String _splitPrice(String t) {
+    var s = t.split('').reversed.toList();
+    List<List<String>> sf = [];
+    var j = 0;
+    int start = 0;
+    while (j < s.length) {
+      sf.add(s.sublist(start, min(start + 3, t.length)).reversed.toList());
+      start = start + 3;
+      j = j + 3;
+    }
+    sf = sf.reversed.toList();
+    String sr = "";
+    for (int i = 0; i < sf.length; i++) {
+      sr = sr + sf[i].join("");
+      if (sf.length - i != 1) {
+        sr = sr + ",";
+      }
+    }
+    return sr;
   }
 }

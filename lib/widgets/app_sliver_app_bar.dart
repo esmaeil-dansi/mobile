@@ -17,7 +17,7 @@ PreferredSizeWidget appSliverAppBar(String title, {PreferredSizeWidget? bottom})
         // LinearGradient
         gradient: LinearGradient(
           // colors for gradient
-          colors: test,
+          colors: GRADIANT_COLOR,
         ),
       ),
     ),

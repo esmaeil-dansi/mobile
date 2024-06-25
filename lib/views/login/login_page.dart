@@ -78,7 +78,7 @@ class _LoginState extends State<Login> {
                 height: 50,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(50),
-                  gradient: LinearGradient(colors: test)
+                  gradient: LinearGradient(colors: GRADIANT_COLOR)
                 ),
                 child: Obx(() => _loading.isTrue
                     ? Center(child: CircularProgressIndicator())

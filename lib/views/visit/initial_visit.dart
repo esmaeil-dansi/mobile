@@ -5,8 +5,10 @@ import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/views/visit/add_initial_visit.dart';
 import 'package:frappe_app/views/visit/init_visit_info.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
+import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:frappe_app/widgets/city_selector.dart';
 import 'package:frappe_app/widgets/constant.dart';
+import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:frappe_app/widgets/sliver_body.dart';
 
@@ -28,7 +30,7 @@ class _InitialVisitState extends State<InitialVisit> {
   RxList<Report> reports = <Report>[].obs;
 
   final _noResult = false.obs;
-  final _startSearch = false.obs;
+  final _startSearch = true.obs;
   final _hasFilter = false.obs;
 
   @override
@@ -37,7 +39,10 @@ class _InitialVisitState extends State<InitialVisit> {
     city = _athService.getCity();
     _visitService
         .fetchInitialVisitReport(province: province.value, city: city)
-        .then((value) => reports.addAll(value));
+        .then((value) {
+      _startSearch.value = false;
+      reports.addAll(value);
+    });
     super.initState();
   }
 
@@ -69,18 +74,8 @@ class _InitialVisitState extends State<InitialVisit> {
           appBar: appSliverAppBar(
             "بازدید اولیه",
           ),
-          floatingActionButton: _athService.isRahbar()
-              ? Padding(
-                  padding: const EdgeInsets.only(bottom: 25, left: 20),
-                  child: FloatingActionButton(
-                    backgroundColor: MAIN_COLOR,
-                    child: Icon(Icons.add, color: Colors.white),
-                    onPressed: () {
-                      Get.to(() => AddInitialReport());
-                    },
-                  ),
-                )
-              : null,
+          floatingActionButton:
+              _athService.isRahbar() ? newFormWidget(AddInitialReport()) : null,
           body: Container(
             margin: EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -183,13 +178,23 @@ class _InitialVisitState extends State<InitialVisit> {
                               children: [
                                 SizedBox(
                                     width: Get.width * 0.3,
-                                    child: Center(child: Text("شناسه"))),
+                                    child: Center(
+                                      child: Text(
+                                        "شناسه",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    )),
                                 SizedBox(
                                     width: Get.width * 0.3,
-                                    child: Text("نام و نام خانوادگی")),
+                                    child: Text("نام و نام خانوادگی",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold))),
                                 SizedBox(
                                     width: Get.width * 0.3,
-                                    child: Text("شهرستان")),
+                                    child: Text("شهرستان",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold))),
                               ],
                             ),
                             Divider(),
@@ -212,8 +217,8 @@ class _InitialVisitState extends State<InitialVisit> {
                                                 int.parse(record.id));
                                         Progressbar.dismiss();
                                         if (res != null) {
-                                          Get.bottomSheet(
-                                              InitVisitInfoPage(res));
+                                          Get.bottomSheet(bottomSheetTemplate(
+                                              InitVisitInfoPage(res)));
                                         }
                                       },
                                       child: Padding(

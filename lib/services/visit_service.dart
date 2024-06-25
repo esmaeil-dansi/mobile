@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/model/agent.dart';
@@ -13,14 +12,11 @@ import 'package:frappe_app/repo/RequestRepo.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/utils/city_utils.dart';
-
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart' as g;
-
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:latlong2/latlong.dart';
-
 import '../db/request.dart';
 import '../db/request_statuse.dart';
 import '../widgets/methodes.dart';
@@ -38,8 +34,8 @@ class VisitService {
     ["شتر پرواری", "گاو شیری", "جو دامی وارداتی", "گوسفند داشتی"]
         .forEach((element) async {
       try {
-        var result = await _httpService.get(
-            "/app/livestock-breeds?dam_typ=$element", FormData.fromMap({}));
+        var result = await _httpService
+            .get("/api/method/get_market_price?item=$element");
         avgPrices[element] = result?.data["avg"].toString() ?? "";
       } catch (e) {
         _logger.e(e);
@@ -167,11 +163,10 @@ class VisitService {
               "`tabInitial Visit`.`status`"
             ]),
             'filters': json.encode(filters),
-            'order_by': '`tabInitial Visit`.`modified` asc',
+            'order_by': '`tabInitial Visit`.`modified` DESC',
             'start': start,
             'page_length': 20,
             'view': "List",
-            'group_by': '`tabInitial Visit`.`name`',
             'with_comment_count': 1
           }));
 
@@ -296,6 +291,7 @@ class VisitService {
   Future<bool> saveInitVisit(
       {required AgentInfo agentInfo,
       required String imagePath,
+      required String imagePath_2,
       required String tarh,
       required String nationId,
       required String noe_jaygah,
@@ -425,9 +421,29 @@ class VisitService {
     return null;
   }
 
+  Future<String?> _uploadPerVisitFile(String path, String body) async {
+    try {
+      if (path.isEmpty) {
+        return body;
+      }
+      var image = await _fileService.uploadFile(path, "Periodic visits",
+          fieldname: "jaigah_dam", docname: 'new-periodic-visits-1');
+      if (image != null) {
+        var newBody = json.decode(body);
+        newBody["jaigah_dam"] = image;
+        return json.encode(newBody);
+      }
+    } catch (e) {}
+    return null;
+  }
+
   Future<bool> reSendPeriodicVisitsRequest(Request request) async {
     try {
-      await _sendRequest(request.body);
+      var newBody = await _uploadPerVisitFile(
+          request.filePaths?.first ?? '', request.body);
+      if (newBody != null) {
+        _sendRequest(newBody);
+      }
       return true;
     } catch (e) {
       // showErrorToast(null);
@@ -441,6 +457,7 @@ class VisitService {
       required String manger,
       required String losses,
       required String nationId,
+      required imagePath,
       required String bazdid,
       required String water,
       required String supply_situation,
@@ -468,6 +485,7 @@ class VisitService {
       "supply_situation": supply_situation,
       "ventilation": ventilation,
       "vaziat": vaziat,
+      "jaigah_dam": "",
       "full_name": agentInfo.full_name,
       "province": agentInfo.province,
       "city": agentInfo.city,
@@ -480,22 +498,31 @@ class VisitService {
       "next_date": next_date,
     });
     try {
-      var res = await _httpService.post(
-          "/api/method/frappe.desk.form.save.savedocs",
-          FormData.fromMap({'doc': body, 'action': 'Save'}));
+      var newBody = await _uploadPerVisitFile(imagePath, body);
+      if (newBody != null) {
+        var res = await _httpService.post(
+            "/api/method/frappe.desk.form.save.savedocs",
+            FormData.fromMap({'doc': body, 'action': 'Save'}));
+        unawaited(_requestRepo.save(Request(
+            time: time,
+            type: "Periodic visits",
+            nationId: nationId,
+            filePaths: [imagePath],
+            status: RequestStatus.Success,
+            body: newBody)));
 
+        if (res?.statusCode == 200) {
+          Fluttertoast.showToast(msg: "ثبت شد");
+          return true;
+        }
+      } else {}
       unawaited(_requestRepo.save(Request(
           time: time,
           type: "Periodic visits",
           nationId: nationId,
-          filePaths: [],
+          filePaths: [imagePath],
           status: RequestStatus.Success,
           body: body)));
-
-      if (res?.statusCode == 200) {
-        Fluttertoast.showToast(msg: "ثبت شد");
-        return true;
-      }
     } on DioException catch (e) {
       Progressbar.dismiss();
       handleDioError(e);
@@ -578,6 +605,7 @@ class VisitService {
       required int sole_3,
       required int time,
       required int number,
+      required LatLng latLng,
       required AgentInfo agentInfo}) async {
     var body = json.encode({
       "docstatus": 0,
@@ -656,7 +684,9 @@ class VisitService {
       "number": number,
       "image_dam": "",
       "license_salamat": "",
-      "disapproval_reason": disapproval_reason
+      "disapproval_reason": disapproval_reason,
+      "geolocation":
+          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${latLng.longitude},${latLng.latitude}]}}]}"
     });
     try {
       var newBody =
@@ -778,9 +808,8 @@ class VisitService {
   Future<InitVisitInfoModel?> getInitVisitInfo(int id) async {
     try {
       var result = await _httpService.get(
-          "/api/method/frappe.desk.form.load.getdoc?doctype=Initial%20Visit&name=$id&_=1716470766443",
-          FormData.fromMap(
-              {"doctyp": "Initial Visit", "name": id, "_": 1716470766443}));
+        "/api/method/frappe.desk.form.load.getdoc?doctype=Initial%20Visit&name=$id&_=1718879485110",
+      );
       return InitVisitInfoModel.fromJson(result?.data["docs"][0]);
     } catch (e) {
       _logger.e(e);
@@ -791,9 +820,8 @@ class VisitService {
   Future<PeriodicVisitInfoModel?> getPeriodicVisitInfo(String id) async {
     try {
       var result = await _httpService.get(
-          "/api/method/frappe.desk.form.load.getdoc?doctype=Periodic%20visits&name=$id&_=1716470766446",
-          FormData.fromMap(
-              {"doctype": "Periodic visits", "name": id, "_": 1716470766446}));
+        "/api/method/frappe.desk.form.load.getdoc?doctype=Periodic%20visits&name=$id&_=1716470766446",
+      );
       return PeriodicVisitInfoModel.fromJson(result?.data["docs"][0]);
     } catch (e) {
       _logger.e(e);
@@ -804,9 +832,8 @@ class VisitService {
   Future<VetVisitInfoModel?> getVetVisitInfo(int id) async {
     try {
       var result = await _httpService.get(
-          "/api/method/frappe.desk.form.load.getdoc?doctype=Vet%20Visit&name=$id&_=171648547368",
-          FormData.fromMap(
-              {"doctype": "Vet Visit", "name": id, "_": 171648547368}));
+        "/api/method/frappe.desk.form.load.getdoc?doctype=Vet%20Visit&name=$id&_=171648547368",
+      );
       return VetVisitInfoModel.fromJson(result?.data["docs"][0]);
     } catch (e) {
       _logger.e(e);

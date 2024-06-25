@@ -338,7 +338,7 @@ packages:
     source: hosted
     version: "1.0.5"
   dropdown_search:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: dropdown_search
       sha256: "55106e8290acaa97ed15bea1fdad82c3cf0c248dd410e651f5a8ac6870f783ab"
@@ -878,6 +878,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "6.2.1"
+  gradient_icon:
+    dependency: "direct main"
+    description:
+      name: gradient_icon
+      sha256: "5852c1f44825e49d479c91602b5e9e17a4fbc49af69ac314b1f906b0c62c6193"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.9"
   graphs:
     dependency: transitive
     description:

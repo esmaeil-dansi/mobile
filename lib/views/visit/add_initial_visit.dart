@@ -6,6 +6,7 @@ import 'package:frappe_app/widgets/checkBox.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:frappe_app/widgets/date.dart';
 import 'package:frappe_app/widgets/image_view.dart';
+import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:frappe_app/widgets/select_location.dart';
 import 'package:frappe_app/widgets/sliver_body.dart';
@@ -38,6 +39,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
 
   final _visitService = GetIt.I.get<VisitService>();
   final _imagePath = "".obs;
+  final _imagePath_2 = "".obs;
   final _tarh = TextEditingController();
   final _noe_jaygah = TextEditingController();
   final _quality_water = TextEditingController();
@@ -73,59 +75,48 @@ class _AddInitialReportState extends State<AddInitialReport> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(left: 20, bottom: 10),
-        child: FloatingActionButton(
-          backgroundColor: MAIN_COLOR,
-          child: Icon(
-            Icons.check,
-            color: Colors.white,
-            size: 40,
-          ),
-          onPressed: () async {
-            if (_latLng != null) {
-              Progressbar.showProgress();
-              var res = await _visitService.saveInitVisit(
-                time: time,
-                nationId: _nationId.text,
-                agentInfo: agentInfo.value ?? AgentInfo(),
-                date: _date,
-                imagePath: _imagePath.value,
-                tarh: _tarh.text,
-                noe_jaygah: _noe_jaygah.text,
-                quality_water: _quality_water.text,
-                tamin_water: _tamin_water.text,
-                ajor_madani: _ajor_madani.text,
-                sang_namak: _sang_namak.text,
-                adavat: _adavat.text,
-                kaf_jaygah: _kaf_jaygah.text,
-                sayeban: _sayeban,
-                status: _status.text,
-                adam_hesar: _adam_hesar,
-                astarkeshi: _astarkeshi,
-                mahal_negahdari: _mahal_negahdari,
-                adam_abkhor: _adam_abkhor,
-                adam_noor: _adam_noor,
-                adam_tahvie: _adam_tahvie,
-                sayer: _sayer.text,
-                eghdamat: _eghdamat.text,
-                dam: _dam.value,
-                noe_dam: _noe_dam.text,
-                malekiyat: _malekiyat.text,
-                vaziat: _vaziat.text,
-                latLng: _latLng!,
-              );
-              Progressbar.dismiss();
-              if (res) {
-                Get.back();
-              }
-            } else {
-              Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
-            }
-            // Get.back();
-          },
-        ),
-      ),
+      floatingActionButton: submitForm(() async {
+        if (_latLng != null) {
+          Progressbar.showProgress();
+          var res = await _visitService.saveInitVisit(
+            time: time,
+            nationId: _nationId.text,
+            agentInfo: agentInfo.value ?? AgentInfo(),
+            date: _date,
+            imagePath: _imagePath.value,
+            imagePath_2: _imagePath_2.value,
+            tarh: _tarh.text,
+            noe_jaygah: _noe_jaygah.text,
+            quality_water: _quality_water.text,
+            tamin_water: _tamin_water.text,
+            ajor_madani: _ajor_madani.text,
+            sang_namak: _sang_namak.text,
+            adavat: _adavat.text,
+            kaf_jaygah: _kaf_jaygah.text,
+            sayeban: _sayeban,
+            status: _status.text,
+            adam_hesar: _adam_hesar,
+            astarkeshi: _astarkeshi,
+            mahal_negahdari: _mahal_negahdari,
+            adam_abkhor: _adam_abkhor,
+            adam_noor: _adam_noor,
+            adam_tahvie: _adam_tahvie,
+            sayer: _sayer.text,
+            eghdamat: _eghdamat.text,
+            dam: _dam.value,
+            noe_dam: _noe_dam.text,
+            malekiyat: _malekiyat.text,
+            vaziat: _vaziat.text,
+            latLng: _latLng!,
+          );
+          Progressbar.dismiss();
+          if (res) {
+            Get.back();
+          }
+        } else {
+          Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
+        }
+      }),
       appBar: appSliverAppBar("اضافه کردن بازدید"),
       body: SingleChildScrollView(
         child: Container(
@@ -676,10 +667,11 @@ class _AddInitialReportState extends State<AddInitialReport> {
                           SizedBox(
                             height: 10,
                           ),
-                          ImageView(_imagePath, ""),
+                          ImageView(_imagePath, "تصویر جایگاه 1"),
                           SizedBox(
                             height: 10,
                           ),
+                          ImageView(_imagePath_2, "تصویر جایگاه 2"),
                           SizedBox(
                             height: 70,
                             child: DropdownButtonFormField<String>(

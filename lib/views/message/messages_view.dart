@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/message_service.dart';
 import 'package:frappe_app/views/message/new_message_page.dart';
+import 'package:frappe_app/views/visit/add_periodic_visit.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/constant.dart';
+import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
@@ -35,16 +37,7 @@ class _MessagesViewState extends State<MessagesView> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         floatingActionButton: _athService.isRahbar()
-            ? Padding(
-                padding: const EdgeInsets.only(bottom: 25, left: 20),
-                child: FloatingActionButton(
-                  backgroundColor: MAIN_COLOR,
-                  child: Icon(Icons.add, color: Colors.white),
-                  onPressed: () {
-                    Get.to(() => NewMessagePage());
-                  },
-                ),
-              )
+            ? newFormWidget(NewMessagePage(), title: "پیام جدید")
             : null,
         appBar: appSliverAppBar("پیام"),
         body: Container(

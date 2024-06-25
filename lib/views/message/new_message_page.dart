@@ -8,6 +8,7 @@ import 'package:frappe_app/services/message_service.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:frappe_app/widgets/file_picker_widget.dart';
+import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:get/get.dart';
 import 'package:get/get_rx/get_rx.dart';
 import 'package:get_it/get_it.dart';
@@ -49,26 +50,17 @@ class _NewMessagePageState extends State<NewMessagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(left: 20, bottom: 10),
-        child: FloatingActionButton(
-          backgroundColor: MAIN_COLOR,
-          child: Icon(
-            CupertinoIcons.location,
-            color: Colors.white,
-            size: 40,
-          ),
-          onPressed: () {
-            _messageService.sendMessage(
-                status: _vaziat,
-                priority: _olavaiat,
-                subject1: _issue.text,
-                body: _body.text,
-                audience1: receivers.values.toList(),
-                audience_copy: ccrReceivers.values.toList(),
-                imagePath: _filePath.value);
-          },
-        ),
+      floatingActionButton: submitForm(
+        () {
+          _messageService.sendMessage(
+              status: _vaziat,
+              priority: _olavaiat,
+              subject1: _issue.text,
+              body: _body.text,
+              audience1: receivers.values.toList(),
+              audience_copy: ccrReceivers.values.toList(),
+              imagePath: _filePath.value);
+        },
       ),
       appBar: appSliverAppBar("پیام جدید"),
       body: SingleChildScrollView(

@@ -13,7 +13,6 @@ class RequestDao {
 
   Future<void> save(Request request) async {
     var box = await _open();
-
     box.put(request.time.toString(), request);
   }
 

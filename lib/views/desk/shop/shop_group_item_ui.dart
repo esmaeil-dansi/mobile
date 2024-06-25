@@ -263,7 +263,7 @@ class ShopGroupItemUi extends StatelessWidget {
   Widget _item({required String subTitle, required Widget child}) =>
       GestureDetector(
           onTap: () {
-            if (type == ShopType.NAHADA) {
+            if ( true ||  type == ShopType.NAHADA) {
               Get.to(() => SubGroupTamin(type, subTitle));
             } else {
               Get.bottomSheet(AnimalTypePage(type, subTitle));

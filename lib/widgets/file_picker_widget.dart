@@ -8,62 +8,62 @@ import 'package:mime/mime.dart';
 Widget FilePickerWidget(Rx<String> path) {
   return Obx(() => path.value.isNotEmpty
       ? Column(
+    children: [
+      if ((lookupMimeType(path.value)?.contains("image") ?? false))
+        Column(
           children: [
-            if ((lookupMimeType(path.value)?.contains("image") ?? false))
-              Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.file(
-                      fit: BoxFit.cover,
-                      File(
-                        path.value,
-                      ),
-                      height: 300,
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: attachWidget(path),
-                  ),
-                ],
-              )
-            else
-              Container(
-                decoration: BoxDecoration(
-                    border: Border.all(),
-                    borderRadius: BorderRadius.circular(10)),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      path.value.split("/").last,
-                      style: TextStyle(fontSize: 17),
-                    ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    attachWidget(path)
-                  ],
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.file(
+                fit: BoxFit.cover,
+                File(
+                  path.value,
                 ),
-              )
+                height: 300,
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: attachWidget(path),
+            ),
           ],
         )
+      else
+        Container(
+          decoration: BoxDecoration(
+              border: Border.all(),
+              borderRadius: BorderRadius.circular(10)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 4,
+              ),
+              Text(
+                path.value.split("/").last,
+                style: TextStyle(fontSize: 17),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              attachWidget(path)
+            ],
+          ),
+        )
+    ],
+  )
       : Align(
-          alignment: Alignment.centerRight,
-          child: ElevatedButton(
-              onPressed: () async {
-                FilePickerResult? result =
-                    await FilePicker.platform.pickFiles();
-                if (result != null) {
-                  path.value = result.files.first.path!;
-                }
-              },
-              child: Text("انتخاب فایل")),
-        ));
+    alignment: Alignment.centerRight,
+    child: ElevatedButton(
+        onPressed: () async {
+          FilePickerResult? result =
+          await FilePicker.platform.pickFiles();
+          if (result != null) {
+            path.value = result.files.first.path!;
+          }
+        },
+        child: Text("انتخاب فایل")),
+  ));
 }
 
 Widget attachWidget(Rx<String> path) {
@@ -104,7 +104,7 @@ Widget attachWidget(Rx<String> path) {
                 },
                 icon: Container(
                   decoration:
-                      BoxDecoration(borderRadius: BorderRadius.circular(50)),
+                  BoxDecoration(borderRadius: BorderRadius.circular(50)),
                   child: Icon(
                     Icons.delete,
                     color: Colors.red,

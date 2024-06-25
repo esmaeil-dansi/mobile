@@ -63,7 +63,7 @@ void _handelAttachImage(
     int key, Function(List<String>) onSelected, bool multi) async {
   if (key == 0) {
     FilePickerResult? result =
-        await FilePicker.platform.pickFiles(allowMultiple: multi);
+    await FilePicker.platform.pickFiles(allowMultiple: multi);
     if (result != null && result.files.isNotEmpty) {
       onSelected(result.files.map((e) => e.path!).toList());
     }

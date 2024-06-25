@@ -8,7 +8,7 @@ import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/http_service.dart';
-import 'package:frappe_app/views/desk/InfoPage.dart';
+import 'package:frappe_app/views/desk/advertisement_page.dart';
 import 'package:frappe_app/views/login/login_page.dart';
 import 'package:frappe_app/widgets/attach_image.dart';
 import 'package:frappe_app/widgets/circle_avatar_widget.dart';
@@ -37,6 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   void initState() {
+    GetIt.I.get<AutService>().fetchAdvertisement(DateTime.now());
     SharedPreferences.getInstance().then((value) => _sharedPreferences = value);
     _autService.getFirstNameAndLastName();
     _autService.getPermission();
@@ -362,7 +363,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         GestureDetector(
                           behavior: HitTestBehavior.translucent,
                           onTap: () {
-                            Get.to(() => InfoPage());
+                            Get.to(() => AdvertisementPage());
                           },
                           child: SizedBox(
                             height: 37,
@@ -394,7 +395,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   SizedBox(
                                     width: 15,
                                   ),
-                                  Text("نسخه\t 1.2")
+                                  Text("نسخه\t 1.7")
                                 ],
                               ),
                             ],

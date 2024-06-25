@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frappe_app/db/advertisement.dart';
+import 'package:frappe_app/db/dao/advertisement_dao.dart';
 import 'package:frappe_app/db/dao/request_dao.dart';
 import 'package:frappe_app/db/request.dart';
 import 'package:frappe_app/db/request_statuse.dart';
@@ -7,6 +9,7 @@ import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/services/message_service.dart';
+import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/services/user_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:get/get.dart';
@@ -16,10 +19,11 @@ import 'package:hive_flutter/adapters.dart';
 import 'app.dart';
 
 void main() async {
-    WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(RequestAdapter());
   Hive.registerAdapter(RequestStatusAdapter());
+  Hive.registerAdapter(AdvertisementAdapter());
 
   initServicesAndRepo();
 
@@ -27,6 +31,7 @@ void main() async {
 }
 
 void initServicesAndRepo() {
+  GetIt.instance.registerSingleton<AdvertisementDao>(AdvertisementDao());
   GetIt.instance.registerSingleton<AutService>(AutService());
   GetIt.instance.registerSingleton<HttpService>(HttpService());
   GetIt.instance.registerSingleton<FileService>(FileService());
@@ -34,12 +39,12 @@ void initServicesAndRepo() {
   GetIt.instance.registerSingleton<RequestRepo>(RequestRepo());
   GetIt.instance.registerSingleton<MessageService>(MessageService());
   GetIt.instance.registerSingleton<VisitService>(VisitService());
+  GetIt.instance.registerSingleton<ShopService>(ShopService());
   GetIt.instance.registerSingleton<UserService>(UserService());
 }
 
 class MyApp extends StatelessWidget {
   MyApp({super.key});
-
 
   @override
   Widget build(BuildContext context) {

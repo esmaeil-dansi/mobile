@@ -50,7 +50,7 @@ class _animalTypePageState extends State<AnimalTypePage> {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Container(
         decoration: BoxDecoration(
-            gradient: LinearGradient(colors: test),
+            gradient: LinearGradient(colors: GRADIANT_COLOR),
             borderRadius: BorderRadius.only(
                 topRight: Radius.circular(
                   10,

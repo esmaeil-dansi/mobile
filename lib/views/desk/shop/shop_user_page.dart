@@ -35,7 +35,7 @@ class SubGroupTamin extends StatelessWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: Container(
                           decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: test),
+                              gradient: LinearGradient(colors: GRADIANT_COLOR),
                               border: Border.all(),
                               borderRadius: BorderRadius.circular(15)),
                           child: Padding(

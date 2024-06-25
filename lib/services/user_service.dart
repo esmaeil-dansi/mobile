@@ -9,7 +9,7 @@ class UserService {
 
   Future<void> fetchUserPermissions() async {
     try {
-      var result = await _httpService.get("app/user-permission", FormData());
+      var result = await _httpService.get("app/user-permission");
       _logger.i(result);
     } catch (e) {
       _logger.e(e);

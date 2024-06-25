@@ -1,16 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:frappe_app/model/agent.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/checkBox.dart';
-import 'package:frappe_app/widgets/city_selector.dart';
 import 'package:frappe_app/widgets/constant.dart';
+import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
+import 'package:frappe_app/widgets/select_location.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
-
+import 'package:latlong2/latlong.dart';
 import '../../model/agentInfo.dart';
 import '../../widgets/image_view.dart';
 
@@ -28,6 +28,7 @@ class _AddVetVisitState extends State<AddVetVisit> {
     super.initState();
   }
 
+  LatLng? _latLng;
   final _bime = 0.obs;
 
   final _pelak = 0.obs;
@@ -172,16 +173,10 @@ class _AddVetVisitState extends State<AddVetVisit> {
     return DefaultTabController(
       length: 4,
       child: Scaffold(
-        floatingActionButton: Padding(
-          padding: const EdgeInsets.only(left: 20, bottom: 10),
-          child: FloatingActionButton(
-            backgroundColor: MAIN_COLOR,
-            child: Icon(
-              Icons.check,
-              color: Colors.white,
-              size: 40,
-            ),
-            onPressed: () async {
+        floatingActionButton: submitForm(() async {
+            if (_latLng == null) {
+              Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
+            } else {
               Progressbar.showProgress();
               var res = await _visitService.saveVetVisit(
                 agentInfo: agentInfo.value ?? AgentInfo(),
@@ -191,6 +186,7 @@ class _AddVetVisitState extends State<AddVetVisit> {
                 code_n: code_n,
                 disapproval_reason: disapproval_reason,
                 bime: _bime.value,
+                latLng: _latLng!,
                 pelak: _pelak.value,
                 nationId: _nationId.text,
                 pelak_az: pelak_az,
@@ -255,8 +251,8 @@ class _AddVetVisitState extends State<AddVetVisit> {
               if (res) {
                 Get.back();
               }
-            },
-          ),
+            }
+          },
         ),
         appBar: appSliverAppBar("ویزیت دامپزشکی جدید",
             bottom: TabBar(
@@ -1947,7 +1943,7 @@ class _AddVetVisitState extends State<AddVetVisit> {
                           height: 70,
                           child: DropdownButtonFormField<String>(
                             decoration: InputDecoration(
-                              labelText: "وضعیت اجرای طرح",
+                              labelText: "وضعیت نهایی",
                               border: OutlineInputBorder(
                                 borderSide: const BorderSide(
                                     width: 2, color: Colors.red),
@@ -1990,6 +1986,17 @@ class _AddVetVisitState extends State<AddVetVisit> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20.0),
                             ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: SelectLocation(
+                            onSelected: (_) {
+                              _latLng = _;
+                            },
                           ),
                         ),
                       ],
