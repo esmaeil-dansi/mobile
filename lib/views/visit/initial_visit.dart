@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:frappe_app/model/SortKey.dart';
 import 'package:frappe_app/model/report.dart';
+import 'package:frappe_app/model/sort_dir.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/views/visit/add_initial_visit.dart';
@@ -7,10 +9,9 @@ import 'package:frappe_app/views/visit/init_visit_info.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:frappe_app/widgets/city_selector.dart';
-import 'package:frappe_app/widgets/constant.dart';
+import 'package:frappe_app/widgets/fileter_forms.dart';
 import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
-import 'package:frappe_app/widgets/sliver_body.dart';
 
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
@@ -33,12 +34,19 @@ class _InitialVisitState extends State<InitialVisit> {
   final _startSearch = true.obs;
   final _hasFilter = false.obs;
 
+  var _sortKey = GetIt.I.get<VisitService>().initVistiSortKeys().first;
+  var _sortDir = SortDir.DESC;
+
   @override
   void initState() {
     province.value = _athService.getProvince();
     city = _athService.getCity();
     _visitService
-        .fetchInitialVisitReport(province: province.value, city: city)
+        .fetchInitialVisitReport(
+            province: province.value,
+            city: city,
+            sortKey: _sortKey,
+            sortDir: _sortDir)
         .then((value) {
       _startSearch.value = false;
       reports.addAll(value);
@@ -55,6 +63,8 @@ class _InitialVisitState extends State<InitialVisit> {
     _noResult.value = false;
 
     var res = await _visitService.fetchInitialVisitReport(
+        sortDir: _sortDir,
+        sortKey: _sortKey,
         id: _idController.text.isNotEmpty ? int.parse(_idController.text) : 0,
         province: province.value,
         city: city);
@@ -149,21 +159,16 @@ class _InitialVisitState extends State<InitialVisit> {
                     SizedBox(
                       width: 10,
                     ),
-                    Container(
-                        height: 40,
-                        decoration: BoxDecoration(
-                            border: Border.all(color: Colors.black38),
-                            borderRadius: BorderRadius.circular(10)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(2.0),
-                          child: Row(
-                            children: [
-                              IconButton(
-                                  onPressed: () {}, icon: Icon(Icons.sort)),
-                              Text("آخرین بروزرسانی"),
-                            ],
-                          ),
-                        )),
+                    FilterForm(
+                        onChangeSortKey: (_) {
+                          _sortKey = _;
+                          getReport();
+                        },
+                        onChangeSortDir: (s) {
+                          _sortDir = s;
+                          getReport();
+                        },
+                        filters: _visitService.initVistiSortKeys())
                   ],
                 ),
                 Obx(() => reports.isNotEmpty
@@ -213,8 +218,7 @@ class _InitialVisitState extends State<InitialVisit> {
                                       onTap: () async {
                                         Progressbar.showProgress();
                                         var res = await _visitService
-                                            .getInitVisitInfo(
-                                                int.parse(record.id));
+                                            .getInitVisitInfo(record.id);
                                         Progressbar.dismiss();
                                         if (res != null) {
                                           Get.bottomSheet(bottomSheetTemplate(

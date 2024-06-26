@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frappe_app/model/report.dart';
+import 'package:frappe_app/model/sort_dir.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/views/visit/add_periodic_visit.dart';
@@ -8,6 +9,7 @@ import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:frappe_app/widgets/city_selector.dart';
 import 'package:frappe_app/widgets/constant.dart';
+import 'package:frappe_app/widgets/fileter_forms.dart';
 import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:frappe_app/widgets/sliver_body.dart';
@@ -30,13 +32,19 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
   final _noResult = false.obs;
   final _startSearch = true.obs;
   final _hasFilter = false.obs;
+  var _sortKey = GetIt.I.get<VisitService>().periodicVistiSortKeys().first;
+  var _sortDir = SortDir.DESC;
 
   @override
   void initState() {
     province.value = _athService.getProvince();
     city = _athService.getCity();
     _visitService
-        .fetchPeriodicReport(province: province.value, city: city)
+        .fetchPeriodicReport(
+            province: province.value,
+            city: city,
+            sortDir: _sortDir,
+            sortKey: _sortKey)
         .then((value) {
       _startSearch.value = false;
       reports.addAll(value);
@@ -54,6 +62,8 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
     reports.clear();
     _noResult.value = false;
     var res = await _visitService.fetchPeriodicReport(
+        sortDir: _sortDir,
+        sortKey: _sortKey,
         id: _idController.text.isNotEmpty ? int.parse(_idController.text) : 0,
         province: province.value,
         nationId: _nationIdController.text.isNotEmpty
@@ -167,21 +177,16 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
                   SizedBox(
                     width: 10,
                   ),
-                  Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black38),
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: Row(
-                          children: [
-                            IconButton(
-                                onPressed: () {}, icon: Icon(Icons.sort)),
-                            Text("آخرین بروزرسانی"),
-                          ],
-                        ),
-                      )),
+                  FilterForm(
+                      onChangeSortKey: (_) {
+                        _sortKey = _;
+                        getReport();
+                      },
+                      onChangeSortDir: (s) {
+                        _sortDir = s;
+                        getReport();
+                      },
+                      filters: _visitService.periodicVistiSortKeys())
                 ],
               ),
               SizedBox(

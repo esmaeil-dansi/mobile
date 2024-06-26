@@ -27,6 +27,19 @@ class AdvertisementDao {
     yield* box.watch(key: date).map((event) => box.get(date));
   }
 
+  Stream<List<Advertisement>> watchAll() async* {
+    var box = await _open();
+    yield _sorted(box.values.toList());
+    yield* box.watch().map((event) => _sorted(box.values.toList()));
+  }
+
+  List<Advertisement> _sorted(List<Advertisement> l) {
+    l.sort((a, b) =>
+        int.parse(b.date.replaceAll("-", "")) -
+        int.parse(a.date.replaceAll("-", "")));
+    return l;
+  }
+
   Future<void> delete(int id) async {
     var box = await _open();
     await box.delete(id.toString());

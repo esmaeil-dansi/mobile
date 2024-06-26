@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:frappe_app/model/SortKey.dart';
 import 'package:frappe_app/model/agent.dart';
 import 'package:frappe_app/model/agentInfo.dart';
 import 'package:frappe_app/model/init_visit_Info.dart';
 import 'package:frappe_app/model/periodic_visit_info_model.dart';
 import 'package:frappe_app/model/report.dart';
+import 'package:frappe_app/model/sort_dir.dart';
 import 'package:frappe_app/model/vet_visit_info_model.dart';
 import 'package:frappe_app/repo/RequestRepo.dart';
 import 'package:frappe_app/services/file_service.dart';
@@ -125,6 +127,8 @@ class VisitService {
       {int id = 0,
       String province = "",
       String city = "",
+      required SortKey sortKey,
+      required SortDir sortDir,
       int start = 0}) async {
     List<List<String>> filters = [];
     if (id != 0) {
@@ -163,9 +167,9 @@ class VisitService {
               "`tabInitial Visit`.`status`"
             ]),
             'filters': json.encode(filters),
-            'order_by': '`tabInitial Visit`.`modified` DESC',
+            'order_by': '${sortKey.key} ${sortDir.name}',
             'start': start,
-            'page_length': 20,
+            'page_length': 50,
             'view': "List",
             'with_comment_count': 1
           }));
@@ -185,6 +189,8 @@ class VisitService {
       int nationId = 0,
       String province = "",
       String city = "",
+      required SortDir sortDir,
+      required SortKey sortKey,
       int start = 0}) async {
     try {
       List<List<String>> filters = [];
@@ -215,7 +221,7 @@ class VisitService {
               "`tabPeriodic visits`.`stable_condition`"
             ]),
             'filters': json.encode(filters),
-            'order_by': '`tabPeriodic visits`.`modified` desc',
+            'order_by': '${sortKey.key} ${sortDir.name}',
             'start': 0,
             'page_length': 20,
             'view': "Report",
@@ -236,6 +242,8 @@ class VisitService {
       {int id = 0,
       String province = "",
       String city = "",
+      required SortKey sortKey,
+      required SortDir sortDir,
       int start = 0}) async {
     try {
       List<List<String>> filters = [];
@@ -271,7 +279,7 @@ class VisitService {
               "`tabVet Visit`.`name_1`"
             ]),
             'filters': json.encode(filters),
-            'order_by': '`tabVet Visit`.`modified` DESC',
+            'order_by': '${sortKey.key} ${sortDir.name}',
             'start': 0,
             'page_length': 20,
             'view': "List",
@@ -758,7 +766,8 @@ class VisitService {
   }
 
   Future<Response<dynamic>?> _sendRequest(String body) async {
-    return await _httpService.post("/api/method/frappe.desk.form.save.savedocs",
+    return await _httpService.postForm(
+        "/api/method/frappe.desk.form.save.savedocs",
         FormData.fromMap({'doc': body, 'action': 'Save'}));
   }
 
@@ -805,10 +814,10 @@ class VisitService {
     return [];
   }
 
-  Future<InitVisitInfoModel?> getInitVisitInfo(int id) async {
+  Future<InitVisitInfoModel?> getInitVisitInfo(String id) async {
     try {
       var result = await _httpService.get(
-        "/api/method/frappe.desk.form.load.getdoc?doctype=Initial%20Visit&name=$id&_=1718879485110",
+        "/api/method/frappe.desk.form.load.getdoc?doctype=Initial Visit&name=$id&_=1719422952988",
       );
       return InitVisitInfoModel.fromJson(result?.data["docs"][0]);
     } catch (e) {
@@ -829,7 +838,7 @@ class VisitService {
     return null;
   }
 
-  Future<VetVisitInfoModel?> getVetVisitInfo(int id) async {
+  Future<VetVisitInfoModel?> getVetVisitInfo(String id) async {
     try {
       var result = await _httpService.get(
         "/api/method/frappe.desk.form.load.getdoc?doctype=Vet%20Visit&name=$id&_=171648547368",
@@ -880,4 +889,27 @@ class VisitService {
     }
     return [];
   }
+
+  List<SortKey> initVistiSortKeys() => [
+        SortKey(title: "آخرین بروزرسانی", key: "`tabInitial Visit`.`modified`"),
+        SortKey(title: "شناسه", key: "`tabInitial Visit`.`name`"),
+        SortKey(title: "تاریخ ایجاد", key: "`tabInitial Visit`.`creation`"),
+        SortKey(title: "مکان یابی", key: "`tabInitial Visit`.`geolocation`")
+      ];
+
+  List<SortKey> periodicVistiSortKeys() => [
+        SortKey(
+            title: "آخرین بروزرسانی", key: "`tabPeriodic visits`.`modified`"),
+        SortKey(title: "شناسه", key: "`tabPeriodic visits`.`name`"),
+        SortKey(title: "تاریخ ایجاد", key: "`tabPeriodic visits`.`creation`"),
+        SortKey(title: "مکان یابی", key: "`tabPeriodic visits`.`geolocation`")
+      ];
+
+  List<SortKey> vetVistiSortKeys() => [
+        SortKey(title: "آخرین بروزرسانی", key: "`tabVet Visit`.`modified`"),
+        SortKey(title: "شناسه", key: "`tabVet Visit`.`name`"),
+        SortKey(title: "تعداد", key: "`tabVet Visit`.`number`"),
+        SortKey(title: "تاریخ ایجاد", key: "`tabVet Visit`.`creation`"),
+        SortKey(title: "موقعیت محلی", key: "`tabVet Visit`.`geolocation`"),
+      ];
 }

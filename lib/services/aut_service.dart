@@ -56,8 +56,7 @@ class AutService {
 
   String getCity() => _sharedPreferences.getString(CITY) ?? "";
 
-  String getSelectedCity() =>
-      _sharedPreferences.getString(SELECTED_CITY) ?? "";
+  String getSelectedCity() => _sharedPreferences.getString(SELECTED_CITY) ?? "";
 
   void saveSelectedCity(String city) =>
       _sharedPreferences.setString(SELECTED_CITY, city);
@@ -85,20 +84,23 @@ class AutService {
   Future<void> fetchAdvertisement(DateTime dateTime) async {
     try {
       final f = new DateFormat('yyyy-MM-dd').format(dateTime);
+
       var result = await GetIt.I
           .get<HttpService>()
           .get("/api/method/get_announce?date=$f");
 
-      print(result);
-      advDao.save(Advertisement(
-        date: f,
-        title: (result?.data["response_sub"] as List<dynamic>)
-            .map((e) => e.toString())
-            .toList(),
-        body: (result?.data["response_txt"] as List<dynamic>)
-            .map((e) => e.toString())
-            .toList(),
-      ));
+      var sub = (result?.data["response_sub"] as List<dynamic>)
+          .map((e) => e.toString())
+          .toList();
+      if (sub.isNotEmpty) {
+        advDao.save(Advertisement(
+          date: f,
+          title: sub,
+          body: (result?.data["response_txt"] as List<dynamic>)
+              .map((e) => e.toString())
+              .toList(),
+        ));
+      }
     } catch (e) {
       _logger.e(e);
     }
@@ -238,9 +240,7 @@ class AutService {
   }
 
   Future<void> getShopInfo() async {
-    try {
-
-    } catch (e) {
+    try {} catch (e) {
       _logger.e(e);
     }
   }

@@ -55,7 +55,7 @@ dependencies:
   geolocator: 9.0.2
   sms_autofill: 2.3.0
   flutter_map: 5.0.0
-  image_picker: 1.1.0
+  image_picker: 1.1.2
   persian_datetime_picker: 2.6.0
   hive: 2.2.3
   hive_flutter: 1.1.0

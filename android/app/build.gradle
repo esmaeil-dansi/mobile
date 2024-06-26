@@ -51,8 +51,8 @@ android {
         applicationId "chopo.icasp.ir"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 33
-        versionName "1.8"
+        versionCode 36
+        versionName "2.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }

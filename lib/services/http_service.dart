@@ -42,45 +42,25 @@ class HttpService {
     cookies = await cookieJar.loadForRequest(Uri.parse("https://icasp.ir"));
   }
 
+  Future<Response<dynamic>?> postForm(String path, FormData data,
+      {Map<String, dynamic>? map}) async {
+    return _dio.post(
+      path,
+      data: data,
+      options: Options(
+        headers: {
+          "cookie": getCookie(),
+          // 'X-Frappe-Csrf-Token':
+          //     "80b201c014cd400bbc4c5e6b197a68e473a2a7ad56366c36d71f71c0",
+          // 'Origin': "https://icasp.ir",
+          // 'Host': "icasp.ir",
+        },
+      ),
+    );
+  }
+
   Future<Response<dynamic>?> post(String path, FormData data,
       {Map<String, dynamic>? map}) async {
-    // Map<String, dynamic> map = {};
-    // data.fields.forEach((element) {
-    //   map[element.key] = element.value;
-    //   // if(element.key =="fields"){
-    //   //   map[element.key] = json.encode(element.value);
-    //   // }
-    //   // if(element.key =="filters"){
-    //   //   map[element.key] = json.encode(element.value);
-    //   // }
-    // });
-    // try {
-    //   var response = await http.post(
-    //       Uri.parse(
-    //         "https://icasp.ir"+path,
-    //       ),
-    //       body: map,
-    //       headers: {
-    //         'cookie': getCookie(),
-    //         'Content-Type': 'application/x-www-form-urlencoded',
-    //       });
-    //   print(response.statusCode.toString());
-    // } catch (e) {
-    //   print(e);
-    // }
-    // try {
-    //   var res = await Dio().get(
-    //       "https://icasp.ir/api/method/frappe.desk.form.load.getdoc?doctype=Initial%20Visit&name=5189676560&_=1718879485110",
-    //       options: Options(
-    //         headers: {
-    //           'cookie': getCookie(),
-    //         },
-    //       ));
-    //   print(res);
-    // } catch (e) {
-    //   print(e);
-    // }
-
     Map<String, dynamic> ma = {};
 
     data.fields.forEach((element) {

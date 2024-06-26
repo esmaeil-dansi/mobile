@@ -1,13 +1,9 @@
-import 'dart:ffi';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/services/aut_service.dart';
-import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/views/desk/advertisement_page.dart';
 import 'package:frappe_app/views/login/login_page.dart';
 import 'package:frappe_app/widgets/attach_image.dart';
@@ -395,7 +391,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   SizedBox(
                                     width: 15,
                                   ),
-                                  Text("نسخه\t 1.7")
+                                  Text("نسخه\t 1.9")
                                 ],
                               ),
                             ],

@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frappe_app/model/report.dart';
+import 'package:frappe_app/model/sort_dir.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/views/visit/add_vetvisit.dart';
@@ -8,6 +9,7 @@ import 'package:frappe_app/views/visit/vervisit_info.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:frappe_app/widgets/city_selector.dart';
+import 'package:frappe_app/widgets/fileter_forms.dart';
 import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart';
@@ -25,6 +27,8 @@ class _VetVisitState extends State<VetVisit> {
   final _idController = TextEditingController();
   final province = "".obs;
   String city = "";
+  var _sortKey = GetIt.I.get<VisitService>().vetVistiSortKeys().first;
+  var _sortDir = SortDir.DESC;
   final _noResult = false.obs;
   final _startSearch = true.obs;
   final _hasFilter = false.obs;
@@ -34,7 +38,12 @@ class _VetVisitState extends State<VetVisit> {
     province.value = _athService.getProvince();
     city = _athService.getCity();
     _visitService
-        .fetchVetVisitReport(province: province.value, city: city)
+        .fetchVetVisitReport(
+      province: province.value,
+      city: city,
+      sortKey: _sortKey,
+      sortDir: _sortDir,
+    )
         .then((value) {
       _startSearch.value = false;
       reports.addAll(value);
@@ -50,6 +59,8 @@ class _VetVisitState extends State<VetVisit> {
         province.value.isNotEmpty;
     _startSearch.value = true;
     var res = await _visitService.fetchVetVisitReport(
+        sortKey: _sortKey,
+        sortDir: _sortDir,
         id: _idController.text.isNotEmpty ? int.parse(_idController.text) : 0,
         province: province.value,
         city: city);
@@ -142,21 +153,16 @@ class _VetVisitState extends State<VetVisit> {
                   SizedBox(
                     width: 10,
                   ),
-                  Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black38),
-                          borderRadius: BorderRadius.circular(10)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: Row(
-                          children: [
-                            IconButton(
-                                onPressed: () {}, icon: Icon(Icons.sort)),
-                            Text("آخرین بروزرسانی"),
-                          ],
-                        ),
-                      )),
+                  FilterForm(
+                      onChangeSortKey: (_) {
+                        _sortKey = _;
+                        getReport();
+                      },
+                      onChangeSortDir: (s) {
+                        _sortDir = s;
+                        getReport();
+                      },
+                      filters: _visitService.vetVistiSortKeys()),
                 ],
               ),
               Obx(() => reports.isNotEmpty
@@ -208,9 +214,8 @@ class _VetVisitState extends State<VetVisit> {
                                     behavior: HitTestBehavior.translucent,
                                     onTap: () async {
                                       Progressbar.showProgress();
-                                      var res =
-                                          await _visitService.getVetVisitInfo(
-                                              int.parse(record.id));
+                                      var res = await _visitService
+                                          .getVetVisitInfo(record.id);
                                       Progressbar.dismiss();
                                       if (res != null) {
                                         Get.bottomSheet(bottomSheetTemplate(
