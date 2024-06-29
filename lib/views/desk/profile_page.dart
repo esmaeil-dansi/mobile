@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -14,6 +13,8 @@ import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../widgets/AvatarWidget.dart';
+
 class ProfilePage extends StatefulWidget {
   ProfilePage({Key? key}) : super(key: key);
 
@@ -26,9 +27,6 @@ class _ProfilePageState extends State<ProfilePage> {
   final _notification = true.obs;
   final _isDarkMode = Get.isDarkMode.obs;
   late SharedPreferences _sharedPreferences;
-
-  final _uploading = false.obs;
-  String newAvatar = "";
   var _obscureText = false.obs;
 
   @override
@@ -62,7 +60,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Column(
                       children: [
-                        _Avatar(),
+                        AvatarWidget(
+                          avatar: _autService.getUserImage(),
+                        ),
                         SizedBox(
                           height: 10,
                         ),
@@ -391,7 +391,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   SizedBox(
                                     width: 15,
                                   ),
-                                  Text("نسخه\t 1.9")
+                                  Text("نسخه\t 2.2")
                                 ],
                               ),
                             ],
@@ -467,61 +467,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-        ));
-  }
-
-  Widget _Avatar() {
-    return Obx(() => Column(
-          children: [
-            Align(
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: 110,
-                height: 110,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    buildCircleAvatar(_uploading.value, newAvatar),
-                    if (_uploading.isTrue)
-                      Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.yellowAccent,
-                        ),
-                      ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                          width: 37,
-                          height: 37,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(50),
-                              color: Colors.white,
-                              border: Border.all(color: MAIN_COLOR)),
-                          child: IconButton(
-                            onPressed: () async {
-                              showSelectImageBottomSheet((_) async {
-                                if (_.isNotEmpty) {
-                                  newAvatar = _.first;
-                                  _uploading.value = true;
-                                  await _autService
-                                      .changeProfileAvatar(newAvatar);
-                                  _uploading.value = false;
-                                }
-                              }, selectFromGallery: true);
-                            },
-                            icon: Icon(
-                              CupertinoIcons.camera,
-                              color: Colors.black,
-                              size: 21,
-                            ),
-                          )),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
         ));
   }
 }

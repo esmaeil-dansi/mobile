@@ -3,10 +3,14 @@ import 'package:get/get.dart';
 
 class Progressbar {
   static BuildContext? _context;
+  static bool isDismiss = false;
 
   static void showProgress() {
+    isDismiss = false;
     if (_context != null) {
-      Navigator.pop(_context!);
+      try {
+        Navigator.pop(_context!);
+      } catch (e) {}
       _context = null;
     }
     showDialog(
@@ -14,6 +18,9 @@ class Progressbar {
         context: Get.context!,
         builder: (c) {
           _context = c;
+          if (isDismiss) {
+            dismiss();
+          }
           return Center(
             child: CircularProgressIndicator(
               color: Colors.green,
@@ -23,6 +30,7 @@ class Progressbar {
   }
 
   static void dismiss() {
+    isDismiss = true;
     if (_context != null) {
       Navigator.pop(_context!);
       _context = null;

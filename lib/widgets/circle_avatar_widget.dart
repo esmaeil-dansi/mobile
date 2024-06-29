@@ -8,9 +8,8 @@ import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
-Widget buildCircleAvatar(bool uploading, String newAvatar) {
-  var _autService = GetIt.I.get<AutService>();
-  return _autService.getUserImage().isNotEmpty || uploading
+Widget buildCircleAvatar(bool uploading, String newAvatar, Rx<String> avatar) {
+  return avatar.isNotEmpty || uploading
       ? Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(colors: GRADIANT_COLOR),
@@ -20,11 +19,9 @@ Widget buildCircleAvatar(bool uploading, String newAvatar) {
                 fit: BoxFit.fill,
                 image: uploading
                     ? Image.file(File(newAvatar)).image
-                    : NetworkImage(
-                        "https://icasp.ir" + _autService.getUserImage().value,
-                        headers: {
-                            'cookie': GetIt.I.get<HttpService>().getCookie(),
-                          })),
+                    : NetworkImage("https://icasp.ir" + avatar.value, headers: {
+                        'cookie': GetIt.I.get<HttpService>().getCookie(),
+                      })),
           ),
         )
       : Container(
@@ -44,6 +41,64 @@ Widget buildCircleAvatar(bool uploading, String newAvatar) {
               ),
               child: Icon(
                 CupertinoIcons.person,
+                color: Colors.blueGrey,
+                size: 70,
+              ),
+            ),
+          ),
+        );
+}
+
+Widget buildShopAvatar(bool uploading, String newAvatar, Rx<String> avatar) {
+  return (avatar.isNotEmpty || uploading)
+      ? Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            gradient: LinearGradient(colors: GRADIANT_COLOR),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(1.0),
+            child: Container(
+              width: Get.width,
+              height: 200,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                gradient: LinearGradient(colors: GRADIANT_COLOR),
+                // shape: BoxShape.circle,
+                image: DecorationImage(
+                    fit: BoxFit.fill,
+                    image: uploading
+                        ? Image.file(File(newAvatar)).image
+                        : NetworkImage("https://icasp.ir" + avatar.value,
+                            headers: {
+                                'cookie':
+                                    GetIt.I.get<HttpService>().getCookie(),
+                              })),
+              ),
+            ),
+          ),
+        )
+      : Container(
+          width: Get.width,
+          height: 200,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            // border: Border.all(),
+            gradient: LinearGradient(colors: GRADIANT_COLOR),
+            // shape: BoxShape.circle,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(1.0),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+                // border: Border.all(),
+                // shape: BoxShape.circle,
+              ),
+              child: Icon(
+                CupertinoIcons.shopping_cart,
                 color: Colors.blueGrey,
                 size: 70,
               ),

@@ -382,6 +382,10 @@ class VisitService {
         if (result?.statusCode == 200) {
           Fluttertoast.showToast(msg: "ثبت شد");
           return true;
+        } else {
+          Progressbar.dismiss();
+          showErrorMessage(result?.data["_server_messages"]);
+          return false;
         }
       } else {
         Fluttertoast.showToast(msg: "خطایی رخ داده است.");
@@ -408,9 +412,25 @@ class VisitService {
       var newBody = await _uploadInitVisitFile(
           request.filePaths?.first ?? '', request.body);
       if (newBody != null) {
-        _sendRequest(newBody);
+        var res = await _sendRequest(newBody);
+        Progressbar.dismiss();
+        if (res?.statusCode == 200) {
+          return true;
+        } else {
+          showErrorToast(null);
+        }
+        return false;
+      } else {
+        Progressbar.dismiss();
       }
-    } catch (e) {}
+      return false;
+    } on DioException catch (e) {
+      Progressbar.dismiss();
+      handleDioError(e, showInfo: false);
+    } catch (e) {
+      Progressbar.dismiss();
+      showErrorToast(null);
+    }
     return false;
   }
 
@@ -450,11 +470,26 @@ class VisitService {
       var newBody = await _uploadPerVisitFile(
           request.filePaths?.first ?? '', request.body);
       if (newBody != null) {
-        _sendRequest(newBody);
+        var res = await _sendRequest(newBody);
+        Progressbar.dismiss();
+        if (res?.statusCode == 200) {
+          return true;
+        } else {
+          showErrorToast(null);
+        }
+        return false;
+      } else {
+        Progressbar.dismiss();
       }
-      return true;
+      return false;
+    } on DioException catch (e) {
+      Progressbar.dismiss();
+      handleDioError(e, showInfo: false);
     } catch (e) {
-      // showErrorToast(null);
+      Progressbar.dismiss();
+      Future.delayed(Duration(milliseconds: 500), () {
+        showErrorToast(null);
+      });
     }
     return false;
   }
@@ -522,15 +557,12 @@ class VisitService {
         if (res?.statusCode == 200) {
           Fluttertoast.showToast(msg: "ثبت شد");
           return true;
+        } else {
+          Progressbar.dismiss();
+          showErrorMessage(res?.data["_server_messages"]);
+          return false;
         }
-      } else {}
-      unawaited(_requestRepo.save(Request(
-          time: time,
-          type: "Periodic visits",
-          nationId: nationId,
-          filePaths: [imagePath],
-          status: RequestStatus.Success,
-          body: body)));
+      }
     } on DioException catch (e) {
       Progressbar.dismiss();
       handleDioError(e);
@@ -711,6 +743,10 @@ class VisitService {
         if (res?.statusCode == 200) {
           Fluttertoast.showToast(msg: "ثبت شد");
           return true;
+        } else {
+          Progressbar.dismiss();
+          showErrorMessage(res?.data["_server_messages"]);
+          return false;
         }
       } else {
         showErrorToast(null);
@@ -737,12 +773,24 @@ class VisitService {
         var body = await _uploadVetVisitFiles(request.filePaths?.first ?? '',
             request.filePaths?.last ?? '', request.body);
         if (body != null) {
-          await _sendRequest(body);
+          var res = await _sendRequest(body);
+          Progressbar.dismiss();
+          if (res?.statusCode == 200) {
+            return true;
+          } else {
+            showErrorToast(null);
+          }
+          return false;
         }
-        return true;
+        Progressbar.dismiss();
+        return false;
       }
+    } on DioException catch (e) {
+      Progressbar.dismiss();
+      handleDioError(e, showInfo: false);
     } catch (e) {
-      return false;
+      Progressbar.dismiss();
+      showErrorToast(null);
     }
     return false;
   }
@@ -765,9 +813,8 @@ class VisitService {
     return json.encode(newBody);
   }
 
-  Future<Response<dynamic>?> _sendRequest(String body) async {
-    return await _httpService.postForm(
-        "/api/method/frappe.desk.form.save.savedocs",
+  Future<Response<dynamic>?> _sendRequest(String body) {
+    return _httpService.postForm("/api/method/frappe.desk.form.save.savedocs",
         FormData.fromMap({'doc': body, 'action': 'Save'}));
   }
 
@@ -906,10 +953,10 @@ class VisitService {
       ];
 
   List<SortKey> vetVistiSortKeys() => [
+// SortKey(title: "موقعیت محلی", key: "`tabVet Visit`.`geolocation`"),
         SortKey(title: "آخرین بروزرسانی", key: "`tabVet Visit`.`modified`"),
         SortKey(title: "شناسه", key: "`tabVet Visit`.`name`"),
         SortKey(title: "تعداد", key: "`tabVet Visit`.`number`"),
         SortKey(title: "تاریخ ایجاد", key: "`tabVet Visit`.`creation`"),
-        SortKey(title: "موقعیت محلی", key: "`tabVet Visit`.`geolocation`"),
       ];
 }

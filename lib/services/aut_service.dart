@@ -7,6 +7,7 @@ import 'package:frappe_app/db/dao/advertisement_dao.dart';
 import 'package:frappe_app/model/weather.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
+import 'package:frappe_app/services/shop_service.dart';
 import 'package:get/get.dart' as g;
 import 'package:get/get_rx/get_rx.dart';
 import 'package:get_it/get_it.dart';
@@ -114,6 +115,7 @@ class AutService {
     _user_id = _sharedPreferences.getString(USER_ID) ?? "";
     _user_image.value = _sharedPreferences.getString(USER_IMAGE) ?? "";
     _roles = _sharedPreferences.getStringList(ROLES) ?? [];
+    GetIt.I.get<ShopService>().fetchShopInfo(_user_id);
   }
 
   String _decodePercentEncodedString(String encoded) {
@@ -216,6 +218,7 @@ class AutService {
           res.headers["set-cookie"]?[4].split(";").first.split("=").last ?? "");
       await _getUserRole();
       getPermission();
+      GetIt.I.get<ShopService>().fetchShopInfo(_user_id);
       return res.statusCode == 200;
     } catch (e) {
       _logger.e(e);

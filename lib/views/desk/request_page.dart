@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frappe_app/db/request.dart';
 import 'package:frappe_app/repo/RequestRepo.dart';
 import 'package:frappe_app/services/visit_service.dart';
+import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get_it/get_it.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
 
@@ -100,16 +101,7 @@ class _RequestPageState extends State<RequestPage> {
                                                 backgroundColor:
                                                     Color(0xE452FF22)),
                                             onPressed: () async {
-                                              BuildContext? v;
-                                              showDialog(
-                                                  barrierDismissible: false,
-                                                  context: c,
-                                                  builder: (c) {
-                                                    v = c;
-                                                    return Center(
-                                                        child:
-                                                            CircularProgressIndicator());
-                                                  });
+                                              Progressbar.showProgress();
                                               var res = false;
                                               if (record.type ==
                                                   "Initial Visit") {
@@ -124,7 +116,7 @@ class _RequestPageState extends State<RequestPage> {
                                                 res = await _visitiService
                                                     .resendVetVisit(record);
                                               }
-                                              Navigator.pop(v!);
+
                                               if (res) {
                                                 _requestRepo.delete(record);
                                                 setState(() {});

@@ -3,15 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/model/shop_Item_model.dart';
+import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/utils/shop_utils.dart';
 import 'package:frappe_app/views/desk/shop/new_shop_item_page.dart';
+import 'package:frappe_app/widgets/AvatarWidget.dart';
 
 import 'package:frappe_app/widgets/constant.dart';
 
 import 'package:get/get.dart';
+import 'package:get_it/get_it.dart';
 
 class MyShopPage extends StatelessWidget {
-
+  var _shopService = GetIt.I.get<ShopService>();
+  var _autService = GetIt.I.get<AutService>();
   List<ShopItemModel> items = [
     ShopItemModel(name: "test1", price: "10000", group: "", id: ""),
     ShopItemModel(name: "test2", price: "12000", group: "", id: ""),
@@ -95,11 +100,18 @@ class MyShopPage extends StatelessWidget {
                 )),
           )
         ],
-        title: Text(
-          "فروشگاه تست",
-          style: TextStyle(
-              fontSize: 24, color: MAIN_COLOR, fontWeight: FontWeight.bold),
-        ),
+        title: FutureBuilder<String>(
+            initialData: _shopService.shopName(),
+            future: _shopService.getShopName(_autService.getUserId()),
+            builder: (context, snapshot) {
+              return Text(
+                snapshot.data ?? "",
+                style: TextStyle(
+                    fontSize: 24,
+                    color: MAIN_COLOR,
+                    fontWeight: FontWeight.bold),
+              );
+            }),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
@@ -111,24 +123,9 @@ class MyShopPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        gradient: LinearGradient(colors: GRADIANT_COLOR)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(2.0),
-                      child: Center(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.asset(
-                            "assets/icons/bajd.jpeg",
-                            // width: Get.width * 0.9,
-                            height: 200,
-                            fit: BoxFit.fill,
-                          ),
-                        ),
-                      ),
-                    ),
+                  AvatarWidget(
+                    isCircular: false,
+                    avatar: _shopService.shopImage,
                   ),
                   SizedBox(
                     height: 30,
@@ -343,7 +340,8 @@ class MyShopPage extends StatelessWidget {
                             height: 50,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
-                                gradient: LinearGradient(colors: GRADIANT_COLOR)),
+                                gradient:
+                                    LinearGradient(colors: GRADIANT_COLOR)),
                             width: double.infinity,
                             child: Center(
                                 child: Text(
