@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:frappe_app/model/add_per_vsiti_form_model.dart';
 import 'package:frappe_app/model/agentInfo.dart';
+import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/services/visit_service.dart';
+import 'package:frappe_app/utils/date_mapper.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/date.dart';
 import 'package:frappe_app/widgets/form/CustomTextFormField.dart';
@@ -15,46 +18,52 @@ import 'package:get_it/get_it.dart';
 import 'package:latlong2/latlong.dart';
 
 class AddPeriodicReport extends StatefulWidget {
+  int? time;
+  AddPerVisitFormModel? addPerVisitFormModel;
+
+  AddPeriodicReport({this.addPerVisitFormModel, this.time});
+
   @override
   State<AddPeriodicReport> createState() => _AddPeriodicReportState();
 }
 
 class _AddPeriodicReportState extends State<AddPeriodicReport> {
   int time = 0;
+  late AddPerVisitFormModel model;
+
+  var _fileRepo = GetIt.I.get<FileRepo>();
+
+  Future<void> _fetchImages() async {
+    _fileRepo.getFile(widget.time.toString() + "image").then((_) {
+      if (_ != null) {
+        imagePath.value = _;
+      }
+    });
+  }
 
   @override
   void initState() {
-    time = DateTime.now().millisecondsSinceEpoch;
+    if (widget.addPerVisitFormModel != null) {
+      model = widget.addPerVisitFormModel!;
+      _dateController.text = DateMapper.convert(model.date ?? '');
+      _nextDateController.text = DateMapper.convert(model.nextDate ?? '');
+      _latLng = LatLng(model.lat!, model.lon!);
+      imagePath.value = model.image ?? "";
+      _nationId.text = model.nationalId!;
+      _fetchAgentInfo();
+      _fetchImages();
+    } else {
+      model = AddPerVisitFormModel();
+    }
+    time = widget.time ?? DateTime.now().millisecondsSinceEpoch;
     super.initState();
   }
 
   final _dateController = TextEditingController();
 
   final _nextDateController = TextEditingController();
-
   final _visitService = GetIt.I.get<VisitService>();
-
-  var stable_condition = "";
-
-  var manger = "";
-
-  var losses = "";
-
-  var bazdid = "";
-
-  var _date = "";
-
-  var _nextDate = "";
-
   var imagePath = "".obs;
-
-  var water = "";
-
-  var supply_situation = "";
-
-  var ventilation = "";
-
-  var vaziat = "";
 
   final _nationId = TextEditingController();
 
@@ -77,27 +86,23 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
         floatingActionButton: submitForm(() async {
           if (_formKey.currentState?.validate() ?? false) {
             if (_latLng != null) {
-              Progressbar.showProgress();
-              var res = await _visitService.sendPeriodicVisits(
-                  outbreak: outbreak.text,
-                  stable_condition: stable_condition,
-                  manger: manger,
-                  imagePath: imagePath.value,
-                  nationId: _nationId.text,
+              model.lat = _latLng!.latitude;
+              model.lon = _latLng!.longitude;
+              if (imagePath.value.isEmpty) {
+                Fluttertoast.showToast(msg: "عکس را وارد  کنید");
+              } else {
+                FocusScope.of(context).unfocus();
+                model.image = imagePath.value;
+                Progressbar.showProgress();
+                var res = await _visitService.sendPeriodicVisits(
+                  addPerVisitFormModel: model,
                   time: time,
-                  losses: losses,
-                  bazdid: bazdid,
-                  water: water,
-                  supply_situation: supply_situation,
-                  ventilation: ventilation,
-                  vaziat: vaziat,
                   agentInfo: agentInfo.value ?? AgentInfo(),
-                  date: _date,
-                  next_date: _nextDate,
-                  latLng: _latLng!);
-              Progressbar.dismiss();
-              if (res) {
-                Get.back();
+                );
+                Progressbar.dismiss();
+                if (res) {
+                  Get.back();
+                }
               }
             } else {
               Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
@@ -142,7 +147,9 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                   textEditingController: _nationId,
                                   maxLength: 10,
                                   height: 80,
+                                  readOnly: widget.addPerVisitFormModel != null,
                                   onChanged: (_) {
+                                    model.nationalId = _;
                                     if (_.length == 10) {
                                       _fetchAgentInfo();
                                     }
@@ -229,8 +236,9 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                   "خیر",
                                 ],
                                 onChange: (_) {
-                                  outbreak.text = _;
+                                  model.outbreak = _;
                                 },
+                                value: model.outbreak,
                               ),
                               SizedBox(
                                 height: 20,
@@ -238,51 +246,61 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                               CustomTextFormField(
                                 label: "نام بیماری و تشخیص پزشک",
                                 maxLine: 4,
+                                value: model.description_p ?? '',
+                                onChanged: (_) {
+                                  model.description_p = _;
+                                },
                               ),
                               SizedBox(
                                 height: 20,
                               ),
                               CustomDropdownButtonFormField(
-                                  label: "وضعیت بستر",
-                                  items: [
-                                    "تمیز",
-                                    "متوسط",
-                                    "کثیف",
-                                  ],
-                                  onChange: (_) {
-                                    stable_condition = _;
-                                  }),
+                                label: "وضعیت بستر",
+                                items: [
+                                  "تمیز",
+                                  "متوسط",
+                                  "کثیف",
+                                ],
+                                onChange: (_) {
+                                  model.stableCondition = _;
+                                },
+                                value: model.stableCondition,
+                              ),
                               SizedBox(
                                 height: 20,
                               ),
                               CustomDropdownButtonFormField(
-                                  label: "وضعیت آخورها",
-                                  items: [
-                                    "تمیز و مرتب",
-                                    "آلوده",
-                                  ],
-                                  onChange: (_) {
-                                    manger = _;
-                                  }),
+                                label: "وضعیت آخورها",
+                                items: [
+                                  "تمیز و مرتب",
+                                  "آلوده",
+                                ],
+                                onChange: (_) {
+                                  model.manger = _;
+                                },
+                                value: model.manger,
+                              ),
                               SizedBox(
                                 height: 20,
                               ),
                               CustomDropdownButtonFormField(
-                                  label: " وجود تلفات درگله",
-                                  items: [
-                                    "بله",
-                                    "خیر",
-                                  ],
-                                  onChange: (_) {
-                                    losses = _;
-                                  }),
-
+                                label: " وجود تلفات درگله",
+                                items: [
+                                  "بله",
+                                  "خیر",
+                                ],
+                                onChange: (_) {
+                                  model.losses = _;
+                                },
+                                value: model.losses,
+                              ),
                               SizedBox(
                                 height: 20,
                               ),
                               SizedBox(
                                 height: 70,
                                 child: DropdownButtonFormField<String>(
+                                  value: model.bazdid,
                                   validator: (_) {},
                                   decoration: InputDecoration(
                                     labelText: " دوره بازدید",
@@ -301,7 +319,8 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                           ))
                                       .toList(),
                                   onChanged: (value) {
-                                    bazdid = (int.parse(value!) + 1).toString();
+                                    model.bazdid =
+                                        (int.parse(value!) + 1).toString();
                                   },
                                 ),
                               ),
@@ -312,8 +331,11 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                 label:
                                     "تعداد تلفات و نظر دامپزشک در کالبدگشایی",
                                 maxLine: 4,
-                              ), //todo
-
+                                value: model.description_l ?? '',
+                                onChanged: (_) {
+                                  model.description_l = _;
+                                },
+                              ),
                               SizedBox(
                                 height: 20,
                               ),
@@ -324,10 +346,10 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                 ],
                                 label: " وضعیت آبشخورها",
                                 onChange: (_) {
-                                  water = _;
+                                  model.water = _;
                                 },
+                                value: model.water,
                               ),
-
                               SizedBox(
                                 height: 20,
                               ),
@@ -339,8 +361,9 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                 ],
                                 label: " وضعیت انبار آذوقه",
                                 onChange: (_) {
-                                  supply_situation = _;
+                                  model.supplySituation = _;
                                 },
+                                value: model.supplySituation,
                               ),
                               SizedBox(
                                 height: 20,
@@ -352,8 +375,9 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                 ],
                                 label: " وضعیت تهویه",
                                 onChange: (_) {
-                                  ventilation = _;
+                                  model.ventilation = _;
                                 },
+                                value: model.ventilation,
                               ),
                             ],
                           ),
@@ -362,7 +386,9 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                       SizedBox(
                         height: 10,
                       ),
-                      ImageView(imagePath, "تصویر جایگاه دام"),
+                      ImageView(imagePath, "تصویر جایگاه دام",
+                          defaultValue: imagePath.value,
+                          canReplace: widget.addPerVisitFormModel == null),
                       SizedBox(
                         height: 10,
                       ),
@@ -385,8 +411,9 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                 items: ["انحراف از طرح", "فعال"],
                                 label: "وضعیت طرح",
                                 onChange: (_) {
-                                  vaziat = _;
+                                  model.vaziat = _;
                                 },
+                                value: model.vaziat,
                               ),
                               SizedBox(
                                 height: 10,
@@ -395,14 +422,13 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                               SizedBox(
                                 height: 10,
                               ),
-                              TextField(
-                                decoration: InputDecoration(
-                                  labelText: "علت(در صورت وجود انحراف)",
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                  ),
-                                ),
-                              ), //todo
+                              CustomTextFormField(
+                                label: "علت(در صورت وجود انحراف)",
+                                value: model.enheraf ?? '',
+                                onChanged: (_) {
+                                  model.enheraf = _;
+                                },
+                              ),
                               SizedBox(
                                 height: 10,
                               ),
@@ -413,6 +439,8 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                               Padding(
                                 padding: const EdgeInsets.all(4.0),
                                 child: SelectLocation(
+                                  latLng: _latLng,
+                                  readOnly: widget.addPerVisitFormModel != null,
                                   onSelected: (_) {
                                     _latLng = _;
                                   },
@@ -442,7 +470,7 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                 height: 50,
                                 child: TextField(
                                   onTap: () => selectDate((_) {
-                                    _date = _;
+                                    model.date = _;
                                   }, _dateController),
                                   readOnly: true,
                                   canRequestFocus: false,
@@ -462,7 +490,7 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                 height: 50,
                                 child: TextField(
                                   onTap: () => selectDate((_) {
-                                    _nextDate = _;
+                                    model.nextDate = _;
                                   }, _nextDateController),
                                   readOnly: true,
                                   canRequestFocus: false,

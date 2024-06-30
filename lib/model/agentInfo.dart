@@ -1,4 +1,3 @@
-
 class AgentInfo {
   String name = "";
   String full_name = "";
@@ -24,14 +23,13 @@ class AgentInfo {
   factory AgentInfo.fromJsom(Map<String, dynamic> data) {
     return AgentInfo(
       name: data["name"],
-      rahbar: data["راهبر اصلی"],
-      full_name: data["نام و نام خانوادگی"],
-      address: data["آدرس دقیق"],
-      city: data["بخش"],
-      province: data["استان"],
-      mobile: data["موبایل"],
-      department:
-          data["اداره کمیته امداد"] != null ? data["اداره کمیته امداد"] : " ",
+      rahbar: data["rahbar"],
+      full_name: data["full_name"],
+      address: data["address"],
+      city: data["city"],
+      province: data["province"],
+      mobile: data["mobile"],
+      department: data["department"] != null ? data["department"] : " ",
     );
   }
 }

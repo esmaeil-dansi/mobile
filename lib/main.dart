@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:frappe_app/db/advertisement.dart';
 import 'package:frappe_app/db/dao/advertisement_dao.dart';
+import 'package:frappe_app/db/dao/file_info_dao.dart';
 import 'package:frappe_app/db/dao/request_dao.dart';
+import 'package:frappe_app/db/file_info.dart';
 import 'package:frappe_app/db/request.dart';
 import 'package:frappe_app/db/request_statuse.dart';
 import 'package:frappe_app/repo/RequestRepo.dart';
+import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
@@ -20,10 +23,11 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
+  await Hive.initFlutter("Chopo/db");
   Hive.registerAdapter(RequestAdapter());
   Hive.registerAdapter(RequestStatusAdapter());
   Hive.registerAdapter(AdvertisementAdapter());
+  Hive.registerAdapter(FileInfoAdapter());
 
   initServicesAndRepo();
 
@@ -33,6 +37,8 @@ void main() async {
 void initServicesAndRepo() {
   GetIt.instance.registerSingleton<AdvertisementDao>(AdvertisementDao());
   GetIt.instance.registerSingleton<AutService>(AutService());
+  GetIt.instance.registerSingleton<FileInfoDao>(FileInfoDao());
+  GetIt.instance.registerSingleton<FileRepo>(FileRepo());
   GetIt.instance.registerSingleton<HttpService>(HttpService());
   GetIt.instance.registerSingleton<FileService>(FileService());
   GetIt.instance.registerSingleton<RequestDao>(RequestDao());

@@ -6,7 +6,11 @@ import 'package:frappe_app/widgets/attach_image.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 
-Widget ImageView(Rx<String> path, String title) {
+Widget ImageView(Rx<String> path, String title,
+    {String? defaultValue, bool canReplace = true}) {
+  if (defaultValue != null) {
+    path.value = defaultValue;
+  }
   return Padding(
     padding: const EdgeInsets.all(4.0),
     child: InputDecorator(
@@ -41,37 +45,38 @@ Widget ImageView(Rx<String> path, String title) {
                         File(
                           path.value,
                         ),
-                         height: 400,
+                        height: 400,
                         fit: BoxFit.fill,
                         width: Get.width,
                       ),
                     ),
                   ),
                 ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 15, bottom: 2),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          border: Border.all(),
-                          borderRadius: BorderRadius.circular(50)),
-                      child: IconButton(
-                        onPressed: () {
-                          showSelectImageBottomSheet((_) {
-                            if (_.isNotEmpty) {
-                              path.value = _.first;
-                            }
-                          });
-                        },
-                        icon: Icon(
-                          Icons.camera_alt_outlined,
-                          color: Colors.black,
+                if (canReplace)
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 15, bottom: 2),
+                      child: Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(),
+                            borderRadius: BorderRadius.circular(50)),
+                        child: IconButton(
+                          onPressed: () {
+                            showSelectImageBottomSheet((_) {
+                              if (_.isNotEmpty) {
+                                path.value = _.first;
+                              }
+                            });
+                          },
+                          icon: Icon(
+                            Icons.camera_alt_outlined,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                )
+                  )
               ],
             )),
     ),

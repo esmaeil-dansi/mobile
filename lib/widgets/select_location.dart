@@ -13,8 +13,13 @@ class SelectLocation extends StatelessWidget {
   Function(LatLng) onSelected;
 
   LatLng? latLng;
+  bool readOnly;
 
-  SelectLocation({super.key, required this.onSelected, this.latLng});
+  SelectLocation(
+      {super.key,
+      required this.onSelected,
+      this.latLng,
+      this.readOnly = false});
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +38,7 @@ class SelectLocation extends StatelessWidget {
           LocationWidget(
             onSelected: onSelected,
             latLng: latLng,
+            readOnly: readOnly,
           ),
           const SizedBox(
             height: 7,
@@ -46,8 +52,13 @@ class SelectLocation extends StatelessWidget {
 class LocationWidget extends StatefulWidget {
   Function(LatLng) onSelected;
   LatLng? latLng;
+  bool readOnly;
 
-  LocationWidget({required this.onSelected, this.latLng, super.key});
+  LocationWidget(
+      {required this.onSelected,
+      this.latLng,
+      this.readOnly = false,
+      super.key});
 
   @override
   State<LocationWidget> createState() => _LocationWidgetState();
@@ -73,10 +84,13 @@ class _LocationWidgetState extends State<LocationWidget> {
             fit: StackFit.passthrough,
             children: [
               SizedBox(
-                height: 120,
+                height: 150,
                 child: FlutterMap(
                   mapController: mapController,
                   options: MapOptions(
+                    maxZoom: 17,
+                    zoom: 15,
+                    minZoom: 7,
                     center: latLng.value,
                     enableScrollWheel: true,
                   ),
@@ -106,33 +120,33 @@ class _LocationWidgetState extends State<LocationWidget> {
                   ],
                 ),
               ),
-              Positioned(
-                right: 2,
-                bottom: 2,
-                child: Container(
-                  decoration: BoxDecoration(
-                      color: Colors.black38,
-                      borderRadius: BorderRadius.circular(50)),
-                  child: IconButton(
-                    onPressed: () {
-                      AttachLocation(
-                              onSelected: (_) {
-                                latLng.value = _;
-                                widget.onSelected(_);
-
-                                mapController.move(latLng.value, 14);
-                              },
-                              selectedLocation: latLng.value)
-                          .showLocation();
-                    },
-                    icon: const Icon(
-                      Icons.change_circle_outlined,
-                      color: Colors.yellowAccent,
-                      size: 28,
+              if (!widget.readOnly)
+                Positioned(
+                  right: 2,
+                  bottom: 2,
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.black38,
+                        borderRadius: BorderRadius.circular(50)),
+                    child: IconButton(
+                      onPressed: () {
+                        AttachLocation(
+                                onSelected: (_) {
+                                  latLng.value = _;
+                                  widget.onSelected(_);
+                                  mapController.move(latLng.value, 14);
+                                },
+                                selectedLocation: latLng.value)
+                            .showLocation();
+                      },
+                      icon: const Icon(
+                        Icons.change_circle_outlined,
+                        color: Colors.yellowAccent,
+                        size: 28,
+                      ),
                     ),
                   ),
-                ),
-              )
+                )
             ],
           )
         : GestureDetector(
@@ -254,6 +268,9 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
                 FlutterMap(
                   mapController: mapController,
                   options: MapOptions(
+                    maxZoom: 17,
+                    zoom: 15,
+                    minZoom: 7,
                     onMapEvent: (event) {
                       updatePoint(null, context);
                     },

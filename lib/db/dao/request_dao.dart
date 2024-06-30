@@ -34,5 +34,5 @@ class RequestDao {
     await box.delete(id.toString());
   }
 
-  String _key() => "request";
+  String _key() => "requests";
 }

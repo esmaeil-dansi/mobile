@@ -47,7 +47,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                 : null),
         readOnly: widget.readOnly,
         maxLines: widget.maxLine,
-        keyboardType: TextInputType.number,
+        keyboardType:widget.textInputType,
         maxLength: widget.maxLength,
         onChanged: (_) {
           if (widget.onChanged != null) {

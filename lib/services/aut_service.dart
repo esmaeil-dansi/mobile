@@ -8,6 +8,8 @@ import 'package:frappe_app/model/weather.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/services/shop_service.dart';
+import 'package:frappe_app/widgets/methodes.dart';
+import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart' as g;
 import 'package:get/get_rx/get_rx.dart';
 import 'package:get_it/get_it.dart';
@@ -30,6 +32,7 @@ class AutService {
   String PROVINCE = "province";
   String CITY = "city";
   String SELECTED_CITY = "selected_city";
+  String WAETHER_KEY = "WAETHER_KEY";
 
   var weathers = <Weather>[].obs;
 
@@ -164,6 +167,7 @@ class AutService {
       var result = await Dio()
           .get('https://api.codebazan.ir/weather/?city=${getSelectedCity()}');
 
+      _sharedPreferences.setString(WAETHER_KEY, json.encode(result.data));
       int i = 0;
       while (i <= 40) {
         try {
@@ -183,6 +187,33 @@ class AutService {
       weathers.clear();
       weathers.addAll(res);
     } catch (e) {
+      try {
+        var s = _sharedPreferences.getString(WAETHER_KEY);
+        if (s != null) {
+          var result = json.decode(s);
+          var res = <Weather>[];
+          int i = 0;
+          while (i <= 40) {
+            try {
+              var s = getDate(i);
+              res.add(Weather(
+                  temp: result["list"][i]["main"]["temp"],
+                  icon: result["list"][i]["weather"][0]["icon"],
+                  main: result["list"][i]["weather"][0]["main"],
+                  description: result["list"][i]["weather"][0]
+                      ["description"],
+                  date: s.$1,
+                  w: s.$2));
+            } catch (e) {
+              print("e");
+            }
+            i = i + 8;
+          }
+          weathers.clear();
+          weathers.addAll(res);
+        }
+      } catch (e) {}
+
       _logger.e(e);
     }
   }
@@ -358,15 +389,28 @@ class AutService {
             "/api/method/create_damdar?mobile=$phone&new_password=$password&verify_code=$verifyCode&national_id=$nationalId"
             "&province=$province&bio=$bio&first_name=$firstname&last_name=$lastname",
             FormData.fromMap({}));
-        return res?.statusCode == 200;
+        Progressbar.dismiss();
+        if (res?.statusCode == 200) {
+          return true;
+        } else {
+          showErrorMessage(res?.data["_server_messages"]);
+          return false;
+        }
       } else {
         var res = await await GetIt.I.get<HttpService>().post(
             "/api/method/create_user?mobile=$phone&new_password=$password&verify_code=$verifyCode&national_id=$nationalId"
             "&province=$province&bio=$bio&first_name=$firstname&last_name=$lastname",
             FormData.fromMap({}));
-        return res?.statusCode == 200;
+        Progressbar.dismiss();
+        if (res?.statusCode == 200) {
+          return true;
+        } else {
+          showErrorMessage(res?.data["_server_messages"]);
+          return false;
+        }
       }
     } catch (e) {
+      Progressbar.dismiss();
       _logger.e(e);
     }
     return false;

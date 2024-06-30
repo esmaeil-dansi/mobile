@@ -5,9 +5,8 @@ import 'package:get_it/get_it.dart';
 class RequestRepo {
   final _requestDao = GetIt.I.get<RequestDao>();
 
-  Future<List<Request>> getAll() async {
-    return _requestDao.getAll();
-  }
+  Stream<List<Request>> watch() =>_requestDao.watch();
+
 
   Future<void> save(Request request) => _requestDao.save(request);
 

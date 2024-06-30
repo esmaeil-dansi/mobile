@@ -9,6 +9,8 @@ import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
+import '../../widgets/progressbar_wating.dart';
+
 class UserInfo extends StatefulWidget {
   @override
   State<UserInfo> createState() => _UserInfoState();
@@ -169,8 +171,7 @@ class _UserInfoState extends State<UserInfo> {
                                   decoration: InputDecoration(
                                     labelText: "کدواژه",
                                     border: OutlineInputBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(20.0),
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
                                   ),
                                 ),
@@ -190,8 +191,7 @@ class _UserInfoState extends State<UserInfo> {
                                   decoration: InputDecoration(
                                     labelText: "تکرار کدواژه",
                                     border: OutlineInputBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(20.0),
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
                                   ),
                                 ),
@@ -222,6 +222,7 @@ class _UserInfoState extends State<UserInfo> {
 
                             RegExp regExp = new RegExp(pattern);
                             if (regExp.hasMatch(_pass.text)) {
+                              Progressbar.showProgress();
                               if (await _autService.sendInfo(
                                   password: _pass.text,
                                   damdar: _damdar,
@@ -231,10 +232,7 @@ class _UserInfoState extends State<UserInfo> {
                                   firstname: _name.text,
                                   lastname: _lastName.text)) {
                                 Get.offAll(() => Login());
-                              } else {
-                                Fluttertoast.showToast(
-                                    msg: "خطایی رخ داده است");
-                              }
+                              } else {}
                             } else {
                               Fluttertoast.showToast(
                                   msg:

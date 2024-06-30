@@ -1,0 +1,33 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:frappe_app/db/dao/file_info_dao.dart';
+import 'package:frappe_app/db/file_info.dart';
+import 'package:get_it/get_it.dart';
+import 'package:path_provider/path_provider.dart';
+
+class FileRepo {
+  var _fileDao = GetIt.I.get<FileInfoDao>();
+
+  Future<void> saveFile(
+      {required int time, required String key, required String path}) async {
+    try {
+      var file =
+          await filePath(time.toString() + key + "." + path.split(".").last);
+      var bytes = File(path).readAsBytesSync();
+      var t = await file.writeAsBytes(bytes);
+      _fileDao.save(FileInfo(time: time, key: key, path: t.path));
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<String?> getFile(String key) async {
+    return (await _fileDao.get(key))?.path;
+  }
+
+  Future<File> filePath(String fileUuid) async {
+    final path = "${(await getApplicationDocumentsDirectory()).path}";
+    return File('$path/$fileUuid');
+  }
+}

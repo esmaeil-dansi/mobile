@@ -1,9 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:frappe_app/db/request.dart';
+import 'package:frappe_app/model/add_initial_visit_from_model.dart';
+import 'package:frappe_app/model/add_per_vsiti_form_model.dart';
+import 'package:frappe_app/model/add_vetvisit_form_model.dart';
 import 'package:frappe_app/repo/RequestRepo.dart';
 import 'package:frappe_app/services/visit_service.dart';
+import 'package:frappe_app/views/visit/add_initial_visit.dart';
+import 'package:frappe_app/views/visit/add_periodic_visit.dart';
+import 'package:frappe_app/views/visit/add_vetvisit.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
+import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
 
@@ -17,16 +27,14 @@ class RequestPage extends StatefulWidget {
 class _RequestPageState extends State<RequestPage> {
   final _requestRepo = GetIt.I.get<RequestRepo>();
 
-  final _visitiService = GetIt.I.get<VisitService>();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          FutureBuilder<List<Request>>(
-              future: _requestRepo.getAll(),
+          StreamBuilder<List<Request>>(
+              stream: _requestRepo.watch(),
               builder: (c, sData) {
                 if (sData.hasData &&
                     sData.data != null &&
@@ -66,23 +74,25 @@ class _RequestPageState extends State<RequestPage> {
                                             ),
                                           Text(
                                             getType(record.type),
-                                            style: TextStyle(fontSize: 18),
+                                            style: TextStyle(fontSize: 14),
                                           ),
                                         ],
                                       ),
-
                                       Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Text(
                                             Jalali.fromDateTime(time)
-                                                .formatCompactDate(),
-                                            style: TextStyle(fontSize: 17),
+                                                .formatCompactDate()
+                                                .toString(),
+                                            style: TextStyle(fontSize: 13),
                                           ),
                                           Text(
                                             time.hour.toString() +
                                                 ":" +
                                                 time.minute.toString(),
-                                            style: TextStyle(fontSize: 17),
+                                            style: TextStyle(fontSize: 13),
                                           ),
                                         ],
                                       ),
@@ -101,29 +111,38 @@ class _RequestPageState extends State<RequestPage> {
                                                 backgroundColor:
                                                     Color(0xE452FF22)),
                                             onPressed: () async {
-                                              Progressbar.showProgress();
+                                              // Progressbar.showProgress();
                                               var res = false;
                                               if (record.type ==
                                                   "Initial Visit") {
-                                                res = await _visitiService
-                                                    .resendInitVisit(record);
+                                                Get.to(() => AddInitialReport(
+                                                    time: record.time,
+                                                    addInitialVisitFormModel:
+                                                        AddInitialVisitFormModel
+                                                            .fromJson(json
+                                                                .decode(record
+                                                                    .body))));
                                               } else if (record.type ==
                                                   "Periodic visits") {
-                                                res = await _visitiService
-                                                    .reSendPeriodicVisitsRequest(
-                                                        record);
+                                                Get.to(() => AddPeriodicReport(
+                                                    time: record.time,
+                                                    addPerVisitFormModel:
+                                                        AddPerVisitFormModel
+                                                            .fromJson(json
+                                                                .decode(record
+                                                                    .body))));
                                               } else {
-                                                res = await _visitiService
-                                                    .resendVetVisit(record);
-                                              }
-
-                                              if (res) {
-                                                _requestRepo.delete(record);
-                                                setState(() {});
+                                                Get.to(() => AddVetVisit(
+                                                    time: record.time,
+                                                    addVetVisitFormModel:
+                                                        AddVetVisitFormModel
+                                                            .fromJson(json
+                                                                .decode(record
+                                                                    .body))));
                                               }
                                             },
-                                            child: Text("باز ارسال")),
-
+                                            child:
+                                                Text("ویرایش و \nباز ارسال ")),
                                     ],
                                   ),
                                 ),

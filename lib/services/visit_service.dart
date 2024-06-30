@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/model/SortKey.dart';
+import 'package:frappe_app/model/add_initial_visit_from_model.dart';
+import 'package:frappe_app/model/add_per_vsiti_form_model.dart';
+import 'package:frappe_app/model/add_vetvisit_form_model.dart';
 import 'package:frappe_app/model/agent.dart';
 import 'package:frappe_app/model/agentInfo.dart';
 import 'package:frappe_app/model/init_visit_Info.dart';
@@ -11,6 +14,7 @@ import 'package:frappe_app/model/report.dart';
 import 'package:frappe_app/model/sort_dir.dart';
 import 'package:frappe_app/model/vet_visit_info_model.dart';
 import 'package:frappe_app/repo/RequestRepo.dart';
+import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/utils/city_utils.dart';
@@ -18,7 +22,6 @@ import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart' as g;
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
-import 'package:latlong2/latlong.dart';
 import '../db/request.dart';
 import '../db/request_statuse.dart';
 import '../widgets/methodes.dart';
@@ -29,6 +32,7 @@ class VisitService {
   final _autService = GetIt.I.get<AutService>();
   final _httpService = GetIt.I.get<HttpService>();
   final _requestRepo = GetIt.I.get<RequestRepo>();
+  final _fileRepo = GetIt.I.get<FileRepo>();
   var _logger = Logger();
   g.RxMap<String, String?> avgPrices = <String, String?>{}.obs;
 
@@ -100,19 +104,22 @@ class VisitService {
     return [];
   }
 
-  Future<void> fetchCities() async {
-    try {
-      // var result = await _httpService.get("");
-    } catch (e) {}
-  }
-
   Future<AgentInfo?> getAgentInfo(String nationalCode) async {
     try {
       var result = await _httpService.post(
-        "/api/method/frappe.desk.link_preview.get_preview_data",
+        "/api/method/frappe.client.validate_link",
         FormData.fromMap({
           "doctype": "Job applicant",
           "docname": nationalCode,
+          "fields": json.encode([
+            "full_name",
+            "province",
+            "city",
+            "address",
+            "mobile",
+            "rahbar",
+            "department"
+          ])
         }),
       );
       var info = AgentInfo.fromJsom(result?.data["message"]);
@@ -298,33 +305,7 @@ class VisitService {
 
   Future<bool> saveInitVisit(
       {required AgentInfo agentInfo,
-      required String imagePath,
-      required String imagePath_2,
-      required String tarh,
-      required String nationId,
-      required String noe_jaygah,
-      required String quality_water,
-      required String tamin_water,
-      required String ajor_madani,
-      required String sang_namak,
-      required String adavat,
-      required String kaf_jaygah,
-      required int sayeban,
-      required String date,
-      required String status,
-      required int adam_hesar,
-      required int astarkeshi,
-      required int mahal_negahdari,
-      required int adam_abkhor,
-      required int adam_noor,
-      required int adam_tahvie,
-      required String sayer,
-      required String eghdamat,
-      required int dam,
-      required String noe_dam,
-      required String malekiyat,
-      required String vaziat,
-      required LatLng latLng,
+      required AddInitialVisitFormModel model,
       required int time}) async {
     var body = json.encode({
       "docstatus": 0,
@@ -333,27 +314,27 @@ class VisitService {
       "__islocal": 1,
       "__unsaved": 1,
       "owner": _autService.getUserId(),
-      "tarh": tarh,
-      "dam": dam,
-      "noe_dam": noe_dam,
-      "malekiyat": malekiyat,
-      "vaziat": vaziat,
-      "noe_jaygah": noe_jaygah,
-      "quality_water": quality_water,
-      "tamin_water": tamin_water,
-      "ajor_madani": ajor_madani,
-      "sang_namak": sang_namak,
-      "adavat": adam_tahvie,
-      "kaf_jaygah": kaf_jaygah,
-      "status": status,
-      "sayeban": sayeban,
-      "adam_hesar": adam_hesar,
-      "astarkeshi": astarkeshi,
-      "mahal_negahdari": mahal_negahdari,
-      "adam_abkhor": adam_abkhor,
-      "adam_noor": adam_noor,
-      "adam_tahvie": adam_tahvie,
-      "national_id": nationId,
+      "tarh": model.tarh,
+      "dam": model.dam,
+      "noe_dam": model.noeDam,
+      "malekiyat": model.malekiyat,
+      "vaziat": model.vaziat,
+      "noe_jaygah": model.noeJaygah,
+      "quality_water": model.qualityWater,
+      "tamin_water": model.taminWater,
+      "ajor_madani": model.ajorMadani,
+      "sang_namak": model.sangNamak,
+      "adavat": model.adavat,
+      "kaf_jaygah": model.kafJaygah,
+      "status": model.status,
+      "sayeban": model.sayeban,
+      "adam_hesar": model.adamHesar,
+      "astarkeshi": model.astarkeshi,
+      "mahal_negahdari": model.mahalNegahdari,
+      "adam_abkhor": model.adamAbkhor,
+      "adam_noor": model.adamNoor,
+      "adam_tahvie": model.adamTahvie,
+      "national_id": model.nationalId,
       "full_name": agentInfo.full_name,
       "province": agentInfo.province,
       "city": agentInfo.city,
@@ -362,30 +343,40 @@ class VisitService {
       "rahbar": agentInfo.rahbar,
       "department": agentInfo.department,
       "image1": "",
-      "eghdamat": eghdamat,
-      "v_date": date,
+      "eghdamat": model.eghdamat,
+      "sayer": model.sayer,
+      "v_date": model.vDate,
       "geolocation":
-          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${latLng.longitude},${latLng.latitude}]}}]}"
+          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model.lon},${model.lat}]}}]}"
     });
     try {
-      var newBody = await _uploadInitVisitFile(imagePath, body);
+      var newBody =
+          await _uploadInitVisitFile(model.image1 ?? '', body, "image1");
       if (newBody != null) {
-        var result = await _sendRequest(newBody);
-        unawaited(_requestRepo.save(Request(
-          filePaths: [imagePath],
-          nationId: nationId,
-          body: newBody,
-          time: time,
-          type: "Initial Visit",
-          status: RequestStatus.Success,
-        )));
-        if (result?.statusCode == 200) {
-          Fluttertoast.showToast(msg: "ثبت شد");
-          return true;
-        } else {
-          Progressbar.dismiss();
-          showErrorMessage(result?.data["_server_messages"]);
-          return false;
+        newBody =
+            await _uploadInitVisitFile(model.image2 ?? '', newBody, "image2");
+        if (newBody != null) {
+          var result = await _sendRequest(newBody);
+          unawaited(_requestRepo.save(Request(
+            filePaths: [model.image1 ?? '', model.image2 ?? ''],
+            nationId: model.nationalId!,
+            body: json.encode(model),
+            time: time,
+            type: "Initial Visit",
+            status: result?.statusCode == 200
+                ? RequestStatus.Success
+                : RequestStatus.Pending,
+          )));
+          if (result?.statusCode == 200) {
+            Fluttertoast.showToast(msg: "ثبت شد");
+            return true;
+          } else {
+            _saveFile(model.image1!, "image1", time);
+            _saveFile(model.image2!, "image2", time);
+            Progressbar.dismiss();
+            showErrorMessage(result?.data["_server_messages"]);
+            return false;
+          }
         }
       } else {
         Fluttertoast.showToast(msg: "خطایی رخ داده است.");
@@ -396,10 +387,12 @@ class VisitService {
     } catch (e) {
       showErrorToast(null);
     }
+    _saveFile(model.image1!, "image1", time);
+    _saveFile(model.image2!, "image2", time);
     unawaited(_requestRepo.save(Request(
-      filePaths: [imagePath],
-      body: body,
-      nationId: nationId,
+      filePaths: [model.image1 ?? '', model.image2 ?? ''],
+      body: json.encode(model),
+      nationId: model.nationalId!,
       time: time,
       type: "Initial Visit",
       status: RequestStatus.Pending,
@@ -407,42 +400,44 @@ class VisitService {
     return false;
   }
 
-  Future<bool> resendInitVisit(Request request) async {
-    try {
-      var newBody = await _uploadInitVisitFile(
-          request.filePaths?.first ?? '', request.body);
-      if (newBody != null) {
-        var res = await _sendRequest(newBody);
-        Progressbar.dismiss();
-        if (res?.statusCode == 200) {
-          return true;
-        } else {
-          showErrorToast(null);
-        }
-        return false;
-      } else {
-        Progressbar.dismiss();
-      }
-      return false;
-    } on DioException catch (e) {
-      Progressbar.dismiss();
-      handleDioError(e, showInfo: false);
-    } catch (e) {
-      Progressbar.dismiss();
-      showErrorToast(null);
-    }
-    return false;
-  }
+  // Future<bool> resendInitVisit(Request request) async {
+  //   try {
+  //     var newBody = await _uploadInitVisitFile(
+  //         request.filePaths?.first ?? '', request.body);
+  //     if (newBody != null) {
+  //       var res = await _sendRequest(newBody);
+  //       Progressbar.dismiss();
+  //       if (res?.statusCode == 200) {
+  //         return true;
+  //       } else {
+  //         showErrorToast(null);
+  //       }
+  //       return false;
+  //     } else {
+  //       Progressbar.dismiss();
+  //     }
+  //     return false;
+  //   } on DioException catch (e) {
+  //     Progressbar.dismiss();
+  //     handleDioError(e, showInfo: false);
+  //   } catch (e) {
+  //     Progressbar.dismiss();
+  //     showErrorToast(null);
+  //   }
+  //   return false;
+  // }
 
-  Future<String?> _uploadInitVisitFile(String path, String body) async {
+  Future<String?> _uploadInitVisitFile(
+      String path, String body, String key) async {
     try {
       if (path.isEmpty) {
         return body;
       }
-      var image = await _fileService.uploadFile(path, "Initial Visit");
+      var image =
+          await _fileService.uploadFile(path, "Initial Visit", fieldname: key);
       if (image != null) {
         var newBody = json.decode(body);
-        newBody["image1"] = image;
+        newBody[key] = image;
         return json.encode(newBody);
       }
     } catch (e) {}
@@ -495,21 +490,8 @@ class VisitService {
   }
 
   Future<bool> sendPeriodicVisits(
-      {required String outbreak,
-      required String stable_condition,
-      required String manger,
-      required String losses,
-      required String nationId,
-      required imagePath,
-      required String bazdid,
-      required String water,
-      required String supply_situation,
-      required String ventilation,
-      required String vaziat,
+      {required AddPerVisitFormModel addPerVisitFormModel,
       required AgentInfo agentInfo,
-      required String date,
-      required String next_date,
-      required LatLng latLng,
       required int time,
       required}) async {
     var body = json.encode({
@@ -519,45 +501,52 @@ class VisitService {
       "__islocal": 1,
       "__unsaved": 1,
       "owner": _autService.getUserId(),
-      "outbreak": outbreak,
-      "stable_condition": stable_condition,
-      "manger": manger,
-      "losses": losses,
-      "bazdid": bazdid,
-      "water": water,
-      "supply_situation": supply_situation,
-      "ventilation": ventilation,
-      "vaziat": vaziat,
+      "outbreak": addPerVisitFormModel.outbreak,
+      "stable_condition": addPerVisitFormModel.stableCondition,
+      "manger": addPerVisitFormModel.manger,
+      "losses": addPerVisitFormModel.losses,
+      "bazdid": addPerVisitFormModel.bazdid,
+      "water": addPerVisitFormModel.water,
+      "supply_situation": addPerVisitFormModel.supplySituation,
+      "ventilation": addPerVisitFormModel.ventilation,
+      "vaziat": addPerVisitFormModel.vaziat,
       "jaigah_dam": "",
       "full_name": agentInfo.full_name,
       "province": agentInfo.province,
       "city": agentInfo.city,
       "rahbar": agentInfo.rahbar,
       "department": agentInfo.department,
-      "national_id": nationId,
-      "geolocation_p":
-          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${latLng.longitude},${latLng.latitude}]}}]}",
-      "date": date,
-      "next_date": next_date,
+      "national_id": addPerVisitFormModel.nationalId,
+      "geolocation":
+          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${addPerVisitFormModel.lon},${addPerVisitFormModel.lat}]}}]}",
+      "date": addPerVisitFormModel.date,
+      "next_date": addPerVisitFormModel.nextDate,
+      "description_p": addPerVisitFormModel.description_p,
+      "description_l": addPerVisitFormModel.description_l,
+      "enheraf": addPerVisitFormModel.enheraf,
     });
     try {
-      var newBody = await _uploadPerVisitFile(imagePath, body);
+      var newBody =
+          await _uploadPerVisitFile(addPerVisitFormModel.image ?? '', body);
       if (newBody != null) {
         var res = await _httpService.post(
             "/api/method/frappe.desk.form.save.savedocs",
-            FormData.fromMap({'doc': body, 'action': 'Save'}));
+            FormData.fromMap({'doc': newBody, 'action': 'Save'}));
         unawaited(_requestRepo.save(Request(
             time: time,
             type: "Periodic visits",
-            nationId: nationId,
-            filePaths: [imagePath],
-            status: RequestStatus.Success,
-            body: newBody)));
+            nationId: addPerVisitFormModel.nationalId!,
+            filePaths: [addPerVisitFormModel.image!],
+            status: res?.statusCode == 200
+                ? RequestStatus.Success
+                : RequestStatus.Pending,
+            body: json.encode(addPerVisitFormModel))));
 
         if (res?.statusCode == 200) {
           Fluttertoast.showToast(msg: "ثبت شد");
           return true;
         } else {
+          _saveFile(addPerVisitFormModel.image!, "image", time);
           Progressbar.dismiss();
           showErrorMessage(res?.data["_server_messages"]);
           return false;
@@ -569,83 +558,20 @@ class VisitService {
     } catch (e) {
       showErrorToast(null);
     }
+    _saveFile(addPerVisitFormModel.image!, "image", time);
     unawaited(_requestRepo.save(Request(
         time: time,
         type: "Periodic visits",
         filePaths: [],
-        nationId: nationId,
+        nationId: addPerVisitFormModel.nationalId!,
         status: RequestStatus.Pending,
-        body: body)));
+        body: json.encode(addPerVisitFormModel))));
     return false;
   }
 
   Future<bool> saveVetVisit(
-      {required int bime,
-      required int pelak,
-      required int galle_d,
-      required int age,
-      required String galleh,
-      required String types,
-      required String nationId,
-      required String result,
-      required String name_damp,
-      required String code_n,
-      required String national_id_doc,
-      required String pelak_az,
-      required String pelak_ta,
-      required String disapproval_reason,
-      required String image_dam,
-      required String license_salamat,
-      required int teeth_1,
-      required int teeth_2,
-      required int teeth_3,
-      required int eye_1,
-      required int eye_2,
-      required int eye_3,
-      required int eye_4,
-      required int eye_5,
-      required int breth_1,
-      required int breth_2,
-      required int breth_3,
-      required int mucus_1,
-      required int mucus_2,
-      required int mucus_3,
-      required int mucus_4,
-      required int mucus_5,
-      required int ear_1,
-      required int ear_2,
-      required int skin_1,
-      required int skin_2,
-      required int skin_3,
-      required int skin_4,
-      required int skin_5,
-      required int skin_6,
-      required int leech_1,
-      required int leech_2,
-      required int leech_3,
-      required int mouth_1,
-      required int mouth_2,
-      required int mouth_3,
-      required int mouth_4,
-      required int hoof_1,
-      required int hoof_2,
-      required int hoof_3,
-      required int hoof_4,
-      required int urine_1,
-      required int urine_2,
-      required int urine_3,
-      required int nodes_1,
-      required int nodes_2,
-      required String nodes_3,
-      required int crown_1,
-      required int crown_2,
-      required int crown_3,
-      required int sole_1,
-      required int sole_2,
-      required int sole_3,
+      {required AddVetVisitFormModel model,
       required int time,
-      required int number,
-      required LatLng latLng,
       required AgentInfo agentInfo}) async {
     var body = json.encode({
       "docstatus": 0,
@@ -654,96 +580,100 @@ class VisitService {
       "__islocal": 1,
       "__unsaved": 1,
       "owner": _autService.getUserId(),
-      "bime": bime,
-      "pelak": pelak,
-      "galleh": galleh,
-      "types": types,
-      "result": result,
-      "name_damp": name_damp,
-      "code_n": code_n,
-      "national_id_doc": national_id_doc,
+      "bime": model.bime,
+      "pelak": model.pelak,
+      "galleh": model.galleh,
+      "types": model.types,
+      "result": model.result,
+      "name_damp": model.nameDamp,
+      "code_n": model.codeN,
+      "national_id_doc": model.nationalIdDoc,
       "rahbar": agentInfo.rahbar,
       "department": agentInfo.department,
-      "pelak_az": pelak_az,
-      "pelak_ta": pelak_ta,
-      "national_id": nationId,
-      "teeth_1": teeth_1,
-      "teeth_2": teeth_2,
-      "teeth_3": teeth_3,
+      "pelak_az": model.pelakAz,
+      "pelak_ta": model.pelakTa,
+      "national_id": model.nationalId,
+      "teeth_1": model.teeth1,
+      "teeth_2": model.teeth2,
+      "teeth_3": model.teeth3,
       "province": agentInfo.province,
       "city": agentInfo.city,
-      "galle_d": galle_d,
-      "age": age,
+      "galle_d": model.galleD,
+      "age": model.age,
       "name_1": agentInfo.name,
       "full_name": agentInfo.full_name,
       "address": agentInfo.address,
-      "eye_1": eye_1,
-      "eye_2": eye_2,
-      "eye_3": eye_3,
-      "eye_4": eye_4,
-      "eye_5": eye_5,
-      "breth_1": breth_1,
-      "breth_2": breth_2,
-      "breth_3": breth_3,
-      "mucus_1": mucus_1,
-      "mucus_2": mucus_2,
-      "mucus_3": mucus_3,
-      "mucus_4": mucus_4,
-      "mucus_5": mucus_4,
-      "ear_1": ear_1,
-      "ear_2": ear_2,
-      "skin_1": skin_1,
-      "skin_2": skin_2,
-      "skin_3": skin_3,
-      "skin_4": skin_4,
-      "skin_5": skin_5,
-      "skin_6": skin_6,
-      "leech_1": leech_1,
-      "leech_2": leech_2,
-      "leech_3": leech_3,
-      "mouth_1": mouth_1,
-      "mouth_2": mouth_2,
-      "mouth_3": mouth_3,
-      "mouth_4": mouth_4,
-      "hoof_1": hoof_1,
-      "hoof_2": hoof_2,
-      "hoof_3": hoof_3,
-      "hoof_4": hoof_4,
-      "urine_1": urine_1,
-      "urine_2": urine_2,
-      "urine_3": urine_3,
-      "nodes_1": nodes_1,
-      "nodes_2": nodes_2,
-      "nodes_3": nodes_3,
-      "crown_1": crown_1,
-      "crown_2": crown_2,
-      "crown_3": crown_3,
-      "sole_1": sole_1,
-      "sole_2": sole_2,
-      "sole_3": sole_3,
-      "number": number,
+      "eye_1": model.eye1,
+      "eye_2": model.eye2,
+      "eye_3": model.eye3,
+      "eye_4": model.eye4,
+      "eye_5": model.eye5,
+      "breth_1": model.breth1,
+      "breth_2": model.breth2,
+      "breth_3": model.breth2,
+      "mucus_1": model.mucus1,
+      "mucus_2": model.mucus2,
+      "mucus_3": model.mucus3,
+      "mucus_4": model.mucus4,
+      "mucus_5": model.mucus5,
+      "ear_1": model.eye1,
+      "ear_2": model.eye2,
+      "skin_1": model.skin1,
+      "skin_2": model.skin2,
+      "skin_3": model.skin3,
+      "skin_4": model.skin4,
+      "skin_5": model.skin5,
+      "skin_6": model.skin6,
+      "leech_1": model.leech1,
+      "leech_2": model.leech2,
+      "leech_3": model.leech3,
+      "mouth_1": model.mouth1,
+      "mouth_2": model.mouth2,
+      "mouth_3": model.mouth3,
+      "mouth_4": model.mouth4,
+      "hoof_1": model.hoof1,
+      "hoof_2": model.hoof2,
+      "hoof_3": model.hoof3,
+      "hoof_4": model.hoof4,
+      "urine_1": model.urine1,
+      "urine_2": model.urine2,
+      "urine_3": model.urine3,
+      "nodes_1": model.nodes1,
+      "nodes_2": model.nodes2,
+      "nodes_3": model.nodes3,
+      "crown_1": model.crown1,
+      "crown_2": model.crown2,
+      "crown_3": model.crown3,
+      "sole_1": model.sole1,
+      "sole_2": model.sole2,
+      "sole_3": model.sole3,
+      "number": model.number,
       "image_dam": "",
       "license_salamat": "",
-      "disapproval_reason": disapproval_reason,
+      "disapproval_reason": model.disapprovalReason,
       "geolocation":
-          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${latLng.longitude},${latLng.latitude}]}}]}"
+          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model.lon},${model.lat}]}}]}"
     });
     try {
-      var newBody =
-          await _uploadVetVisitFiles(image_dam, license_salamat, body);
+      var newBody = await _uploadVetVisitFiles(
+          model.imageDam ?? '', model.licenseSalamat ?? '', body);
       if (newBody != null) {
         var res = await _sendRequest(newBody);
         unawaited(_requestRepo.save(Request(
             time: time,
             type: "Vet Visit",
-            nationId: nationId,
-            filePaths: [license_salamat, image_dam],
-            status: RequestStatus.Success,
-            body: newBody)));
+            nationId: model.nationalId ?? '',
+            filePaths: [],
+            status: res?.statusCode == 200
+                ? RequestStatus.Success
+                : RequestStatus.Pending,
+            body: json.encode(model))));
         if (res?.statusCode == 200) {
           Fluttertoast.showToast(msg: "ثبت شد");
           return true;
         } else {
+          _saveFile(model.imageDam!, "imageDam", time);
+          _saveFile(model.licenseSalamat!, "licenseSalamat", time);
           Progressbar.dismiss();
           showErrorMessage(res?.data["_server_messages"]);
           return false;
@@ -757,13 +687,15 @@ class VisitService {
     } catch (e) {
       showErrorToast(null);
     }
+    _saveFile(model.imageDam!, "imageDam", time);
+    _saveFile(model.licenseSalamat!, "licenseSalamat", time);
     unawaited(_requestRepo.save(Request(
         time: time,
-        nationId: nationId,
+        nationId: model.nationalId ?? '',
         type: "Vet Visit",
-        filePaths: [license_salamat, image_dam],
+        filePaths: [],
         status: RequestStatus.Pending,
-        body: body)));
+        body: json.encode(model))));
     return false;
   }
 
@@ -935,6 +867,10 @@ class VisitService {
       _logger.e(e);
     }
     return [];
+  }
+
+  void _saveFile(String path, String key, int time) {
+    _fileRepo.saveFile(time: time, key: key, path: path);
   }
 
   List<SortKey> initVistiSortKeys() => [
