@@ -99,7 +99,7 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                   time: time,
                   agentInfo: agentInfo.value ?? AgentInfo(),
                 );
-                Progressbar.dismiss();
+                FocusScope.of(context).unfocus();
                 if (res) {
                   Get.back();
                 }

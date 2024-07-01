@@ -391,7 +391,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   SizedBox(
                                     width: 15,
                                   ),
-                                  Text("نسخه\t 2.3")
+                                  Text("نسخه\t 2.6")
                                 ],
                               ),
                             ],

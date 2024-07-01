@@ -105,7 +105,7 @@ class _AddVetVisitState extends State<AddVetVisit> {
                   time: time,
                   model: model,
                 );
-                Progressbar.dismiss();
+                FocusScope.of(context).unfocus();
                 if (res) {
                   Get.back();
                 }

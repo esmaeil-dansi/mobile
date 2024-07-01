@@ -98,14 +98,13 @@ class _AddInitialReportState extends State<AddInitialReport> {
                 model.image2!.isEmpty) {
               Fluttertoast.showToast(msg: "عکس را وارد  کنید");
             } else {
-              FocusScope.of(context).unfocus();
+              FocusScope.of(context).requestFocus(new FocusNode());
               Progressbar.showProgress();
               var res = await _visitService.saveInitVisit(
                 time: time,
                 agentInfo: agentInfo.value ?? AgentInfo(),
                 model: model,
               );
-              Progressbar.dismiss();
               if (res) {
                 Get.back();
               }

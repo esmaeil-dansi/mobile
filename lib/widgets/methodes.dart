@@ -33,6 +33,7 @@ void handleDioError(DioException e, {bool showInfo = true}) {
               ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
                   onPressed: () {
+                    FocusScope.of(c).unfocus();
                     Navigator.pop(c);
                   },
                   child: Text(
@@ -58,6 +59,11 @@ void showErrorMessage(dynamic msg) {
       String t = m["message"].toString();
       if (t.contains("Error: Value missing for")) {
         t = t.replaceAll("Error: Value missing for", "");
+        t = t.replaceAll("</>", "");
+        t = t.replaceAll("<", "");
+        t = t.replaceAll("/", "");
+        t = t.replaceAll(">", "");
+        t = t.replaceAll("strong", "");
         t = t + " " + "وارد نشده است";
       }
       errors.add(t);

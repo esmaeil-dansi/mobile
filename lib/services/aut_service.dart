@@ -167,7 +167,13 @@ class AutService {
       var result = await Dio()
           .get('https://api.codebazan.ir/weather/?city=${getSelectedCity()}');
 
-      _sharedPreferences.setString(WAETHER_KEY, json.encode(result.data));
+      try{
+        _sharedPreferences.setString(WAETHER_KEY, json.encode(result.data));
+
+      }catch(e){
+
+      }
+
       int i = 0;
       while (i <= 40) {
         try {

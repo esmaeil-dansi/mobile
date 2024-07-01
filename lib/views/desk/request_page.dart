@@ -111,7 +111,6 @@ class _RequestPageState extends State<RequestPage> {
                                                 backgroundColor:
                                                     Color(0xE452FF22)),
                                             onPressed: () async {
-                                              // Progressbar.showProgress();
                                               var res = false;
                                               if (record.type ==
                                                   "Initial Visit") {

@@ -130,13 +130,12 @@ class VisitService {
     return null;
   }
 
-  Future<List<Report>> fetchInitialVisitReport(
-      {int id = 0,
-      String province = "",
-      String city = "",
-      required SortKey sortKey,
-      required SortDir sortDir,
-      int start = 0}) async {
+  Future<List<Report>> fetchInitialVisitReport({int id = 0,
+    String province = "",
+    String city = "",
+    required SortKey sortKey,
+    required SortDir sortDir,
+    int start = 0}) async {
     List<List<String>> filters = [];
     if (id != 0) {
       filters.add(["Initial Visit", "name", "like", "%$id%"]);
@@ -191,14 +190,13 @@ class VisitService {
     return [];
   }
 
-  Future<List<PeriodicReport>> fetchPeriodicReport(
-      {int id = 0,
-      int nationId = 0,
-      String province = "",
-      String city = "",
-      required SortDir sortDir,
-      required SortKey sortKey,
-      int start = 0}) async {
+  Future<List<PeriodicReport>> fetchPeriodicReport({int id = 0,
+    int nationId = 0,
+    String province = "",
+    String city = "",
+    required SortDir sortDir,
+    required SortKey sortKey,
+    int start = 0}) async {
     try {
       List<List<String>> filters = [];
       if (id != 0) {
@@ -245,13 +243,12 @@ class VisitService {
     return [];
   }
 
-  Future<List<VetVisitReport>> fetchVetVisitReport(
-      {int id = 0,
-      String province = "",
-      String city = "",
-      required SortKey sortKey,
-      required SortDir sortDir,
-      int start = 0}) async {
+  Future<List<VetVisitReport>> fetchVetVisitReport({int id = 0,
+    String province = "",
+    String city = "",
+    required SortKey sortKey,
+    required SortDir sortDir,
+    int start = 0}) async {
     try {
       List<List<String>> filters = [];
       if (id != 0) {
@@ -303,10 +300,9 @@ class VisitService {
     return [];
   }
 
-  Future<bool> saveInitVisit(
-      {required AgentInfo agentInfo,
-      required AddInitialVisitFormModel model,
-      required int time}) async {
+  Future<bool> saveInitVisit({required AgentInfo agentInfo,
+    required AddInitialVisitFormModel model,
+    required int time}) async {
     var body = json.encode({
       "docstatus": 0,
       "doctype": "Initial Visit",
@@ -347,14 +343,15 @@ class VisitService {
       "sayer": model.sayer,
       "v_date": model.vDate,
       "geolocation":
-          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model.lon},${model.lat}]}}]}"
+      "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model
+          .lon},${model.lat}]}}]}"
     });
     try {
       var newBody =
-          await _uploadInitVisitFile(model.image1 ?? '', body, "image1");
+      await _uploadInitVisitFile(model.image1 ?? '', body, "image1");
       if (newBody != null) {
         newBody =
-            await _uploadInitVisitFile(model.image2 ?? '', newBody, "image2");
+        await _uploadInitVisitFile(model.image2 ?? '', newBody, "image2");
         if (newBody != null) {
           var result = await _sendRequest(newBody);
           unawaited(_requestRepo.save(Request(
@@ -383,7 +380,9 @@ class VisitService {
       }
     } on DioException catch (e) {
       Progressbar.dismiss();
-      handleDioError(e);
+      Future.delayed(Duration(milliseconds: 600), () {
+        handleDioError(e);
+      });
     } catch (e) {
       showErrorToast(null);
     }
@@ -427,14 +426,14 @@ class VisitService {
   //   return false;
   // }
 
-  Future<String?> _uploadInitVisitFile(
-      String path, String body, String key) async {
+  Future<String?> _uploadInitVisitFile(String path, String body,
+      String key) async {
     try {
       if (path.isEmpty) {
         return body;
       }
       var image =
-          await _fileService.uploadFile(path, "Initial Visit", fieldname: key);
+      await _fileService.uploadFile(path, "Initial Visit", fieldname: key);
       if (image != null) {
         var newBody = json.decode(body);
         newBody[key] = image;
@@ -489,410 +488,430 @@ class VisitService {
     return false;
   }
 
-  Future<bool> sendPeriodicVisits(
-      {required AddPerVisitFormModel addPerVisitFormModel,
-      required AgentInfo agentInfo,
-      required int time,
-      required}) async {
-    var body = json.encode({
-      "docstatus": 0,
-      "doctype": "Periodic visits",
-      "name": "new-periodic-visits-1",
-      "__islocal": 1,
-      "__unsaved": 1,
-      "owner": _autService.getUserId(),
-      "outbreak": addPerVisitFormModel.outbreak,
-      "stable_condition": addPerVisitFormModel.stableCondition,
-      "manger": addPerVisitFormModel.manger,
-      "losses": addPerVisitFormModel.losses,
-      "bazdid": addPerVisitFormModel.bazdid,
-      "water": addPerVisitFormModel.water,
-      "supply_situation": addPerVisitFormModel.supplySituation,
-      "ventilation": addPerVisitFormModel.ventilation,
-      "vaziat": addPerVisitFormModel.vaziat,
-      "jaigah_dam": "",
-      "full_name": agentInfo.full_name,
-      "province": agentInfo.province,
-      "city": agentInfo.city,
-      "rahbar": agentInfo.rahbar,
-      "department": agentInfo.department,
-      "national_id": addPerVisitFormModel.nationalId,
-      "geolocation":
-          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${addPerVisitFormModel.lon},${addPerVisitFormModel.lat}]}}]}",
-      "date": addPerVisitFormModel.date,
-      "next_date": addPerVisitFormModel.nextDate,
-      "description_p": addPerVisitFormModel.description_p,
-      "description_l": addPerVisitFormModel.description_l,
-      "enheraf": addPerVisitFormModel.enheraf,
-    });
-    try {
-      var newBody =
-          await _uploadPerVisitFile(addPerVisitFormModel.image ?? '', body);
-      if (newBody != null) {
-        var res = await _httpService.post(
-            "/api/method/frappe.desk.form.save.savedocs",
-            FormData.fromMap({'doc': newBody, 'action': 'Save'}));
-        unawaited(_requestRepo.save(Request(
-            time: time,
-            type: "Periodic visits",
-            nationId: addPerVisitFormModel.nationalId!,
-            filePaths: [addPerVisitFormModel.image!],
-            status: res?.statusCode == 200
-                ? RequestStatus.Success
-                : RequestStatus.Pending,
-            body: json.encode(addPerVisitFormModel))));
+  Future<bool> sendPeriodicVisits
 
-        if (res?.statusCode == 200) {
-          Fluttertoast.showToast(msg: "ثبت شد");
-          return true;
-        } else {
-          _saveFile(addPerVisitFormModel.image!, "image", time);
-          Progressbar.dismiss();
-          showErrorMessage(res?.data["_server_messages"]);
-          return false;
-        }
-      }
-    } on DioException catch (e) {
-      Progressbar.dismiss();
-      handleDioError(e);
-    } catch (e) {
-      showErrorToast(null);
-    }
-    _saveFile(addPerVisitFormModel.image!, "image", time);
-    unawaited(_requestRepo.save(Request(
-        time: time,
-        type: "Periodic visits",
-        filePaths: [],
-        nationId: addPerVisitFormModel.nationalId!,
-        status: RequestStatus.Pending,
-        body: json.encode(addPerVisitFormModel))));
-    return false;
-  }
+  (
 
-  Future<bool> saveVetVisit(
-      {required AddVetVisitFormModel model,
-      required int time,
-      required AgentInfo agentInfo}) async {
-    var body = json.encode({
-      "docstatus": 0,
-      "doctype": "Vet Visit",
-      "name": "new-vet-visit-1",
-      "__islocal": 1,
-      "__unsaved": 1,
-      "owner": _autService.getUserId(),
-      "bime": model.bime,
-      "pelak": model.pelak,
-      "galleh": model.galleh,
-      "types": model.types,
-      "result": model.result,
-      "name_damp": model.nameDamp,
-      "code_n": model.codeN,
-      "national_id_doc": model.nationalIdDoc,
-      "rahbar": agentInfo.rahbar,
-      "department": agentInfo.department,
-      "pelak_az": model.pelakAz,
-      "pelak_ta": model.pelakTa,
-      "national_id": model.nationalId,
-      "teeth_1": model.teeth1,
-      "teeth_2": model.teeth2,
-      "teeth_3": model.teeth3,
-      "province": agentInfo.province,
-      "city": agentInfo.city,
-      "galle_d": model.galleD,
-      "age": model.age,
-      "name_1": agentInfo.name,
-      "full_name": agentInfo.full_name,
-      "address": agentInfo.address,
-      "eye_1": model.eye1,
-      "eye_2": model.eye2,
-      "eye_3": model.eye3,
-      "eye_4": model.eye4,
-      "eye_5": model.eye5,
-      "breth_1": model.breth1,
-      "breth_2": model.breth2,
-      "breth_3": model.breth2,
-      "mucus_1": model.mucus1,
-      "mucus_2": model.mucus2,
-      "mucus_3": model.mucus3,
-      "mucus_4": model.mucus4,
-      "mucus_5": model.mucus5,
-      "ear_1": model.eye1,
-      "ear_2": model.eye2,
-      "skin_1": model.skin1,
-      "skin_2": model.skin2,
-      "skin_3": model.skin3,
-      "skin_4": model.skin4,
-      "skin_5": model.skin5,
-      "skin_6": model.skin6,
-      "leech_1": model.leech1,
-      "leech_2": model.leech2,
-      "leech_3": model.leech3,
-      "mouth_1": model.mouth1,
-      "mouth_2": model.mouth2,
-      "mouth_3": model.mouth3,
-      "mouth_4": model.mouth4,
-      "hoof_1": model.hoof1,
-      "hoof_2": model.hoof2,
-      "hoof_3": model.hoof3,
-      "hoof_4": model.hoof4,
-      "urine_1": model.urine1,
-      "urine_2": model.urine2,
-      "urine_3": model.urine3,
-      "nodes_1": model.nodes1,
-      "nodes_2": model.nodes2,
-      "nodes_3": model.nodes3,
-      "crown_1": model.crown1,
-      "crown_2": model.crown2,
-      "crown_3": model.crown3,
-      "sole_1": model.sole1,
-      "sole_2": model.sole2,
-      "sole_3": model.sole3,
-      "number": model.number,
-      "image_dam": "",
-      "license_salamat": "",
-      "disapproval_reason": model.disapprovalReason,
-      "geolocation":
-          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model.lon},${model.lat}]}}]}"
-    });
-    try {
-      var newBody = await _uploadVetVisitFiles(
-          model.imageDam ?? '', model.licenseSalamat ?? '', body);
-      if (newBody != null) {
-        var res = await _sendRequest(newBody);
-        unawaited(_requestRepo.save(Request(
-            time: time,
-            type: "Vet Visit",
-            nationId: model.nationalId ?? '',
-            filePaths: [],
-            status: res?.statusCode == 200
-                ? RequestStatus.Success
-                : RequestStatus.Pending,
-            body: json.encode(model))));
-        if (res?.statusCode == 200) {
-          Fluttertoast.showToast(msg: "ثبت شد");
-          return true;
-        } else {
-          _saveFile(model.imageDam!, "imageDam", time);
-          _saveFile(model.licenseSalamat!, "licenseSalamat", time);
-          Progressbar.dismiss();
-          showErrorMessage(res?.data["_server_messages"]);
-          return false;
-        }
-      } else {
-        showErrorToast(null);
-      }
-    } on DioException catch (e) {
-      Progressbar.dismiss();
-      handleDioError(e);
-    } catch (e) {
-      showErrorToast(null);
-    }
-    _saveFile(model.imageDam!, "imageDam", time);
-    _saveFile(model.licenseSalamat!, "licenseSalamat", time);
-    unawaited(_requestRepo.save(Request(
-        time: time,
-        nationId: model.nationalId ?? '',
-        type: "Vet Visit",
-        filePaths: [],
-        status: RequestStatus.Pending,
-        body: json.encode(model))));
-    return false;
-  }
+  {
 
-  Future<bool> resendVetVisit(Request request) async {
-    try {
-      if (request.filePaths != null) {
-        var body = await _uploadVetVisitFiles(request.filePaths?.first ?? '',
-            request.filePaths?.last ?? '', request.body);
-        if (body != null) {
-          var res = await _sendRequest(body);
-          Progressbar.dismiss();
-          if (res?.statusCode == 200) {
-            return true;
-          } else {
-            showErrorToast(null);
-          }
-          return false;
-        }
-        Progressbar.dismiss();
-        return false;
-      }
-    } on DioException catch (e) {
-      Progressbar.dismiss();
-      handleDioError(e, showInfo: false);
-    } catch (e) {
-      Progressbar.dismiss();
-      showErrorToast(null);
-    }
-    return false;
-  }
+  required
 
-  Future<String?> _uploadVetVisitFiles(
-      String image_dam, String license_salamat, dynamic body) async {
-    var newBody = json.decode(body);
-    if (image_dam.isNotEmpty) {
-      var image_dam_res = await _fileService.uploadFile(image_dam, "Vet Visit",
-          fieldname: "image_dam", docname: "new-vet-visit-1");
-      newBody["image_dam"] = image_dam_res;
-    }
-    if (license_salamat.isNotEmpty) {
-      var license_salamat_res = await _fileService.uploadFile(
-          license_salamat, "Vet Visit",
-          fieldname: "license_salamat", docname: "new-vet-visit-1");
-      newBody["license_salamat"] = license_salamat_res;
-    }
+  AddPerVisitFormModel
 
-    return json.encode(newBody);
-  }
+  addPerVisitFormModel,
+  required AgentInfo agentInfo,
+  required int time,
+  required
+}) async {
 
-  Future<Response<dynamic>?> _sendRequest(String body) {
-    return _httpService.postForm("/api/method/frappe.desk.form.save.savedocs",
-        FormData.fromMap({'doc': body, 'action': 'Save'}));
-  }
+var body = json.encode({
+  "docstatus": 0,
+  "_user_tags": "ANDROID",
+  "doctype": "Periodic visits",
+  "name": "new-periodic-visits-1",
+  "__islocal": 1,
+  "__unsaved": 1,
+  "owner": _autService.getUserId(),
+  "outbreak": addPerVisitFormModel.outbreak,
+  "stable_condition": addPerVisitFormModel.stableCondition,
+  "manger": addPerVisitFormModel.manger,
+  "losses": addPerVisitFormModel.losses,
+  "bazdid": addPerVisitFormModel.bazdid,
+  "water": addPerVisitFormModel.water,
+  "supply_situation": addPerVisitFormModel.supplySituation,
+  "ventilation": addPerVisitFormModel.ventilation,
+  "vaziat": addPerVisitFormModel.vaziat,
+  "jaigah_dam": "",
+  "full_name": agentInfo.full_name,
+  "province": agentInfo.province,
+  "city": agentInfo.city,
+  "rahbar": agentInfo.rahbar,
+  "department": agentInfo.department,
+  "national_id": addPerVisitFormModel.nationalId,
+  "geolocation":
+  "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${addPerVisitFormModel
+      .lon},${addPerVisitFormModel.lat}]}}]}",
+  "date": addPerVisitFormModel.date,
+  "next_date": addPerVisitFormModel.nextDate,
+  "description_p": addPerVisitFormModel.description_p,
+  "description_l": addPerVisitFormModel.description_l,
+  "enheraf": addPerVisitFormModel.enheraf,
+});try {
+var newBody =
+await _uploadPerVisitFile(addPerVisitFormModel.image ?? '', body);
+if (newBody != null) {
+var res = await _httpService.post(
+"/api/method/frappe.desk.form.save.savedocs",
+FormData.fromMap({'doc': newBody, 'action': 'Save'}));
+unawaited(_requestRepo.save(Request(
+time: time,
+type: "Periodic visits",
+nationId: addPerVisitFormModel.nationalId!,
+filePaths: [addPerVisitFormModel.image!],
+status: res?.statusCode == 200
+? RequestStatus.Success
+    : RequestStatus.Pending,
+body: json.encode(addPerVisitFormModel))));
 
-  Future<List<String>> searchInCity(String province, String city) async {
-    try {
-      List<List<String>> filters = [];
-      if (province.isNotEmpty) {
-        filters.add(["City", "province", "=", province]);
-      }
-      if (city.isNotEmpty) {
-        filters.add(["City", "city_name", "like", "%$city%"]);
-      }
-      var result = await _httpService.post(
-          "/api/method/frappe.desk.reportview.get",
-          FormData.fromMap({
-            'doctype': 'City',
-            'fields': json.encode([
-              "`tabCity`.`name`",
-              "`tabCity`.`owner`",
-              "`tabCity`.`creation`",
-              "`tabCity`.`modified`",
-              "`tabCity`.`modified_by`",
-              "`tabCity`.`_user_tags`",
-              "`tabCity`.`_comments`",
-              "`tabCity`.`_assign`",
-              "`tabCity`.`_liked_by`",
-              "`tabCity`.`docstatus`",
-              "`tabCity`.`idx`",
-              "`tabCity`.`city_name`",
-              "`tabCity`.`province`"
-            ]),
-            'filters': json.encode(filters),
-            'order_by': '`tabCity`.`modified` DESC',
-            'start': 0,
-            'page_length': 100,
-            'view': 'List',
-            'group_by': '`tabCity`.`name`',
-            'with_comment_count': 1
-          }));
-      return CityUtils.extract(result?.data["message"]["values"]);
-    } catch (e) {
-      _logger.e(e);
-    }
-    return [];
-  }
+if (res?.statusCode == 200) {
+Fluttertoast.showToast(msg: "ثبت شد");
+return true;
+} else {
+_saveFile(addPerVisitFormModel.image!, "image", time);
+Progressbar.dismiss();
+showErrorMessage(res?.data["_server_messages"]);
+return false;
+}
+}
+} on DioException
+catch
+(
+e) {
+Progressbar.dismiss();
+Future.delayed(Duration(milliseconds: 600), () {
+handleDioError(e);
+});
+} catch (e) {
+Progressbar.dismiss();
+showErrorToast(null);
+}
+_saveFile(addPerVisitFormModel.image!, "image", time);
+unawaited(_requestRepo.save(Request(
+time: time,
+type: "Periodic visits",
+filePaths: [],
+nationId: addPerVisitFormModel.nationalId!,
+status: RequestStatus.Pending,
+body: json.encode(addPerVisitFormModel))));
+return false;
+}
 
-  Future<InitVisitInfoModel?> getInitVisitInfo(String id) async {
-    try {
-      var result = await _httpService.get(
-        "/api/method/frappe.desk.form.load.getdoc?doctype=Initial Visit&name=$id&_=1719422952988",
-      );
-      return InitVisitInfoModel.fromJson(result?.data["docs"][0]);
-    } catch (e) {
-      _logger.e(e);
-    }
-    return null;
-  }
+Future<bool> saveVetVisit(
+{required AddVetVisitFormModel model,
+required int time,
+required AgentInfo agentInfo}) async {
+var body = json.encode({
+"docstatus": 0,
+"doctype": "Vet Visit",
+"name": "new-vet-visit-1",
+"__islocal": 1,
+"__unsaved": 1,
+"owner": _autService.getUserId(),
+"bime": model.bime,
+"pelak": model.pelak,
+"galleh": model.galleh,
+"types": model.types,
+"result": model.result,
+"name_damp": model.nameDamp,
+"code_n": model.codeN,
+"national_id_doc": model.nationalIdDoc,
+"rahbar": agentInfo.rahbar,
+"department": agentInfo.department,
+"pelak_az": model.pelakAz,
+"pelak_ta": model.pelakTa,
+"national_id": model.nationalId,
+"teeth_1": model.teeth1,
+"teeth_2": model.teeth2,
+"teeth_3": model.teeth3,
+"province": agentInfo.province,
+"city": agentInfo.city,
+"galle_d": model.galleD,
+"age": model.age,
+"name_1": agentInfo.name,
+"full_name": agentInfo.full_name,
+"address": agentInfo.address,
+"eye_1": model.eye1,
+"eye_2": model.eye2,
+"eye_3": model.eye3,
+"eye_4": model.eye4,
+"eye_5": model.eye5,
+"breth_1": model.breth1,
+"breth_2": model.breth2,
+"breth_3": model.breth2,
+"mucus_1": model.mucus1,
+"mucus_2": model.mucus2,
+"mucus_3": model.mucus3,
+"mucus_4": model.mucus4,
+"mucus_5": model.mucus5,
+"ear_1": model.eye1,
+"ear_2": model.eye2,
+"skin_1": model.skin1,
+"skin_2": model.skin2,
+"skin_3": model.skin3,
+"skin_4": model.skin4,
+"skin_5": model.skin5,
+"skin_6": model.skin6,
+"leech_1": model.leech1,
+"leech_2": model.leech2,
+"leech_3": model.leech3,
+"mouth_1": model.mouth1,
+"mouth_2": model.mouth2,
+"mouth_3": model.mouth3,
+"mouth_4": model.mouth4,
+"hoof_1": model.hoof1,
+"hoof_2": model.hoof2,
+"hoof_3": model.hoof3,
+"hoof_4": model.hoof4,
+"urine_1": model.urine1,
+"urine_2": model.urine2,
+"urine_3": model.urine3,
+"nodes_1": model.nodes1,
+"nodes_2": model.nodes2,
+"nodes_3": model.nodes3,
+"crown_1": model.crown1,
+"crown_2": model.crown2,
+"crown_3": model.crown3,
+"sole_1": model.sole1,
+"sole_2": model.sole2,
+"sole_3": model.sole3,
+"number": model.number,
+"image_dam": "",
+"license_salamat": "",
+"disapproval_reason": model.disapprovalReason,
+"geolocation":
+"{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model.lon},${model.lat}]}}]}"
+});
+try {
+var newBody = await _uploadVetVisitFiles(
+model.imageDam ?? '', model.licenseSalamat ?? '', body);
+if (newBody != null) {
+var res = await _sendRequest(newBody);
+unawaited(_requestRepo.save(Request(
+time: time,
+type: "Vet Visit",
+nationId: model.nationalId ?? '',
+filePaths: [],
+status: res?.statusCode == 200
+? RequestStatus.Success
+    : RequestStatus.Pending,
+body: json.encode(model))));
+if (res?.statusCode == 200) {
+Fluttertoast.showToast(msg: "ثبت شد");
+return true;
+} else {
+_saveFile(model.imageDam!, "imageDam", time);
+_saveFile(model.licenseSalamat!, "licenseSalamat", time);
+Progressbar.dismiss();
+showErrorMessage(res?.data["_server_messages"]);
+return false;
+}
+} else {
+showErrorToast(null);
+}
+} on DioException catch (e) {
+Progressbar.dismiss();
+Future.delayed(Duration(milliseconds: 600), () {
+handleDioError(e);
+});
+} catch (e) {
+showErrorToast(null);
+}
+_saveFile(model.imageDam!, "imageDam", time);
+_saveFile(model.licenseSalamat!, "licenseSalamat", time);
+unawaited(_requestRepo.save(Request(
+time: time,
+nationId: model.nationalId ?? '',
+type: "Vet Visit",
+filePaths: [],
+status: RequestStatus.Pending,
+body: json.encode(model))));
+return false;
+}
 
-  Future<PeriodicVisitInfoModel?> getPeriodicVisitInfo(String id) async {
-    try {
-      var result = await _httpService.get(
-        "/api/method/frappe.desk.form.load.getdoc?doctype=Periodic%20visits&name=$id&_=1716470766446",
-      );
-      return PeriodicVisitInfoModel.fromJson(result?.data["docs"][0]);
-    } catch (e) {
-      _logger.e(e);
-    }
-    return null;
-  }
+Future<bool> resendVetVisit(Request request) async {
+try {
+if (request.filePaths != null) {
+var body = await _uploadVetVisitFiles(request.filePaths?.first ?? '',
+request.filePaths?.last ?? '', request.body);
+if (body != null) {
+var res = await _sendRequest(body);
+Progressbar.dismiss();
+if (res?.statusCode == 200) {
+return true;
+} else {
+showErrorToast(null);
+}
+return false;
+}
+Progressbar.dismiss();
+return false;
+}
+} on DioException catch (e) {
+Progressbar.dismiss();
+handleDioError(e, showInfo: false);
+} catch (e) {
+Progressbar.dismiss();
+showErrorToast(null);
+}
+return false;
+}
 
-  Future<VetVisitInfoModel?> getVetVisitInfo(String id) async {
-    try {
-      var result = await _httpService.get(
-        "/api/method/frappe.desk.form.load.getdoc?doctype=Vet%20Visit&name=$id&_=171648547368",
-      );
-      return VetVisitInfoModel.fromJson(result?.data["docs"][0]);
-    } catch (e) {
-      _logger.e(e);
-    }
-    return null;
-  }
+Future<String?> _uploadVetVisitFiles(
+String image_dam, String license_salamat, dynamic body) async {
+var newBody = json.decode(body);
+if (image_dam.isNotEmpty) {
+var image_dam_res = await _fileService.uploadFile(image_dam, "Vet Visit",
+fieldname: "image_dam", docname: "new-vet-visit-1");
+newBody["image_dam"] = image_dam_res;
+}
+if (license_salamat.isNotEmpty) {
+var license_salamat_res = await _fileService.uploadFile(
+license_salamat, "Vet Visit",
+fieldname: "license_salamat", docname: "new-vet-visit-1");
+newBody["license_salamat"] = license_salamat_res;
+}
 
-  Future<List<String>> getAnimalType(String type, {String q = ""}) async {
-    try {
-      var resul = await _httpService.post(
-          "/api/method/frappe.desk.reportview.get",
-          FormData.fromMap({
-            'doctype': 'Livestock breeds',
-            'fields': json.encode([
-              "`tabLivestock breeds`.`name`",
-              "`tabLivestock breeds`.`owner`",
-              "`tabLivestock breeds`.`creation`",
-              "`tabLivestock breeds`.`modified`",
-              "`tabLivestock breeds`.`modified_by`",
-              "`tabLivestock breeds`.`_user_tags`",
-              "`tabLivestock breeds`.`_comments`",
-              "`tabLivestock breeds`.`_assign`",
-              "`tabLivestock breeds`.`_liked_by`",
-              "`tabLivestock breeds`.`docstatus`",
-              "`tabLivestock breeds`.`idx`",
-              "`tabLivestock breeds`.`dam_type`"
-            ]),
-            'filters': json.encode([
-              ["Livestock breeds", "dam_type", "=", "$type"],
-              ["Livestock breeds", "name", "like", "%$q%"]
-            ]),
-            'start': 0,
-            'page_length': 20,
-            'view': 'List',
-            'group_by': '`tabLivestock breeds`.`name`',
-            'with_comment_count': 1
-          }));
+return json.encode(newBody);
+}
 
-      return (resul?.data["message"]["values"] as List<dynamic>)
-          .map((e) => (e as List<dynamic>)[0].toString())
-          .toList();
-    } catch (e) {
-      _logger.e(e);
-    }
-    return [];
-  }
+Future<Response<dynamic>?> _sendRequest(String body) {
+return _httpService.postForm("/api/method/frappe.desk.form.save.savedocs",
+FormData.fromMap({'doc': body, 'action': 'Save',"_user_tags": "ANDROID",}));
+}
 
-  void _saveFile(String path, String key, int time) {
-    _fileRepo.saveFile(time: time, key: key, path: path);
-  }
+Future<List<String>> searchInCity(String province, String city) async {
+try {
+List<List<String>> filters = [];
+if (province.isNotEmpty) {
+filters.add(["City", "province", "=", province]);
+}
+if (city.isNotEmpty) {
+filters.add(["City", "city_name", "like", "%$city%"]);
+}
+var result = await _httpService.post(
+"/api/method/frappe.desk.reportview.get",
+FormData.fromMap({
+'doctype': 'City',
+'fields': json.encode([
+"`tabCity`.`name`",
+"`tabCity`.`owner`",
+"`tabCity`.`creation`",
+"`tabCity`.`modified`",
+"`tabCity`.`modified_by`",
+"`tabCity`.`_user_tags`",
+"`tabCity`.`_comments`",
+"`tabCity`.`_assign`",
+"`tabCity`.`_liked_by`",
+"`tabCity`.`docstatus`",
+"`tabCity`.`idx`",
+"`tabCity`.`city_name`",
+"`tabCity`.`province`"
+]),
+'filters': json.encode(filters),
+'order_by': '`tabCity`.`modified` DESC',
+'start': 0,
+'page_length': 100,
+'view': 'List',
+'group_by': '`tabCity`.`name`',
+'with_comment_count': 1
+}));
+return CityUtils.extract(result?.data["message"]["values"]);
+} catch (e) {
+_logger.e(e);
+}
+return [];
+}
 
-  List<SortKey> initVistiSortKeys() => [
-        SortKey(title: "آخرین بروزرسانی", key: "`tabInitial Visit`.`modified`"),
-        SortKey(title: "شناسه", key: "`tabInitial Visit`.`name`"),
-        SortKey(title: "تاریخ ایجاد", key: "`tabInitial Visit`.`creation`"),
-        SortKey(title: "مکان یابی", key: "`tabInitial Visit`.`geolocation`")
-      ];
+Future<InitVisitInfoModel?> getInitVisitInfo(String id) async {
+try {
+var result = await _httpService.get(
+"/api/method/frappe.desk.form.load.getdoc?doctype=Initial Visit&name=$id&_=1719422952988",
+);
+return InitVisitInfoModel.fromJson(result?.data["docs"][0]);
+} catch (e) {
+_logger.e(e);
+}
+return null;
+}
 
-  List<SortKey> periodicVistiSortKeys() => [
-        SortKey(
-            title: "آخرین بروزرسانی", key: "`tabPeriodic visits`.`modified`"),
-        SortKey(title: "شناسه", key: "`tabPeriodic visits`.`name`"),
-        SortKey(title: "تاریخ ایجاد", key: "`tabPeriodic visits`.`creation`"),
-        SortKey(title: "مکان یابی", key: "`tabPeriodic visits`.`geolocation`")
-      ];
+Future<PeriodicVisitInfoModel?> getPeriodicVisitInfo(String id) async {
+try {
+var result = await _httpService.get(
+"/api/method/frappe.desk.form.load.getdoc?doctype=Periodic%20visits&name=$id&_=1716470766446",
+);
+return PeriodicVisitInfoModel.fromJson(result?.data["docs"][0]);
+} catch (e) {
+_logger.e(e);
+}
+return null;
+}
 
-  List<SortKey> vetVistiSortKeys() => [
+Future<VetVisitInfoModel?> getVetVisitInfo(String id) async {
+try {
+var result = await _httpService.get(
+"/api/method/frappe.desk.form.load.getdoc?doctype=Vet%20Visit&name=$id&_=171648547368",
+);
+return VetVisitInfoModel.fromJson(result?.data["docs"][0]);
+} catch (e) {
+_logger.e(e);
+}
+return null;
+}
+
+Future<List<String>> getAnimalType(String type, {String q = ""}) async {
+try {
+var resul = await _httpService.post(
+"/api/method/frappe.desk.reportview.get",
+FormData.fromMap({
+'doctype': 'Livestock breeds',
+'fields': json.encode([
+"`tabLivestock breeds`.`name`",
+"`tabLivestock breeds`.`owner`",
+"`tabLivestock breeds`.`creation`",
+"`tabLivestock breeds`.`modified`",
+"`tabLivestock breeds`.`modified_by`",
+"`tabLivestock breeds`.`_user_tags`",
+"`tabLivestock breeds`.`_comments`",
+"`tabLivestock breeds`.`_assign`",
+"`tabLivestock breeds`.`_liked_by`",
+"`tabLivestock breeds`.`docstatus`",
+"`tabLivestock breeds`.`idx`",
+"`tabLivestock breeds`.`dam_type`"
+]),
+'filters': json.encode([
+["Livestock breeds", "dam_type", "=", "$type"],
+["Livestock breeds", "name", "like", "%$q%"]
+]),
+'start': 0,
+'page_length': 20,
+'view': 'List',
+'group_by': '`tabLivestock breeds`.`name`',
+'with_comment_count': 1
+}));
+
+return (resul?.data["message"]["values"] as List<dynamic>)
+    .map((e) => (e as List<dynamic>)[0].toString())
+    .toList();
+} catch (e) {
+_logger.e(e);
+}
+return [];
+}
+
+void _saveFile(String path, String key, int time) {
+_fileRepo.saveFile(time: time, key: key, path: path);
+}
+
+List<SortKey> initVistiSortKeys() => [
+SortKey(title: "آخرین بروزرسانی", key: "`tabInitial Visit`.`modified`"),
+SortKey(title: "شناسه", key: "`tabInitial Visit`.`name`"),
+SortKey(title: "تاریخ ایجاد", key: "`tabInitial Visit`.`creation`"),
+SortKey(title: "مکان یابی", key: "`tabInitial Visit`.`geolocation`")
+];
+
+List<SortKey> periodicVistiSortKeys() => [
+SortKey(
+title: "آخرین بروزرسانی", key: "`tabPeriodic visits`.`modified`"),
+SortKey(title: "شناسه", key: "`tabPeriodic visits`.`name`"),
+SortKey(title: "تاریخ ایجاد", key: "`tabPeriodic visits`.`creation`"),
+SortKey(title: "مکان یابی", key: "`tabPeriodic visits`.`geolocation`")
+];
+
+List<SortKey> vetVistiSortKeys() => [
 // SortKey(title: "موقعیت محلی", key: "`tabVet Visit`.`geolocation`"),
-        SortKey(title: "آخرین بروزرسانی", key: "`tabVet Visit`.`modified`"),
-        SortKey(title: "شناسه", key: "`tabVet Visit`.`name`"),
-        SortKey(title: "تعداد", key: "`tabVet Visit`.`number`"),
-        SortKey(title: "تاریخ ایجاد", key: "`tabVet Visit`.`creation`"),
-      ];
+SortKey(title: "آخرین بروزرسانی", key: "`tabVet Visit`.`modified`"),
+SortKey(title: "شناسه", key: "`tabVet Visit`.`name`"),
+SortKey(title: "تعداد", key: "`tabVet Visit`.`number`"),
+SortKey(title: "تاریخ ایجاد", key: "`tabVet Visit`.`creation`"),
+];
 }
