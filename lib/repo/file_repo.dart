@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 class FileRepo {
   var _fileDao = GetIt.I.get<FileInfoDao>();
 
-  Future<void> saveFile(
+  Future<String?> saveFile(
       {required int time, required String key, required String path}) async {
     try {
       var file =
@@ -17,9 +17,11 @@ class FileRepo {
       var bytes = File(path).readAsBytesSync();
       var t = await file.writeAsBytes(bytes);
       _fileDao.save(FileInfo(time: time, key: key, path: t.path));
+      return t.path;
     } catch (e) {
       print(e);
     }
+    return null;
   }
 
   Future<String?> getFile(String key) async {

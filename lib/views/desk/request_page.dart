@@ -6,11 +6,13 @@ import 'package:flutter/widgets.dart';
 import 'package:frappe_app/db/request.dart';
 import 'package:frappe_app/model/add_initial_visit_from_model.dart';
 import 'package:frappe_app/model/add_per_vsiti_form_model.dart';
+import 'package:frappe_app/model/add_product_form_model.dart';
 import 'package:frappe_app/model/add_vetvisit_form_model.dart';
 import 'package:frappe_app/repo/RequestRepo.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/views/visit/add_initial_visit.dart';
 import 'package:frappe_app/views/visit/add_periodic_visit.dart';
+import 'package:frappe_app/views/visit/add_productivit_visit.dart';
 import 'package:frappe_app/views/visit/add_vetvisit.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart';
@@ -52,7 +54,7 @@ class _RequestPageState extends State<RequestPage> {
                             return Padding(
                               padding: const EdgeInsets.all(4.0),
                               child: Container(
-                                height: 80,
+                                height: 90,
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all()),
@@ -66,52 +68,97 @@ class _RequestPageState extends State<RequestPage> {
                                     children: [
                                       Column(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                            MainAxisAlignment.start,
                                         children: [
-                                          if (record.nationId.isNotEmpty)
-                                            Text(
-                                              record.nationId,
-                                            ),
                                           Text(
                                             getType(record.type),
                                             style: TextStyle(fontSize: 14),
                                           ),
+                                          if (record.nationId.isNotEmpty)
+                                            Text(
+                                              record.nationId,
+                                            ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                time.hour.toString() +
+                                                    ":" +
+                                                    time.minute.toString(),
+                                                style: TextStyle(fontSize: 13),
+                                              ),
+                                              SizedBox(
+                                                width: 6,
+                                              ),
+                                              Text(
+                                                Jalali.fromDateTime(time)
+                                                    .formatCompactDate()
+                                                    .toString(),
+                                                style: TextStyle(fontSize: 13),
+                                              ),
+                                            ],
+                                          ),
                                         ],
                                       ),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            Jalali.fromDateTime(time)
-                                                .formatCompactDate()
-                                                .toString(),
-                                            style: TextStyle(fontSize: 13),
-                                          ),
-                                          Text(
-                                            time.hour.toString() +
-                                                ":" +
-                                                time.minute.toString(),
-                                            style: TextStyle(fontSize: 13),
-                                          ),
-                                        ],
-                                      ),
+                                      if (record.status ==
+                                          RequestStatus.Pending)
+                                        IconButton(
+                                            onPressed: () {
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (_) => AlertDialog(
+                                                        content: Text(
+                                                            "از حذف مطمنید؟"),
+                                                        actions: [
+                                                          ElevatedButton(
+                                                              onPressed:
+                                                                  () async {
+                                                                Navigator.pop(
+                                                                    _);
+                                                              },
+                                                              child:
+                                                                  Text("لغو")),
+                                                          ElevatedButton(
+                                                              onPressed:
+                                                                  () async {
+                                                                _requestRepo
+                                                                    .delete(
+                                                                        record);
+                                                                Navigator.pop(
+                                                                    _);
+                                                              },
+                                                              child: Text(
+                                                                "بله",
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .red),
+                                                              )),
+                                                        ],
+                                                      ));
+                                            },
+                                            icon: Icon(
+                                              CupertinoIcons.delete,
+                                              color: Colors.red,
+                                            )),
                                       if (record.status ==
                                           RequestStatus.Success)
-                                        Icon(
-                                          CupertinoIcons
-                                              .checkmark_alt_circle_fill,
-                                          color: Colors.green,
-                                          size: 35,
-                                        ),
-                                      if (record.status ==
+                                        SizedBox(
+                                          width: 100,
+                                          child: Icon(
+                                            CupertinoIcons
+                                                .checkmark_alt_circle_fill,
+                                            color: Colors.green,
+                                            size: 35,
+                                          ),
+                                        )
+                                     else  if (record.status ==
                                           RequestStatus.Pending)
                                         ElevatedButton(
                                             style: ElevatedButton.styleFrom(
                                                 backgroundColor:
                                                     Color(0xE452FF22)),
                                             onPressed: () async {
-                                              var res = false;
                                               if (record.type ==
                                                   "Initial Visit") {
                                                 Get.to(() => AddInitialReport(
@@ -130,7 +177,8 @@ class _RequestPageState extends State<RequestPage> {
                                                             .fromJson(json
                                                                 .decode(record
                                                                     .body))));
-                                              } else {
+                                              } else if (record.type ==
+                                                  "Vet Visit") {
                                                 Get.to(() => AddVetVisit(
                                                     time: record.time,
                                                     addVetVisitFormModel:
@@ -138,10 +186,18 @@ class _RequestPageState extends State<RequestPage> {
                                                             .fromJson(json
                                                                 .decode(record
                                                                     .body))));
+                                              } else if (record.type ==
+                                                  "Product") {
+                                                Get.to(() => ProductVisitReport(
+                                                    time: record.time,
+                                                    addProductivityFormModel:
+                                                        ProductivityFormModel
+                                                            .fromJson(json
+                                                                .decode(record
+                                                                    .body))));
                                               }
                                             },
-                                            child:
-                                                Text("ویرایش و \nباز ارسال ")),
+                                            child: Text("باز ارسال ")),
                                     ],
                                   ),
                                 ),
@@ -169,6 +225,9 @@ class _RequestPageState extends State<RequestPage> {
     }
     if (text == "Vet Visit") {
       return "بازدید پزشکی";
+    }
+    if (text == "Product") {
+      return "بهره وری";
     }
     return text;
   }

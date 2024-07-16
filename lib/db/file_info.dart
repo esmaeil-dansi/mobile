@@ -1,9 +1,10 @@
 
+import 'package:frappe_app/utils/constants.dart';
 import 'package:hive/hive.dart';
 
 part 'file_info.g.dart';
 
-@HiveType(typeId: 5)
+@HiveType(typeId: FILE_INFO_HIVE_ID)
 class FileInfo {
   @HiveField(0)
   int time;

@@ -8,11 +8,13 @@ import 'package:frappe_app/model/weather.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/services/shop_service.dart';
+import 'package:frappe_app/widgets/file_picker_widget.dart';
 import 'package:frappe_app/widgets/methodes.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart' as g;
 import 'package:get/get_rx/get_rx.dart';
 import 'package:get_it/get_it.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:shamsi_date/shamsi_date.dart';
@@ -20,12 +22,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AutService {
   String SID = "sid";
+  String LAST_FETCH_WEATHER_TIME = "LAST_FETCH_WEATHER_TIME";
+  String USERNAME = "username";
+  String LAST_UPDATE_TIME = "last_update_time";
+  String PASSWORD = "password";
   String FULL_NAME = "full_name";
   String FULL_NAME_CHAR = "full_name_char";
   String USER_ID = "user_id";
   String ROLES = "roles";
   String USER_IMAGE = "user_image";
-  String PASSWORD = "user_image";
   String NAME = "name";
   String LAST_NAME = "last_name";
   String USER_NAME = "user_name";
@@ -34,6 +39,7 @@ class AutService {
   String SELECTED_CITY = "selected_city";
   String WAETHER_KEY = "WAETHER_KEY";
 
+  Rx<String> selectedCity = "".obs;
   var weathers = <Weather>[].obs;
 
   var _logger = Logger();
@@ -60,10 +66,10 @@ class AutService {
 
   String getCity() => _sharedPreferences.getString(CITY) ?? "";
 
-  String getSelectedCity() => _sharedPreferences.getString(SELECTED_CITY) ?? "";
-
-  void saveSelectedCity(String city) =>
-      _sharedPreferences.setString(SELECTED_CITY, city);
+  void saveSelectedCity(String city) {
+    selectedCity.value = city;
+    _sharedPreferences.setString(SELECTED_CITY, city);
+  }
 
   late SharedPreferences _sharedPreferences;
 
@@ -77,12 +83,22 @@ class AutService {
     return _user_id;
   }
 
+  String mainUserId() {
+    return _user_id.replaceAll("%40", "@") ?? "";
+  }
+
   var advDao = GetIt.I.get<AdvertisementDao>();
 
   Rx<String> getUserImage() => _user_image;
 
   AutService() {
     init();
+  }
+
+  bool needToFetchWeather() {
+    return DateTime.now().millisecondsSinceEpoch -
+            (_sharedPreferences.getInt(LAST_FETCH_WEATHER_TIME) ?? 0) >
+        6 * 60 * 60 * 1000;
   }
 
   Future<void> fetchAdvertisement(DateTime dateTime) async {
@@ -119,6 +135,7 @@ class AutService {
     _user_image.value = _sharedPreferences.getString(USER_IMAGE) ?? "";
     _roles = _sharedPreferences.getStringList(ROLES) ?? [];
     GetIt.I.get<ShopService>().fetchShopInfo(_user_id);
+    selectedCity.value = _sharedPreferences.getString(SELECTED_CITY) ?? "";
   }
 
   String _decodePercentEncodedString(String encoded) {
@@ -151,7 +168,7 @@ class AutService {
   }
 
   (String, String) getDate(int j) {
-    var date = DateTime.now().add(Duration(days: ((j / 8).ceil())));
+    var date = DateTime.now().add(Duration(days: ((j).ceil())));
     var jalali = Jalali.fromDateTime(date);
     return (
       jalali.month.toString() + "/" + jalali.day.toString(),
@@ -161,106 +178,125 @@ class AutService {
 
   String weekdays(int j) => ["ش", "ی", "د", "س", "چ", "پ", "ج"][j];
 
-  Future<void> getWeather() async {
+  Future<void> getWeather({required double lat, required double lon}) async {
     try {
-      var res = <Weather>[];
-      var result = await Dio()
-          .get('https://api.codebazan.ir/weather/?city=${getSelectedCity()}');
-
-      try{
-        _sharedPreferences.setString(WAETHER_KEY, json.encode(result.data));
-
-      }catch(e){
-
-      }
-
-      int i = 0;
-      while (i <= 40) {
-        try {
-          var s = getDate(i);
-          res.add(Weather(
-              temp: result.data["list"][i]["main"]["temp"],
-              icon: result.data["list"][i]["weather"][0]["icon"],
-              main: result.data["list"][i]["weather"][0]["main"],
-              description: result.data["list"][i]["weather"][0]["description"],
-              date: s.$1,
-              w: s.$2));
-        } catch (e) {
-          print("e");
+      if (needToFetchWeather()) {
+        var result = await Dio().get(
+            'https://one-api.ir/weather/?action=dailybylocation&token=249726:668cbf97266ea&lat=$lat&lon=$lon');
+        if (result.data["status"] == 200) {
+          _sharedPreferences.setInt(
+              LAST_FETCH_WEATHER_TIME, DateTime.now().millisecondsSinceEpoch);
+          try {
+            saveSelectedCity(result.data["result"]["city"]["name"]);
+          } catch (e) {}
+          _extractWeather(result.data);
+          _sharedPreferences.setString(WAETHER_KEY, json.encode(result.data));
+        } else {
+          initOldWeather();
         }
-        i = i + 8;
+      } else {
+        initOldWeather();
       }
-      weathers.clear();
-      weathers.addAll(res);
     } catch (e) {
-      try {
-        var s = _sharedPreferences.getString(WAETHER_KEY);
-        if (s != null) {
-          var result = json.decode(s);
-          var res = <Weather>[];
-          int i = 0;
-          while (i <= 40) {
-            try {
-              var s = getDate(i);
-              res.add(Weather(
-                  temp: result["list"][i]["main"]["temp"],
-                  icon: result["list"][i]["weather"][0]["icon"],
-                  main: result["list"][i]["weather"][0]["main"],
-                  description: result["list"][i]["weather"][0]
-                      ["description"],
-                  date: s.$1,
-                  w: s.$2));
-            } catch (e) {
-              print("e");
-            }
-            i = i + 8;
-          }
-          weathers.clear();
-          weathers.addAll(res);
-        }
-      } catch (e) {}
-
+      initOldWeather();
       _logger.e(e);
     }
   }
 
-  Future<bool> login({
+  void initOldWeather() {
+    try {
+      var s = _sharedPreferences.getString(WAETHER_KEY);
+      if (s != null) {
+        _extractWeather(json.decode(s));
+      }
+    } catch (e) {}
+  }
+
+  void _extractWeather(dynamic result) {
+    var res = <Weather>[];
+    List<dynamic> data =
+        ((result["result"]["list"]) as List<dynamic>).sublist(0, 5);
+    for (int j = 0; j < data.length; j++) {
+      var s = data[j];
+      var date = getDate(j);
+      res.add(Weather(
+          temp: s["temp"]["eve"],
+          icon: s["weather"][0]["icon"],
+          main: s["weather"][0]["main"],
+          description: s["weather"][0]["description"],
+          date: date.$1,
+          w: date.$2));
+    }
+
+    weathers.clear();
+    weathers.addAll(res);
+  }
+
+  Future<bool> checkLoginCertificate() async {
+    var res = await login(
+        username: _sharedPreferences.getString(USERNAME) ?? "",
+        password: _sharedPreferences.getString(PASSWORD) ?? "");
+    if (res.$1) {
+      return true;
+    } else {
+      var r = DateTime.now().millisecondsSinceEpoch -
+              (_sharedPreferences.getInt(LAST_UPDATE_TIME) ?? 0) <
+          24 * 60 * 60 * 1000;
+      if (!r && res.$2) {
+        _sharedPreferences.setBool('login', false);
+        return false;
+      }
+      return true;
+    }
+  }
+
+  Future<(bool, bool)> login({
     required String username,
     required String password,
   }) async {
     try {
       var res = await GetIt.I.get<HttpService>().post("/login",
           FormData.fromMap({"cmd": "login", "usr": username, "pwd": password}));
-      if (res == null) {
-        return false;
+      if (res?.statusCode == 200) {
+        _sharedPreferences.setInt(
+            LAST_UPDATE_TIME, DateTime.now().millisecondsSinceEpoch);
+        String name = _decodePercentEncodedString(res!.data["full_name"]);
+        _saveData(
+            res!.headers["set-cookie"]?.first
+                    .split(";")
+                    .first
+                    .split("=")
+                    .last ??
+                "",
+            name,
+            res.headers["set-cookie"]![2]
+                .split(";")
+                .first
+                .split("=")
+                .last
+                .toString(),
+            res.headers["set-cookie"]![3]
+                .split(";")
+                .first
+                .split("=")
+                .last
+                .toString(),
+            res.headers["set-cookie"]?[4].split(";").first.split("=").last ??
+                "");
+        _deleteHive(username);
+        _sharedPreferences.setString(USERNAME, username);
+        _sharedPreferences.setString(PASSWORD, password);
+        await _getUserRole();
+        getPermission();
+        GetIt.I.get<ShopService>().fetchShopInfo(_user_id);
+        return (true, false);
+      } else {
+        return (false, res?.statusCode == 500);
       }
-
-      String name = _decodePercentEncodedString(res.data["full_name"]);
-      _saveData(
-          res.headers["set-cookie"]?.first.split(";").first.split("=").last ??
-              "",
-          name,
-          res.headers["set-cookie"]![2]
-              .split(";")
-              .first
-              .split("=")
-              .last
-              .toString(),
-          res.headers["set-cookie"]![3]
-              .split(";")
-              .first
-              .split("=")
-              .last
-              .toString(),
-          res.headers["set-cookie"]?[4].split(";").first.split("=").last ?? "");
-      await _getUserRole();
-      getPermission();
-      GetIt.I.get<ShopService>().fetchShopInfo(_user_id);
-      return res.statusCode == 200;
     } catch (e) {
       _logger.e(e);
     }
-    return false;
+    return (false, false);
   }
 
   Future<void> _getUserRole() async {
@@ -443,7 +479,18 @@ class AutService {
   }
 
   Future<void> logout() async {
-    await _sharedPreferences.clear();
+    await _sharedPreferences.setBool("login", false);
+  }
+
+  Future<void> _deleteHive(String username) async {
+    try {
+      var u = _sharedPreferences.getString(USERNAME);
+      if (u != null && u.isNotEmpty && u != username) {
+        Hive.deleteFromDisk();
+      }
+    } catch (e) {
+      _logger.e(e);
+    }
   }
 
   Future<File?> downloadAvatar(String uri) async {

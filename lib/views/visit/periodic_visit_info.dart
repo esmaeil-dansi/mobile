@@ -363,7 +363,7 @@ class PeriodicVisitInfo extends StatelessWidget {
                         ),
                         items: [
                           "مرتب و تمیز",
-                          "آلوده و نا مرتب",
+                          "آلوده و نامرتب",
                           "آذوقه در حال فساد",
                         ]
                             .map((e) => DropdownMenuItem<String>(

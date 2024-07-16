@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:frappe_app/db/request.dart';
+import 'package:frappe_app/db/request_statuse.dart';
 import 'package:hive/hive.dart';
 
 class RequestDao {
@@ -32,6 +35,20 @@ class RequestDao {
   Future<void> delete(int id) async {
     var box = await _open();
     await box.delete(id.toString());
+  }
+
+  Future<Request?> getByNationIdAndType(String id, String type) async {
+    try {
+      var box = await _open();
+      return box.values
+          .where((element) =>
+              element.nationId == id &&
+              element.type == type &&
+              element.status == RequestStatus.Pending)
+          .firstOrNull;
+    } catch (e) {
+      return null;
+    }
   }
 
   String _key() => "requests";

@@ -2,14 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:frappe_app/db/dao/price_dao.dart';
+import 'package:frappe_app/db/price_avg.dart';
 import 'package:frappe_app/model/SortKey.dart';
 import 'package:frappe_app/model/add_initial_visit_from_model.dart';
 import 'package:frappe_app/model/add_per_vsiti_form_model.dart';
+import 'package:frappe_app/model/add_product_form_model.dart';
 import 'package:frappe_app/model/add_vetvisit_form_model.dart';
 import 'package:frappe_app/model/agent.dart';
 import 'package:frappe_app/model/agentInfo.dart';
 import 'package:frappe_app/model/init_visit_Info.dart';
 import 'package:frappe_app/model/periodic_visit_info_model.dart';
+import 'package:frappe_app/model/product_report_model.dart';
 import 'package:frappe_app/model/report.dart';
 import 'package:frappe_app/model/sort_dir.dart';
 import 'package:frappe_app/model/vet_visit_info_model.dart';
@@ -19,7 +23,6 @@ import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/utils/city_utils.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
-import 'package:get/get.dart' as g;
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import '../db/request.dart';
@@ -32,21 +35,48 @@ class VisitService {
   final _autService = GetIt.I.get<AutService>();
   final _httpService = GetIt.I.get<HttpService>();
   final _requestRepo = GetIt.I.get<RequestRepo>();
+  final _priceDao = GetIt.I.get<PriceAvgDao>();
   final _fileRepo = GetIt.I.get<FileRepo>();
   var _logger = Logger();
-  g.RxMap<String, String?> avgPrices = <String, String?>{}.obs;
 
-  Future<void> fetchPricess() async {
-    ["شتر پرواری", "گاو شیری", "جو دامی وارداتی", "گوسفند داشتی"]
-        .forEach((element) async {
+  Map<String, String> prices = {
+    "SHOTOR": "شتر پرواری",
+    "GOV": "گاو شیری",
+    "GO": "جو دامی وارداتی",
+    "GOSFAND": "گوسفند داشتی"
+  };
+
+  Future<void> fetchPrices() async {
+    var np = await _fetch();
+    savePrice(np);
+  }
+
+  Future<Map<String, int>> _fetch() async {
+    Map<String, int> p = {};
+    for (var m in prices.keys) {
       try {
         var result = await _httpService
-            .get("/api/method/get_market_price?item=$element");
-        avgPrices[element] = result?.data["avg"].toString() ?? "";
+            .get("/api/method/get_market_price?item=${prices[m]}");
+        p[m] = (result?.data["avg"] ?? 0);
       } catch (e) {
         _logger.e(e);
       }
-    });
+    }
+    return p;
+  }
+
+  Future<void> savePrice(Map<String, int> s) async {
+    try {
+      var oldP = await _priceDao.getMainPrice();
+      var newP = PriceAvg(
+          shotor: (s["SHOTOR"] ?? oldP?.shotor) ?? 0,
+          go: (s["GO"] ?? oldP?.go) ?? 0,
+          gosfand: (s["GOSFAND"] ?? oldP?.gosfand) ?? 0,
+          gov: (s["GOV"] ?? oldP?.gov) ?? 0);
+      _priceDao.save(newP);
+    } catch (e) {
+      _logger.e(e);
+    }
   }
 
   Future<List<Agent>> getInitialAgents(String txt) async {
@@ -130,12 +160,68 @@ class VisitService {
     return null;
   }
 
-  Future<List<Report>> fetchInitialVisitReport({int id = 0,
-    String province = "",
-    String city = "",
-    required SortKey sortKey,
-    required SortDir sortDir,
-    int start = 0}) async {
+  Future<List<ProductReportModel>> fetchProductVisitReport(
+      {String id = "",
+      required SortKey sortKey,
+      required SortDir sortDir,
+      int start = 0}) async {
+    List<List<String>> filters = [];
+    if (id.isNotEmpty) {
+      filters.add(["Productivity File", "name", "like", "%$id%"]);
+    }
+    // if (province.isNotEmpty) {
+    //   filters.add(["Initial Visit", "province", "=", province]);
+    // }
+    // if (city.isNotEmpty) {
+    //   filters.add(["Initial Visit", "city", "=", city]);
+    // }
+    try {
+      var reports = <ProductReportModel>[];
+      var result = await _httpService.post(
+          "/api/method/frappe.desk.reportview.get",
+          FormData.fromMap({
+            'doctype': "Productivity File",
+            'fields': json.encode([
+              "`tabProductivity File`.`name`",
+              "`tabProductivity File`.`owner`",
+              "`tabProductivity File`.`creation`",
+              "`tabProductivity File`.`modified`",
+              "`tabProductivity File`.`modified_by`",
+              "`tabProductivity File`.`_user_tags`",
+              "`tabProductivity File`.`_comments`",
+              "`tabProductivity File`.`_assign`",
+              "`tabProductivity File`.`_liked_by`",
+              "`tabProductivity File`.`docstatus`",
+              "`tabProductivity File`.`idx`",
+              "`tabProductivity File`.`id`",
+              "`tabProductivity File`.`province`",
+              "`tabProductivity File`.`last_name`"
+            ]),
+            'filters': json.encode(filters),
+            'order_by': '${sortKey.key} ${sortDir.name}',
+            'start': start,
+            'page_length': 50,
+            'view': "List",
+            'with_comment_count': 1
+          }));
+
+      for (var m in result!.data["message"]["values"]) {
+        reports.add(ProductReportModel.fromJson(m));
+      }
+      return reports;
+    } catch (e) {
+      print(e);
+    }
+    return [];
+  }
+
+  Future<List<Report>> fetchInitialVisitReport(
+      {int id = 0,
+      String province = "",
+      String city = "",
+      required SortKey sortKey,
+      required SortDir sortDir,
+      int start = 0}) async {
     List<List<String>> filters = [];
     if (id != 0) {
       filters.add(["Initial Visit", "name", "like", "%$id%"]);
@@ -190,13 +276,14 @@ class VisitService {
     return [];
   }
 
-  Future<List<PeriodicReport>> fetchPeriodicReport({int id = 0,
-    int nationId = 0,
-    String province = "",
-    String city = "",
-    required SortDir sortDir,
-    required SortKey sortKey,
-    int start = 0}) async {
+  Future<List<PeriodicReport>> fetchPeriodicReport(
+      {int id = 0,
+      int nationId = 0,
+      String province = "",
+      String city = "",
+      required SortDir sortDir,
+      required SortKey sortKey,
+      int start = 0}) async {
     try {
       List<List<String>> filters = [];
       if (id != 0) {
@@ -243,12 +330,13 @@ class VisitService {
     return [];
   }
 
-  Future<List<VetVisitReport>> fetchVetVisitReport({int id = 0,
-    String province = "",
-    String city = "",
-    required SortKey sortKey,
-    required SortDir sortDir,
-    int start = 0}) async {
+  Future<List<VetVisitReport>> fetchVetVisitReport(
+      {int id = 0,
+      String province = "",
+      String city = "",
+      required SortKey sortKey,
+      required SortDir sortDir,
+      int start = 0}) async {
     try {
       List<List<String>> filters = [];
       if (id != 0) {
@@ -300,9 +388,10 @@ class VisitService {
     return [];
   }
 
-  Future<bool> saveInitVisit({required AgentInfo agentInfo,
-    required AddInitialVisitFormModel model,
-    required int time}) async {
+  Future<bool> saveInitVisit(
+      {required AgentInfo agentInfo,
+      required AddInitialVisitFormModel model,
+      required int time}) async {
     var body = json.encode({
       "docstatus": 0,
       "doctype": "Initial Visit",
@@ -343,15 +432,14 @@ class VisitService {
       "sayer": model.sayer,
       "v_date": model.vDate,
       "geolocation":
-      "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model
-          .lon},${model.lat}]}}]}"
+          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model.lon},${model.lat}]}}]}"
     });
     try {
       var newBody =
-      await _uploadInitVisitFile(model.image1 ?? '', body, "image1");
+          await _uploadInitVisitFile(model.image1 ?? '', body, "image1");
       if (newBody != null) {
         newBody =
-        await _uploadInitVisitFile(model.image2 ?? '', newBody, "image2");
+            await _uploadInitVisitFile(model.image2 ?? '', newBody, "image2");
         if (newBody != null) {
           var result = await _sendRequest(newBody);
           unawaited(_requestRepo.save(Request(
@@ -365,6 +453,7 @@ class VisitService {
                 : RequestStatus.Pending,
           )));
           if (result?.statusCode == 200) {
+            _sendUserTag(nationalId: agentInfo.nationId, type: "Initial Visit");
             Fluttertoast.showToast(msg: "ثبت شد");
             return true;
           } else {
@@ -380,7 +469,7 @@ class VisitService {
       }
     } on DioException catch (e) {
       Progressbar.dismiss();
-      Future.delayed(Duration(milliseconds: 600), () {
+      Future.delayed(Duration(milliseconds: 800), () {
         handleDioError(e);
       });
     } catch (e) {
@@ -399,41 +488,14 @@ class VisitService {
     return false;
   }
 
-  // Future<bool> resendInitVisit(Request request) async {
-  //   try {
-  //     var newBody = await _uploadInitVisitFile(
-  //         request.filePaths?.first ?? '', request.body);
-  //     if (newBody != null) {
-  //       var res = await _sendRequest(newBody);
-  //       Progressbar.dismiss();
-  //       if (res?.statusCode == 200) {
-  //         return true;
-  //       } else {
-  //         showErrorToast(null);
-  //       }
-  //       return false;
-  //     } else {
-  //       Progressbar.dismiss();
-  //     }
-  //     return false;
-  //   } on DioException catch (e) {
-  //     Progressbar.dismiss();
-  //     handleDioError(e, showInfo: false);
-  //   } catch (e) {
-  //     Progressbar.dismiss();
-  //     showErrorToast(null);
-  //   }
-  //   return false;
-  // }
-
-  Future<String?> _uploadInitVisitFile(String path, String body,
-      String key) async {
+  Future<String?> _uploadInitVisitFile(
+      String path, String body, String key) async {
     try {
       if (path.isEmpty) {
         return body;
       }
       var image =
-      await _fileService.uploadFile(path, "Initial Visit", fieldname: key);
+          await _fileService.uploadFile(path, "Initial Visit", fieldname: key);
       if (image != null) {
         var newBody = json.decode(body);
         newBody[key] = image;
@@ -459,459 +521,851 @@ class VisitService {
     return null;
   }
 
-  Future<bool> reSendPeriodicVisitsRequest(Request request) async {
+  Future<bool> sendPeriodicVisits(
+      {required AddPerVisitFormModel addPerVisitFormModel,
+      required AgentInfo agentInfo,
+      required int time,
+      required}) async {
+    var body = json.encode({
+      "docstatus": 0,
+      "doctype": "Periodic visits",
+      "name": "new-periodic-visits-1",
+      "__islocal": 1,
+      "__unsaved": 1,
+      "owner": _autService.getUserId(),
+      "outbreak": addPerVisitFormModel.outbreak,
+      "stable_condition": addPerVisitFormModel.stableCondition,
+      "manger": addPerVisitFormModel.manger,
+      "losses": addPerVisitFormModel.losses,
+      "bazdid": addPerVisitFormModel.bazdid,
+      "water": addPerVisitFormModel.water,
+      "supply_situation": addPerVisitFormModel.supplySituation,
+      "ventilation": addPerVisitFormModel.ventilation,
+      "vaziat": addPerVisitFormModel.vaziat,
+      "jaigah_dam": "",
+      "full_name": agentInfo.full_name,
+      "province": agentInfo.province,
+      "city": agentInfo.city,
+      "rahbar": agentInfo.rahbar,
+      "department": agentInfo.department,
+      "national_id": addPerVisitFormModel.nationalId,
+      "geolocation":
+          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${addPerVisitFormModel.lon},${addPerVisitFormModel.lat}]}}]}",
+      "date": addPerVisitFormModel.date,
+      "next_date": addPerVisitFormModel.nextDate,
+      "description_p": addPerVisitFormModel.description_p,
+      "description_l": addPerVisitFormModel.description_l,
+      "enheraf": addPerVisitFormModel.enheraf,
+    });
     try {
-      var newBody = await _uploadPerVisitFile(
-          request.filePaths?.first ?? '', request.body);
+      var newBody =
+          await _uploadPerVisitFile(addPerVisitFormModel.image ?? '', body);
       if (newBody != null) {
         var res = await _sendRequest(newBody);
-        Progressbar.dismiss();
+        unawaited(_requestRepo.save(Request(
+            time: time,
+            type: "Periodic visits",
+            nationId: addPerVisitFormModel.nationalId!,
+            filePaths: [addPerVisitFormModel.image!],
+            status: res?.statusCode == 200
+                ? RequestStatus.Success
+                : RequestStatus.Pending,
+            body: json.encode(addPerVisitFormModel))));
+
         if (res?.statusCode == 200) {
+          _sendUserTag(nationalId: agentInfo.nationId, type: "Periodic visits");
+          Fluttertoast.showToast(msg: "ثبت شد");
           return true;
         } else {
-          showErrorToast(null);
+          _saveFile(addPerVisitFormModel.image!, "image", time);
+          Progressbar.dismiss();
+          showErrorMessage(res?.data["_server_messages"]);
+          return false;
         }
-        return false;
-      } else {
-        Progressbar.dismiss();
       }
-      return false;
     } on DioException catch (e) {
       Progressbar.dismiss();
-      handleDioError(e, showInfo: false);
+      Future.delayed(Duration(milliseconds: 1000), () {
+        handleDioError(e);
+      });
     } catch (e) {
       Progressbar.dismiss();
-      Future.delayed(Duration(milliseconds: 500), () {
-        showErrorToast(null);
-      });
+      showErrorToast(null);
     }
+    _saveFile(addPerVisitFormModel.image!, "image", time);
+    unawaited(_requestRepo.save(Request(
+        time: time,
+        type: "Periodic visits",
+        filePaths: [],
+        nationId: addPerVisitFormModel.nationalId!,
+        status: RequestStatus.Pending,
+        body: json.encode(addPerVisitFormModel))));
     return false;
   }
 
-  Future<bool> sendPeriodicVisits
+  Future<String?> _uploadProductFile(String path, String fieldName) async {
+    try {
+      var res = await _fileService.uploadFile(path, "Productivity File",
+          docname: "new-productivity-file-1", fieldname: fieldName);
+      if (res != null && res.isNotEmpty) {
+        return res;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 
-  (
+  Future<bool> sendProductFrom(
+      {required ProductivityFormModel model, required int time}) async {
+    ProductivityFormModel baseModel = model;
+    bool errorInUploadFile = false;
+    model.owner = _autService.getUserId();
+    try {
+      if ((model.antro1Img ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.antro1Img!, "iromaction_img");
+        if (s != null) {
+          model.antro1Img = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-  {
+      if ((model.antro2Img ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.antro2Img!, "antro2Img");
+        if (s != null) {
+          model.antro2Img = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
+      if ((model.sharbonImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.sharbonImg!, "sharbonImg");
+        if (s != null) {
+          model.sharbonImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-  required
+      if ((model.abeleImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.abeleImg!, "abeleImg");
+        if (s != null) {
+          model.abeleImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
+      if ((model.brucellosisImg ?? "").isNotEmpty) {
+        var s =
+            await _uploadProductFile(model.brucellosisImg!, "brucellosisImg");
+        if (s != null) {
+          model.brucellosisImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
+      if ((model.sharbon1Img ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.sharbon1Img!, "sharbon1Img");
+        if (s != null) {
+          model.sharbon1Img = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
+      if ((model.taonImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.taonImg!, "taonImg");
+        if (s != null) {
+          model.taonImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
+      if ((model.pasteuroseImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.pasteuroseImg!, "pasteuroseImg");
+        if (s != null) {
+          model.pasteuroseImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-  AddPerVisitFormModel
+      if ((model.barfakiImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.barfakiImg!, "barfakiImg");
+        if (s != null) {
+          model.barfakiImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-  addPerVisitFormModel,
-  required AgentInfo agentInfo,
-  required int time,
-  required
-}) async {
+      if ((model.agalacciImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.agalacciImg!, "agalacciImg");
+        if (s != null) {
+          model.agalacciImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-var body = json.encode({
-  "docstatus": 0,
-  "_user_tags": "ANDROID",
-  "doctype": "Periodic visits",
-  "name": "new-periodic-visits-1",
-  "__islocal": 1,
-  "__unsaved": 1,
-  "owner": _autService.getUserId(),
-  "outbreak": addPerVisitFormModel.outbreak,
-  "stable_condition": addPerVisitFormModel.stableCondition,
-  "manger": addPerVisitFormModel.manger,
-  "losses": addPerVisitFormModel.losses,
-  "bazdid": addPerVisitFormModel.bazdid,
-  "water": addPerVisitFormModel.water,
-  "supply_situation": addPerVisitFormModel.supplySituation,
-  "ventilation": addPerVisitFormModel.ventilation,
-  "vaziat": addPerVisitFormModel.vaziat,
-  "jaigah_dam": "",
-  "full_name": agentInfo.full_name,
-  "province": agentInfo.province,
-  "city": agentInfo.city,
-  "rahbar": agentInfo.rahbar,
-  "department": agentInfo.department,
-  "national_id": addPerVisitFormModel.nationalId,
-  "geolocation":
-  "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${addPerVisitFormModel
-      .lon},${addPerVisitFormModel.lat}]}}]}",
-  "date": addPerVisitFormModel.date,
-  "next_date": addPerVisitFormModel.nextDate,
-  "description_p": addPerVisitFormModel.description_p,
-  "description_l": addPerVisitFormModel.description_l,
-  "enheraf": addPerVisitFormModel.enheraf,
-});try {
-var newBody =
-await _uploadPerVisitFile(addPerVisitFormModel.image ?? '', body);
-if (newBody != null) {
-var res = await _httpService.post(
-"/api/method/frappe.desk.form.save.savedocs",
-FormData.fromMap({'doc': newBody, 'action': 'Save'}));
-unawaited(_requestRepo.save(Request(
-time: time,
-type: "Periodic visits",
-nationId: addPerVisitFormModel.nationalId!,
-filePaths: [addPerVisitFormModel.image!],
-status: res?.statusCode == 200
-? RequestStatus.Success
-    : RequestStatus.Pending,
-body: json.encode(addPerVisitFormModel))));
+      if ((model.antiparaTabImg ?? "").isNotEmpty) {
+        var s =
+            await _uploadProductFile(model.antiparaTabImg!, "antiparaTabImg");
+        if (s != null) {
+          model.antiparaTabImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-if (res?.statusCode == 200) {
-Fluttertoast.showToast(msg: "ثبت شد");
-return true;
-} else {
-_saveFile(addPerVisitFormModel.image!, "image", time);
-Progressbar.dismiss();
-showErrorMessage(res?.data["_server_messages"]);
-return false;
-}
-}
-} on DioException
-catch
-(
-e) {
-Progressbar.dismiss();
-Future.delayed(Duration(milliseconds: 600), () {
-handleDioError(e);
-});
-} catch (e) {
-Progressbar.dismiss();
-showErrorToast(null);
-}
-_saveFile(addPerVisitFormModel.image!, "image", time);
-unawaited(_requestRepo.save(Request(
-time: time,
-type: "Periodic visits",
-filePaths: [],
-nationId: addPerVisitFormModel.nationalId!,
-status: RequestStatus.Pending,
-body: json.encode(addPerVisitFormModel))));
-return false;
-}
+      if ((model.froblokImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.froblokImg!, "barfakiImg");
+        if (s != null) {
+          model.froblokImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-Future<bool> saveVetVisit(
-{required AddVetVisitFormModel model,
-required int time,
-required AgentInfo agentInfo}) async {
-var body = json.encode({
-"docstatus": 0,
-"doctype": "Vet Visit",
-"name": "new-vet-visit-1",
-"__islocal": 1,
-"__unsaved": 1,
-"owner": _autService.getUserId(),
-"bime": model.bime,
-"pelak": model.pelak,
-"galleh": model.galleh,
-"types": model.types,
-"result": model.result,
-"name_damp": model.nameDamp,
-"code_n": model.codeN,
-"national_id_doc": model.nationalIdDoc,
-"rahbar": agentInfo.rahbar,
-"department": agentInfo.department,
-"pelak_az": model.pelakAz,
-"pelak_ta": model.pelakTa,
-"national_id": model.nationalId,
-"teeth_1": model.teeth1,
-"teeth_2": model.teeth2,
-"teeth_3": model.teeth3,
-"province": agentInfo.province,
-"city": agentInfo.city,
-"galle_d": model.galleD,
-"age": model.age,
-"name_1": agentInfo.name,
-"full_name": agentInfo.full_name,
-"address": agentInfo.address,
-"eye_1": model.eye1,
-"eye_2": model.eye2,
-"eye_3": model.eye3,
-"eye_4": model.eye4,
-"eye_5": model.eye5,
-"breth_1": model.breth1,
-"breth_2": model.breth2,
-"breth_3": model.breth2,
-"mucus_1": model.mucus1,
-"mucus_2": model.mucus2,
-"mucus_3": model.mucus3,
-"mucus_4": model.mucus4,
-"mucus_5": model.mucus5,
-"ear_1": model.eye1,
-"ear_2": model.eye2,
-"skin_1": model.skin1,
-"skin_2": model.skin2,
-"skin_3": model.skin3,
-"skin_4": model.skin4,
-"skin_5": model.skin5,
-"skin_6": model.skin6,
-"leech_1": model.leech1,
-"leech_2": model.leech2,
-"leech_3": model.leech3,
-"mouth_1": model.mouth1,
-"mouth_2": model.mouth2,
-"mouth_3": model.mouth3,
-"mouth_4": model.mouth4,
-"hoof_1": model.hoof1,
-"hoof_2": model.hoof2,
-"hoof_3": model.hoof3,
-"hoof_4": model.hoof4,
-"urine_1": model.urine1,
-"urine_2": model.urine2,
-"urine_3": model.urine3,
-"nodes_1": model.nodes1,
-"nodes_2": model.nodes2,
-"nodes_3": model.nodes3,
-"crown_1": model.crown1,
-"crown_2": model.crown2,
-"crown_3": model.crown3,
-"sole_1": model.sole1,
-"sole_2": model.sole2,
-"sole_3": model.sole3,
-"number": model.number,
-"image_dam": "",
-"license_salamat": "",
-"disapproval_reason": model.disapprovalReason,
-"geolocation":
-"{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model.lon},${model.lat}]}}]}"
-});
-try {
-var newBody = await _uploadVetVisitFiles(
-model.imageDam ?? '', model.licenseSalamat ?? '', body);
-if (newBody != null) {
-var res = await _sendRequest(newBody);
-unawaited(_requestRepo.save(Request(
-time: time,
-type: "Vet Visit",
-nationId: model.nationalId ?? '',
-filePaths: [],
-status: res?.statusCode == 200
-? RequestStatus.Success
-    : RequestStatus.Pending,
-body: json.encode(model))));
-if (res?.statusCode == 200) {
-Fluttertoast.showToast(msg: "ثبت شد");
-return true;
-} else {
-_saveFile(model.imageDam!, "imageDam", time);
-_saveFile(model.licenseSalamat!, "licenseSalamat", time);
-Progressbar.dismiss();
-showErrorMessage(res?.data["_server_messages"]);
-return false;
-}
-} else {
-showErrorToast(null);
-}
-} on DioException catch (e) {
-Progressbar.dismiss();
-Future.delayed(Duration(milliseconds: 600), () {
-handleDioError(e);
-});
-} catch (e) {
-showErrorToast(null);
-}
-_saveFile(model.imageDam!, "imageDam", time);
-_saveFile(model.licenseSalamat!, "licenseSalamat", time);
-unawaited(_requestRepo.save(Request(
-time: time,
-nationId: model.nationalId ?? '',
-type: "Vet Visit",
-filePaths: [],
-status: RequestStatus.Pending,
-body: json.encode(model))));
-return false;
-}
+      if ((model.somchiniImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.somchiniImg!, "somchiniImg");
+        if (s != null) {
+          model.somchiniImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-Future<bool> resendVetVisit(Request request) async {
-try {
-if (request.filePaths != null) {
-var body = await _uploadVetVisitFiles(request.filePaths?.first ?? '',
-request.filePaths?.last ?? '', request.body);
-if (body != null) {
-var res = await _sendRequest(body);
-Progressbar.dismiss();
-if (res?.statusCode == 200) {
-return true;
-} else {
-showErrorToast(null);
-}
-return false;
-}
-Progressbar.dismiss();
-return false;
-}
-} on DioException catch (e) {
-Progressbar.dismiss();
-handleDioError(e, showInfo: false);
-} catch (e) {
-Progressbar.dismiss();
-showErrorToast(null);
-}
-return false;
-}
+      if ((model.ghochandaziImg ?? "").isNotEmpty) {
+        var s =
+            await _uploadProductFile(model.ghochandaziImg!, "ghochandaziImg");
+        if (s != null) {
+          model.ghochandaziImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-Future<String?> _uploadVetVisitFiles(
-String image_dam, String license_salamat, dynamic body) async {
-var newBody = json.decode(body);
-if (image_dam.isNotEmpty) {
-var image_dam_res = await _fileService.uploadFile(image_dam, "Vet Visit",
-fieldname: "image_dam", docname: "new-vet-visit-1");
-newBody["image_dam"] = image_dam_res;
-}
-if (license_salamat.isNotEmpty) {
-var license_salamat_res = await _fileService.uploadFile(
-license_salamat, "Vet Visit",
-fieldname: "license_salamat", docname: "new-vet-visit-1");
-newBody["license_salamat"] = license_salamat_res;
-}
+      if ((model.pashm2Img ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.pashm2Img!, "pashm2Img");
+        if (s != null) {
+          model.pashm2Img = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-return json.encode(newBody);
-}
+      if ((model.ghochImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.ghochImg!, "ghochImg");
+        if (s != null) {
+          model.ghochImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-Future<Response<dynamic>?> _sendRequest(String body) {
-return _httpService.postForm("/api/method/frappe.desk.form.save.savedocs",
-FormData.fromMap({'doc': body, 'action': 'Save',"_user_tags": "ANDROID",}));
-}
+      if ((model.pashmImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.pashmImg!, "pashmImg");
+        if (s != null) {
+          model.pashmImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-Future<List<String>> searchInCity(String province, String city) async {
-try {
-List<List<String>> filters = [];
-if (province.isNotEmpty) {
-filters.add(["City", "province", "=", province]);
-}
-if (city.isNotEmpty) {
-filters.add(["City", "city_name", "like", "%$city%"]);
-}
-var result = await _httpService.post(
-"/api/method/frappe.desk.reportview.get",
-FormData.fromMap({
-'doctype': 'City',
-'fields': json.encode([
-"`tabCity`.`name`",
-"`tabCity`.`owner`",
-"`tabCity`.`creation`",
-"`tabCity`.`modified`",
-"`tabCity`.`modified_by`",
-"`tabCity`.`_user_tags`",
-"`tabCity`.`_comments`",
-"`tabCity`.`_assign`",
-"`tabCity`.`_liked_by`",
-"`tabCity`.`docstatus`",
-"`tabCity`.`idx`",
-"`tabCity`.`city_name`",
-"`tabCity`.`province`"
-]),
-'filters': json.encode(filters),
-'order_by': '`tabCity`.`modified` DESC',
-'start': 0,
-'page_length': 100,
-'view': 'List',
-'group_by': '`tabCity`.`name`',
-'with_comment_count': 1
-}));
-return CityUtils.extract(result?.data["message"]["values"]);
-} catch (e) {
-_logger.e(e);
-}
-return [];
-}
+      if ((model.iromactionImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.iromactionImg!, "iromactionImg");
+        if (s != null) {
+          model.iromactionImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-Future<InitVisitInfoModel?> getInitVisitInfo(String id) async {
-try {
-var result = await _httpService.get(
-"/api/method/frappe.desk.form.load.getdoc?doctype=Initial Visit&name=$id&_=1719422952988",
-);
-return InitVisitInfoModel.fromJson(result?.data["docs"][0]);
-} catch (e) {
-_logger.e(e);
-}
-return null;
-}
+      if ((model.spraying1Img ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.spraying1Img!, "iromactionImg");
+        if (s != null) {
+          model.spraying1Img = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-Future<PeriodicVisitInfoModel?> getPeriodicVisitInfo(String id) async {
-try {
-var result = await _httpService.get(
-"/api/method/frappe.desk.form.load.getdoc?doctype=Periodic%20visits&name=$id&_=1716470766446",
-);
-return PeriodicVisitInfoModel.fromJson(result?.data["docs"][0]);
-} catch (e) {
-_logger.e(e);
-}
-return null;
-}
+      if ((model.spraying2Img ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.spraying2Img!, "spraying2Img");
+        if (s != null) {
+          model.spraying2Img = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-Future<VetVisitInfoModel?> getVetVisitInfo(String id) async {
-try {
-var result = await _httpService.get(
-"/api/method/frappe.desk.form.load.getdoc?doctype=Vet%20Visit&name=$id&_=171648547368",
-);
-return VetVisitInfoModel.fromJson(result?.data["docs"][0]);
-} catch (e) {
-_logger.e(e);
-}
-return null;
-}
+      if ((model.iverImg ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.iverImg!, "iverImg");
+        if (s != null) {
+          model.iverImg = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-Future<List<String>> getAnimalType(String type, {String q = ""}) async {
-try {
-var resul = await _httpService.post(
-"/api/method/frappe.desk.reportview.get",
-FormData.fromMap({
-'doctype': 'Livestock breeds',
-'fields': json.encode([
-"`tabLivestock breeds`.`name`",
-"`tabLivestock breeds`.`owner`",
-"`tabLivestock breeds`.`creation`",
-"`tabLivestock breeds`.`modified`",
-"`tabLivestock breeds`.`modified_by`",
-"`tabLivestock breeds`.`_user_tags`",
-"`tabLivestock breeds`.`_comments`",
-"`tabLivestock breeds`.`_assign`",
-"`tabLivestock breeds`.`_liked_by`",
-"`tabLivestock breeds`.`docstatus`",
-"`tabLivestock breeds`.`idx`",
-"`tabLivestock breeds`.`dam_type`"
-]),
-'filters': json.encode([
-["Livestock breeds", "dam_type", "=", "$type"],
-["Livestock breeds", "name", "like", "%$q%"]
-]),
-'start': 0,
-'page_length': 20,
-'view': 'List',
-'group_by': '`tabLivestock breeds`.`name`',
-'with_comment_count': 1
-}));
+      if ((model.iver2Img ?? "").isNotEmpty) {
+        var s = await _uploadProductFile(model.iver2Img!, "iver2Img");
+        if (s != null) {
+          model.iver2Img = s;
+        } else {
+          errorInUploadFile = true;
+        }
+      }
 
-return (resul?.data["message"]["values"] as List<dynamic>)
-    .map((e) => (e as List<dynamic>)[0].toString())
-    .toList();
-} catch (e) {
-_logger.e(e);
-}
-return [];
-}
+      if (!errorInUploadFile) {
+        var res = await _sendRequest(json.encode(model));
+        unawaited(_requestRepo.save(Request(
+            time: time,
+            type: "Product",
+            nationId: model.nationalId!,
+            filePaths: [],
+            status: res?.statusCode == 200
+                ? RequestStatus.Success
+                : RequestStatus.Pending,
+            body: json.encode(baseModel))));
 
-void _saveFile(String path, String key, int time) {
-_fileRepo.saveFile(time: time, key: key, path: path);
-}
+        if (res?.statusCode == 200) {
+          Fluttertoast.showToast(msg: "ثبت شد");
+          return true;
+        } else {
+          _saveProductFile(baseModel, time).then((value) {
+            unawaited(_requestRepo.save(Request(
+                time: time,
+                type: "Product",
+                nationId: model.nationalId!,
+                filePaths: [],
+                status: RequestStatus.Pending,
+                body: json.encode(baseModel))));
+          });
+          Progressbar.dismiss();
+          showErrorMessage(res?.data["_server_messages"]);
+          return false;
+        }
+      } else {
+        Progressbar.dismiss();
+        _saveProductFile(baseModel, time).then((value) {
+          unawaited(_requestRepo.save(Request(
+              time: time,
+              type: "Product",
+              nationId: model.nationalId!,
+              filePaths: [],
+              status: RequestStatus.Pending,
+              body: json.encode(baseModel))));
+        });
+        Future.delayed(Duration(milliseconds: 700), () {
+          handleDioError(DioException.connectionError(
+              requestOptions: RequestOptions(), reason: "reason"));
+        });
+      }
+    } on DioException catch (e) {
+      Progressbar.dismiss();
+      Future.delayed(Duration(milliseconds: 1000), () {
+        handleDioError(e);
+      });
+    } catch (e) {
+      Progressbar.dismiss();
+      showErrorToast(null);
+    }
+    _saveProductFile(baseModel, time).then((value) {
+      unawaited(_requestRepo.save(Request(
+          time: time,
+          type: "Product",
+          nationId: model.nationalId!,
+          filePaths: [],
+          status: RequestStatus.Pending,
+          body: json.encode(baseModel))));
+    });
+    unawaited(_requestRepo.save(Request(
+        time: time,
+        type: "Periodic visits",
+        filePaths: [],
+        nationId: model.nationalId!,
+        status: RequestStatus.Pending,
+        body: json.encode(baseModel))));
+    return false;
+  }
 
-List<SortKey> initVistiSortKeys() => [
-SortKey(title: "آخرین بروزرسانی", key: "`tabInitial Visit`.`modified`"),
-SortKey(title: "شناسه", key: "`tabInitial Visit`.`name`"),
-SortKey(title: "تاریخ ایجاد", key: "`tabInitial Visit`.`creation`"),
-SortKey(title: "مکان یابی", key: "`tabInitial Visit`.`geolocation`")
-];
+  Future<void> _saveProductFile(ProductivityFormModel model, int time) async {
+    if ((model.antro1Img ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "antro1Img", path: model.antro1Img!);
+      if (s != null) {
+        model.antro1Img = s;
+      }
+    }
 
-List<SortKey> periodicVistiSortKeys() => [
-SortKey(
-title: "آخرین بروزرسانی", key: "`tabPeriodic visits`.`modified`"),
-SortKey(title: "شناسه", key: "`tabPeriodic visits`.`name`"),
-SortKey(title: "تاریخ ایجاد", key: "`tabPeriodic visits`.`creation`"),
-SortKey(title: "مکان یابی", key: "`tabPeriodic visits`.`geolocation`")
-];
+    if ((model.antro2Img ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "antro2Img", path: model.antro2Img!);
+      if (s != null) {
+        model.antro2Img = s;
+      }
+    }
+    if ((model.sharbonImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "sharbonImg", path: model.sharbonImg!);
+      if (s != null) {
+        model.sharbonImg = s;
+      }
+    }
 
-List<SortKey> vetVistiSortKeys() => [
-// SortKey(title: "موقعیت محلی", key: "`tabVet Visit`.`geolocation`"),
-SortKey(title: "آخرین بروزرسانی", key: "`tabVet Visit`.`modified`"),
-SortKey(title: "شناسه", key: "`tabVet Visit`.`name`"),
-SortKey(title: "تعداد", key: "`tabVet Visit`.`number`"),
-SortKey(title: "تاریخ ایجاد", key: "`tabVet Visit`.`creation`"),
-];
+    if ((model.abeleImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "abeleImg", path: model.abeleImg!);
+      if (s != null) {
+        model.abeleImg = s;
+      }
+    }
+    if ((model.brucellosisImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "brucellosisImg", path: model.brucellosisImg!);
+      if (s != null) {
+        model.brucellosisImg = s;
+      }
+    }
+    if ((model.sharbon1Img ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "sharbon1Img", path: model.sharbon1Img!);
+      if (s != null) {
+        model.sharbon1Img = s;
+      }
+    }
+    if ((model.taonImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "taonImg", path: model.taonImg!);
+      if (s != null) {
+        model.taonImg = s;
+      }
+    }
+    if ((model.pasteuroseImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "pasteuroseImg", path: model.pasteuroseImg!);
+      if (s != null) {
+        model.pasteuroseImg = s;
+      }
+    }
+
+    if ((model.barfakiImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "barfakiImg", path: model.barfakiImg!);
+      if (s != null) {
+        model.barfakiImg = s;
+      }
+    }
+
+    if ((model.agalacciImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "agalacciImg", path: model.agalacciImg!);
+      if (s != null) {
+        model.agalacciImg = s;
+      }
+    }
+
+    if ((model.antiparaTabImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "antiparaTabImg", path: model.antiparaTabImg!);
+      if (s != null) {
+        model.antiparaTabImg = s;
+      }
+    }
+
+    if ((model.froblokImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "froblokImg", path: model.froblokImg!);
+      if (s != null) {
+        model.froblokImg = s;
+      }
+    }
+
+    if ((model.somchiniImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "somchiniImg", path: model.somchiniImg!);
+      if (s != null) {
+        model.somchiniImg = s;
+      }
+    }
+
+    if ((model.ghochandaziImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "ghochandaziImg", path: model.ghochandaziImg!);
+      if (s != null) {
+        model.ghochandaziImg = s;
+      }
+    }
+
+    if ((model.pashm2Img ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "pashm2Img", path: model.pashm2Img!);
+      if (s != null) {
+        model.pashm2Img = s;
+      }
+    }
+
+    if ((model.ghochImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "ghochImg", path: model.ghochImg!);
+      if (s != null) {
+        model.ghochImg = s;
+      }
+    }
+
+    if ((model.pashmImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "pashmImg", path: model.pashmImg!);
+      if (s != null) {
+        model.pashmImg = s;
+      }
+    }
+
+    if ((model.iromactionImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "iromactionImg", path: model.iromactionImg!);
+      if (s != null) {
+        model.iromactionImg = s;
+      }
+    }
+
+    if ((model.spraying1Img ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "spraying1Img", path: model.spraying1Img!);
+      if (s != null) {
+        model.spraying1Img = s;
+      }
+    }
+
+    if ((model.spraying2Img ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "spraying2Img", path: model.spraying2Img!);
+      if (s != null) {
+        model.spraying2Img = s;
+      }
+    }
+
+    if ((model.iverImg ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "iverImg", path: model.iverImg!);
+      if (s != null) {
+        model.iverImg = s;
+      }
+    }
+
+    if ((model.iver2Img ?? "").isNotEmpty) {
+      var s = await _fileRepo.saveFile(
+          time: time, key: "iver2Img", path: model.iver2Img!);
+      if (s != null) {
+        model.iver2Img = s;
+      }
+    }
+  }
+
+  Future<bool> saveVetVisit(
+      {required AddVetVisitFormModel model,
+      required int time,
+      required AgentInfo agentInfo}) async {
+    var body = json.encode({
+      "docstatus": 0,
+      "doctype": "Vet Visit",
+      "name": "new-vet-visit-1",
+      "__islocal": 1,
+      "__unsaved": 1,
+      "owner": _autService.getUserId(),
+      "bime": model.bime,
+      "pelak": model.pelak,
+      "galleh": model.galleh,
+      "types": model.types,
+      "result": model.result,
+      "name_damp": model.nameDamp,
+      "code_n": model.codeN,
+      "national_id_doc": model.nationalIdDoc,
+      "rahbar": agentInfo.rahbar,
+      "department": agentInfo.department,
+      "pelak_az": model.pelakAz,
+      "pelak_ta": model.pelakTa,
+      "national_id": model.nationalId,
+      "teeth_1": model.teeth1,
+      "teeth_2": model.teeth2,
+      "teeth_3": model.teeth3,
+      "province": agentInfo.province,
+      "city": agentInfo.city,
+      "galle_d": model.galleD,
+      "age": model.age,
+      "name_1": agentInfo.name,
+      "full_name": agentInfo.full_name,
+      "address": agentInfo.address,
+      "eye_1": model.eye1,
+      "eye_2": model.eye2,
+      "eye_3": model.eye3,
+      "eye_4": model.eye4,
+      "eye_5": model.eye5,
+      "breth_1": model.breth1,
+      "breth_2": model.breth2,
+      "breth_3": model.breth2,
+      "mucus_1": model.mucus1,
+      "mucus_2": model.mucus2,
+      "mucus_3": model.mucus3,
+      "mucus_4": model.mucus4,
+      "mucus_5": model.mucus5,
+      "ear_1": model.eye1,
+      "ear_2": model.eye2,
+      "skin_1": model.skin1,
+      "skin_2": model.skin2,
+      "skin_3": model.skin3,
+      "skin_4": model.skin4,
+      "skin_5": model.skin5,
+      "skin_6": model.skin6,
+      "leech_1": model.leech1,
+      "leech_2": model.leech2,
+      "leech_3": model.leech3,
+      "mouth_1": model.mouth1,
+      "mouth_2": model.mouth2,
+      "mouth_3": model.mouth3,
+      "mouth_4": model.mouth4,
+      "hoof_1": model.hoof1,
+      "hoof_2": model.hoof2,
+      "hoof_3": model.hoof3,
+      "hoof_4": model.hoof4,
+      "urine_1": model.urine1,
+      "urine_2": model.urine2,
+      "urine_3": model.urine3,
+      "nodes_1": model.nodes1,
+      "nodes_2": model.nodes2,
+      "nodes_3": model.nodes3,
+      "crown_1": model.crown1,
+      "crown_2": model.crown2,
+      "crown_3": model.crown3,
+      "sole_1": model.sole1,
+      "sole_2": model.sole2,
+      "sole_3": model.sole3,
+      "number": model.number,
+      "image_dam": "",
+      "license_salamat": "",
+      "disapproval_reason": model.disapprovalReason,
+      "geolocation":
+          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model.lon},${model.lat}]}}]}"
+    });
+    try {
+      var newBody = await _uploadVetVisitFiles(
+          model.imageDam ?? '', model.licenseSalamat ?? '', body);
+      if (newBody != null) {
+        var res = await _sendRequest(newBody);
+        unawaited(_requestRepo.save(Request(
+            time: time,
+            type: "Vet Visit",
+            nationId: model.nationalId ?? '',
+            filePaths: [],
+            status: res?.statusCode == 200
+                ? RequestStatus.Success
+                : RequestStatus.Pending,
+            body: json.encode(model))));
+        if (res?.statusCode == 200) {
+          _sendUserTag(nationalId: agentInfo.nationId, type: "Vet Visit");
+          Fluttertoast.showToast(msg: "ثبت شد");
+          return true;
+        } else {
+          _saveFile(model.imageDam!, "imageDam", time);
+          _saveFile(model.licenseSalamat!, "licenseSalamat", time);
+          Progressbar.dismiss();
+          showErrorMessage(res?.data["_server_messages"]);
+          return false;
+        }
+      } else {
+        showErrorToast(null);
+      }
+    } on DioException catch (e) {
+      Progressbar.dismiss();
+      Future.delayed(Duration(milliseconds: 800), () {
+        handleDioError(e);
+      });
+    } catch (e) {
+      showErrorToast(null);
+    }
+    _saveFile(model.imageDam!, "imageDam", time);
+    _saveFile(model.licenseSalamat!, "licenseSalamat", time);
+    unawaited(_requestRepo.save(Request(
+        time: time,
+        nationId: model.nationalId ?? '',
+        type: "Vet Visit",
+        filePaths: [],
+        status: RequestStatus.Pending,
+        body: json.encode(model))));
+    return false;
+  }
+
+  Future<String?> _uploadVetVisitFiles(
+      String image_dam, String license_salamat, dynamic body) async {
+    var newBody = json.decode(body);
+    if (image_dam.isNotEmpty) {
+      var image_dam_res = await _fileService.uploadFile(image_dam, "Vet Visit",
+          fieldname: "image_dam", docname: "new-vet-visit-1");
+      newBody["image_dam"] = image_dam_res;
+    }
+    if (license_salamat.isNotEmpty) {
+      var license_salamat_res = await _fileService.uploadFile(
+          license_salamat, "Vet Visit",
+          fieldname: "license_salamat", docname: "new-vet-visit-1");
+      newBody["license_salamat"] = license_salamat_res;
+    }
+
+    return json.encode(newBody);
+  }
+
+  Future<Response<dynamic>?> _sendRequest(String body) {
+    return _httpService.postForm(
+        "/api/method/frappe.desk.form.save.savedocs",
+        FormData.fromMap({
+          'doc': body,
+          'action': 'Save',
+        }));
+  }
+
+  Future<List<String>> searchInCity(String province, String city) async {
+    try {
+      List<List<String>> filters = [];
+      if (province.isNotEmpty) {
+        filters.add(["City", "province", "=", province]);
+      }
+      if (city.isNotEmpty) {
+        filters.add(["City", "city_name", "like", "%$city%"]);
+      }
+      var result = await _httpService.post(
+          "/api/method/frappe.desk.reportview.get",
+          FormData.fromMap({
+            'doctype': 'City',
+            'fields': json.encode([
+              "`tabCity`.`name`",
+              "`tabCity`.`owner`",
+              "`tabCity`.`creation`",
+              "`tabCity`.`modified`",
+              "`tabCity`.`modified_by`",
+              "`tabCity`.`_user_tags`",
+              "`tabCity`.`_comments`",
+              "`tabCity`.`_assign`",
+              "`tabCity`.`_liked_by`",
+              "`tabCity`.`docstatus`",
+              "`tabCity`.`idx`",
+              "`tabCity`.`city_name`",
+              "`tabCity`.`province`"
+            ]),
+            'filters': json.encode(filters),
+            'order_by': '`tabCity`.`modified` DESC',
+            'start': 0,
+            'page_length': 100,
+            'view': 'List',
+            'group_by': '`tabCity`.`name`',
+            'with_comment_count': 1
+          }));
+      return CityUtils.extract(result?.data["message"]["values"]);
+    } catch (e) {
+      _logger.e(e);
+    }
+    return [];
+  }
+
+  Future<InitVisitInfoModel?> getInitVisitInfo(String id) async {
+    try {
+      var result = await _httpService.get(
+        "/api/method/frappe.desk.form.load.getdoc?doctype=Initial Visit&name=$id&_=1719422952988",
+      );
+      return InitVisitInfoModel.fromJson(result?.data["docs"][0]);
+    } catch (e) {
+      _logger.e(e);
+    }
+    return null;
+  }
+
+  Future<PeriodicVisitInfoModel?> getPeriodicVisitInfo(String id) async {
+    try {
+      var result = await _httpService.get(
+        "/api/method/frappe.desk.form.load.getdoc?doctype=Periodic%20visits&name=$id&_=1716470766446",
+      );
+      return PeriodicVisitInfoModel.fromJson(result?.data["docs"][0]);
+    } catch (e) {
+      _logger.e(e);
+    }
+    return null;
+  }
+
+  Future<VetVisitInfoModel?> getVetVisitInfo(String id) async {
+    try {
+      var result = await _httpService.get(
+        "/api/method/frappe.desk.form.load.getdoc?doctype=Vet%20Visit&name=$id&_=171648547368",
+      );
+      return VetVisitInfoModel.fromJson(result?.data["docs"][0]);
+    } catch (e) {
+      _logger.e(e);
+    }
+    return null;
+  }
+
+  Future<ProductivityFormModel?> getProductInfo(String name) async {
+    try {
+      var result = await _httpService.get(
+        "/api/method/frappe.desk.form.load.getdoc?doctype=Productivity%20File&name=$name&_=1720104603",
+      );
+      return ProductivityFormModel.fromJson(result?.data["docs"][0]);
+    } catch (e) {
+      _logger.e(e);
+    }
+    return null;
+  }
+
+  Future<List<String>> getAnimalType(String type, {String q = ""}) async {
+    try {
+      var resul = await _httpService.post(
+          "/api/method/frappe.desk.reportview.get",
+          FormData.fromMap({
+            'doctype': 'Livestock breeds',
+            'fields': json.encode([
+              "`tabLivestock breeds`.`name`",
+              "`tabLivestock breeds`.`owner`",
+              "`tabLivestock breeds`.`creation`",
+              "`tabLivestock breeds`.`modified`",
+              "`tabLivestock breeds`.`modified_by`",
+              "`tabLivestock breeds`.`_user_tags`",
+              "`tabLivestock breeds`.`_comments`",
+              "`tabLivestock breeds`.`_assign`",
+              "`tabLivestock breeds`.`_liked_by`",
+              "`tabLivestock breeds`.`docstatus`",
+              "`tabLivestock breeds`.`idx`",
+              "`tabLivestock breeds`.`dam_type`"
+            ]),
+            'filters': json.encode([
+              ["Livestock breeds", "dam_type", "=", "$type"],
+              ["Livestock breeds", "name", "like", "%$q%"]
+            ]),
+            'start': 0,
+            'page_length': 20,
+            'view': 'List',
+            'group_by': '`tabLivestock breeds`.`name`',
+            'with_comment_count': 1
+          }));
+
+      return (resul?.data["message"]["values"] as List<dynamic>)
+          .map((e) => (e as List<dynamic>)[0].toString())
+          .toList();
+    } catch (e) {
+      _logger.e(e);
+    }
+    return [];
+  }
+
+  Future<void> _sendUserTag(
+      {required String nationalId, required String type}) async {
+    try {
+      _httpService.post("/api/method/frappe.desk.doctype.tag.tag.add_tag",
+          FormData.fromMap({"dn": nationalId, "dt": type, "tag": "ANDROID"}));
+    } catch (e) {
+      _logger.e(e);
+    }
+  }
+
+  void _saveFile(String path, String key, int time) {
+    _fileRepo.saveFile(time: time, key: key, path: path);
+  }
 }

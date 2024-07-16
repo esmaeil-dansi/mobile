@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:frappe_app/model/SortKey.dart';
+import 'package:frappe_app/model/product_report_model.dart';
 import 'package:frappe_app/model/report.dart';
 import 'package:frappe_app/model/sort_dir.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/utils/visit_filters.dart';
 import 'package:frappe_app/views/visit/add_initial_visit.dart';
+import 'package:frappe_app/views/visit/add_productivit_visit.dart';
 import 'package:frappe_app/views/visit/init_visit_info.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
@@ -16,37 +19,31 @@ import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
-class InitialVisit extends StatefulWidget {
+class ProductVisit extends StatefulWidget {
   @override
-  State<InitialVisit> createState() => _InitialVisitState();
+  State<ProductVisit> createState() => _InitialVisitState();
 }
 
-class _InitialVisitState extends State<InitialVisit> {
+class _InitialVisitState extends State<ProductVisit> {
   final _visitService = GetIt.I.get<VisitService>();
   final _athService = GetIt.I.get<AutService>();
   final _idController = TextEditingController();
   final province = "".obs;
   String city = "";
 
-  RxList<Report> reports = <Report>[].obs;
+  RxList<ProductReportModel> reports = <ProductReportModel>[].obs;
 
   final _noResult = false.obs;
   final _startSearch = true.obs;
   final _hasFilter = false.obs;
 
-  var _sortKey = VisitFilters.initVisitSortKeys().first;
+  var _sortKey = VisitFilters.productVisitSortKeys().first;
   var _sortDir = SortDir.DESC;
 
   @override
   void initState() {
-    province.value = _athService.getProvince();
-    city = _athService.getCity();
     _visitService
-        .fetchInitialVisitReport(
-            province: province.value,
-            city: city,
-            sortKey: _sortKey,
-            sortDir: _sortDir)
+        .fetchProductVisitReport(sortKey: _sortKey, sortDir: _sortDir)
         .then((value) {
       _startSearch.value = false;
       reports.addAll(value);
@@ -62,12 +59,8 @@ class _InitialVisitState extends State<InitialVisit> {
     reports.clear();
     _noResult.value = false;
 
-    var res = await _visitService.fetchInitialVisitReport(
-        sortDir: _sortDir,
-        sortKey: _sortKey,
-        id: _idController.text.isNotEmpty ? int.parse(_idController.text) : 0,
-        province: province.value,
-        city: city);
+    var res = await _visitService.fetchProductVisitReport(
+        sortDir: _sortDir, sortKey: _sortKey, id: _idController.text);
     _startSearch.value = false;
     if (res.isNotEmpty) {
       reports.addAll(res);
@@ -82,10 +75,11 @@ class _InitialVisitState extends State<InitialVisit> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
           appBar: appSliverAppBar(
-            "بازدید اولیه",
+            "پرونده بهره وری",
           ),
-          floatingActionButton:
-              _athService.isRahbar() ? newFormWidget(AddInitialReport()) : null,
+          floatingActionButton: _athService.isRahbar()
+              ? newFormWidget(ProductVisitReport())
+              : null,
           body: Container(
             margin: EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -111,18 +105,6 @@ class _InitialVisitState extends State<InitialVisit> {
                 SizedBox(
                   height: 7,
                 ),
-                Obx(() => provinceSelector((p0) {
-                      city = "";
-                      province.value = p0;
-                      getReport();
-                    }, province.value)),
-                SizedBox(
-                  height: 7,
-                ),
-                Obx(() => citySelector(province.value, (p0) {
-                      city = p0;
-                      getReport();
-                    }, city)),
                 SizedBox(
                   height: 20,
                 ),
@@ -166,7 +148,7 @@ class _InitialVisitState extends State<InitialVisit> {
                           _sortDir = s;
                           getReport();
                         },
-                        filters: VisitFilters.initVisitSortKeys())
+                        filters: VisitFilters.productVisitSortKeys())
                   ],
                 ),
                 Obx(() => reports.isNotEmpty
@@ -195,7 +177,7 @@ class _InitialVisitState extends State<InitialVisit> {
                                             fontWeight: FontWeight.bold))),
                                 SizedBox(
                                     width: Get.width * 0.3,
-                                    child: Text("شهرستان",
+                                    child: Text("استان",
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold))),
                               ],
@@ -216,11 +198,19 @@ class _InitialVisitState extends State<InitialVisit> {
                                       onTap: () async {
                                         Progressbar.showProgress();
                                         var res = await _visitService
-                                            .getInitVisitInfo(record.id);
+                                            .getProductInfo(record.name);
                                         Progressbar.dismiss();
                                         if (res != null) {
-                                          Get.bottomSheet(bottomSheetTemplate(
-                                              InitVisitInfoPage(res)));
+                                          Get.bottomSheet(
+                                              bottomSheetTemplate(Container(
+                                            decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10)),
+                                            child: ProductVisitReport(
+                                              addProductivityFormModel: res,
+                                              isReport: true,
+                                            ),
+                                          )));
                                         }
                                       },
                                       child: Padding(
@@ -236,10 +226,10 @@ class _InitialVisitState extends State<InitialVisit> {
                                                     child: Text(record.id))),
                                             SizedBox(
                                                 width: Get.width * 0.3,
-                                                child: Text(record.full_name)),
+                                                child: Text(record.lastName)),
                                             SizedBox(
                                                 width: Get.width * 0.3,
-                                                child: Text(record.city)),
+                                                child: Text(record.province)),
                                           ],
                                         ),
                                       ),

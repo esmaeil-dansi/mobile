@@ -1,22 +1,38 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frappe_app/model/shop_group.dart';
+import 'package:frappe_app/services/shop_service.dart';
+import 'package:get_it/get_it.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:frappe_app/model/shop_type.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 
-class SubGroupTamin extends StatelessWidget {
+class SubGroupTamin extends StatefulWidget {
   ShopType group;
   String subTitle;
 
   SubGroupTamin(this.group, this.subTitle);
 
   @override
+  State<SubGroupTamin> createState() => _SubGroupTaminState();
+}
+
+class _SubGroupTaminState extends State<SubGroupTamin> {
+
+
+  final _shopService = GetIt.I.get<ShopService>();
+
+  @override
+  void initState() {
+   // _shopService.fetchShopInfo(userId);
+    super.initState();
+  }
+  @override
   Widget build(BuildContext context) {
-    List<Tamin> sub = subGroupTamin[group]!
-        .where((element) => element.sub.contains(subTitle))
+    List<Tamin> sub = subGroupTamin[widget.group]!
+        .where((element) => element.sub.contains(widget.subTitle))
         .toList();
     return Scaffold(
       appBar: appSliverAppBar(" تامین کننده ها"),

@@ -4,6 +4,7 @@ import 'package:frappe_app/model/report.dart';
 import 'package:frappe_app/model/sort_dir.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
+import 'package:frappe_app/utils/visit_filters.dart';
 import 'package:frappe_app/views/visit/add_vetvisit.dart';
 import 'package:frappe_app/views/visit/vervisit_info.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
@@ -27,7 +28,7 @@ class _VetVisitState extends State<VetVisit> {
   final _idController = TextEditingController();
   final province = "".obs;
   String city = "";
-  var _sortKey = GetIt.I.get<VisitService>().vetVistiSortKeys().first;
+  var _sortKey = VisitFilters.vetVisitSortKeys().first;
   var _sortDir = SortDir.DESC;
   final _noResult = false.obs;
   final _startSearch = true.obs;
@@ -92,9 +93,7 @@ class _VetVisitState extends State<VetVisit> {
                   controller: _idController,
                   keyboardType: TextInputType.number,
                   onSubmitted: (_) {
-                    if (_.isNotEmpty) {
                       getReport();
-                    }
                   },
                   decoration: InputDecoration(
                     labelText: "شناسه",
@@ -162,7 +161,7 @@ class _VetVisitState extends State<VetVisit> {
                         _sortDir = s;
                         getReport();
                       },
-                      filters: _visitService.vetVistiSortKeys()),
+                      filters: VisitFilters.vetVisitSortKeys()),
                 ],
               ),
               Obx(() => reports.isNotEmpty

@@ -1,0 +1,10 @@
+const VERSION = "3.5";
+
+
+//Hive
+const ADVERTISEMENT_HIVE_ID= 4;
+const SHOP_INFO_HIVE_ID= 2;
+const FILE_INFO_HIVE_ID= 5;
+const PRICE_ADG_HIVE_ID= 6;
+const REQUEST_HIVE_ID= 1;
+const REQUEST_STATUS_HIVE_ID= 3;

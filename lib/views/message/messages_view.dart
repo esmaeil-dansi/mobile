@@ -89,15 +89,32 @@ class _MessagesViewState extends State<MessagesView> {
                             children: [
                               SizedBox(
                                   width: Get.width * 0.25,
-                                  child: Text("شناسه")),
+                                  child: Text(
+                                    "شناسه",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  )),
                               SizedBox(
-                                  width: Get.width * 0.2, child: Text("وضعبت")),
+                                  width: Get.width * 0.2,
+                                  child: Text(
+                                    "وضعیت",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  )),
                               SizedBox(
                                   width: Get.width * 0.15,
-                                  child: Text("موضوع")),
+                                  child: Text(
+                                    "موضوع",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  )),
                               SizedBox(
                                   width: Get.width * 0.3,
-                                  child: Text("متن پیام")),
+                                  child: Text(
+                                    "متن پیام",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  )),
                             ],
                           ),
                           Divider(),

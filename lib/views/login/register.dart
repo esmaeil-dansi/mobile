@@ -2,15 +2,28 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/views/login/privacy_apge.dart';
 import 'package:frappe_app/views/login/verification_page.dart';
 import 'package:frappe_app/widgets/constant.dart';
+import 'package:frappe_app/widgets/shake_widget.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
-class Register extends StatelessWidget {
+class Register extends StatefulWidget {
+  @override
+  State<Register> createState() => _RegisterState();
+}
+
+class _RegisterState extends State<Register> {
   final _textController = TextEditingController();
+
   final _autService = GetIt.I.get<AutService>();
+
   final _loading = false.obs;
+
+  final read_privacy = false.obs;
+
+  final ShakeWidgetController _shakeWidgetController = ShakeWidgetController();
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +107,7 @@ class Register extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: SizedBox(
-                                height: 55,
+                                height: 66,
                                 child: TextField(
                                   controller: _textController,
                                   keyboardType: TextInputType.phone,
@@ -121,6 +134,36 @@ class Register extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            SizedBox(
+                              height: 45,
+                            ),
+                            ShakeWidget(
+                              controller: _shakeWidgetController,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  GestureDetector(
+                                    behavior: HitTestBehavior.translucent,
+                                    onTap: () {
+                                      Get.to(() => PrivacyPage());
+                                    },
+                                    child: Text(
+                                      "سیاست حریم خصوصی را مطالعه کردم",
+                                      style: TextStyle(color: Colors.blue),
+                                    ),
+                                  ),
+                                  IconButton(
+                                      onPressed: () {
+                                        read_privacy.value =
+                                            !read_privacy.value;
+                                      },
+                                      icon: Obx(() => read_privacy.value
+                                          ? Icon(Icons.check_box)
+                                          : Icon(Icons
+                                              .check_box_outline_blank_sharp)))
+                                ],
+                              ),
+                            )
                           ],
                         ),
                       ],
@@ -134,18 +177,22 @@ class Register extends StatelessWidget {
   }
 
   void _next() {
-    if (_textController.text.isEmpty || _textController.text.length < 11) {
-      Fluttertoast.showToast(msg: "َشماره تلفن را درست وارد کنید");
+    if (!read_privacy.value) {
+      _shakeWidgetController.shake();
     } else {
-      _loading.value = true;
-      _autService.sendSms(_textController.text).then((res) {
-        _loading.value = false;
-        if (res.isEmpty) {
-          Get.to(() => VerificationPage(_textController.text));
-        } else {
-          Fluttertoast.showToast(msg: res);
-        }
-      });
+      if (_textController.text.isEmpty || _textController.text.length < 11) {
+        Fluttertoast.showToast(msg: "َشماره تلفن را درست وارد کنید");
+      } else {
+        _loading.value = true;
+        _autService.sendSms(_textController.text).then((res) {
+          _loading.value = false;
+          if (res.isEmpty) {
+            Get.to(() => VerificationPage(_textController.text));
+          } else {
+            Fluttertoast.showToast(msg: res);
+          }
+        });
+      }
     }
   }
 }

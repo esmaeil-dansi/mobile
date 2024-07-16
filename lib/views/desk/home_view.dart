@@ -1,21 +1,26 @@
 import 'dart:math';
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:form_builder_extra_fields/form_builder_extra_fields.dart';
+import 'package:frappe_app/db/dao/price_dao.dart';
 import 'package:frappe_app/methods.dart';
+import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/model/shop_group.dart';
 import 'package:frappe_app/model/shop_type.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/views/desk/shop/shop_group_item_ui.dart';
+import 'package:frappe_app/views/desk/shop/shop_item_search_page.dart';
 import 'package:frappe_app/views/message/messages_view.dart';
 import 'package:frappe_app/views/visit/initial_visit.dart';
 import 'package:frappe_app/views/visit/periodic_visits.dart';
+import 'package:frappe_app/views/visit/product_visit.dart';
 import 'package:frappe_app/views/visit/vet_visit.dart';
-import 'package:frappe_app/widgets/city_selector.dart';
+import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lottie/lottie.dart';
-
 import '../../widgets/constant.dart';
 
 class HomeView extends StatefulWidget {
@@ -26,148 +31,57 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   final _autService = GetIt.I.get<AutService>();
   final _visitService = GetIt.I.get<VisitService>();
-  Rx<String> _selectedCity = "".obs;
+  final _priceDao = GetIt.I.get<PriceAvgDao>();
+  final _shopService = GetIt.I.get<ShopService>();
 
   @override
   void initState() {
-    _visitService.fetchPricess();
-    _selectedCity.value = _autService.getSelectedCity();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-       _checkSelectedCity(force: false);
-    });
+    _visitService.fetchPrices();
     super.initState();
-  }
-
-  void _checkSelectedCity({bool force = false}) {
-    if (force || _selectedCity.isEmpty) {
-      String s = "";
-      Get.bottomSheet(
-          Container(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    children: [
-                      SizedBox(
-                        height: 5,
-                      ),
-                      Text(
-                        "شهر خود را انتخاب کنید",
-                        style: Get.textTheme.bodyLarge,
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      citySelector("", (p0) {
-                        s = p0;
-                      }, _selectedCity.value),
-                      SizedBox(
-                        height: 40,
-                      ),
-                    ],
-                  ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () {
-                      if (s.isNotEmpty) {
-                        _selectedCity.value = s;
-                        _autService.saveSelectedCity(_selectedCity.value);
-                        _autService.weathers.clear();
-                        _getWeather();
-                        Navigator.pop(context);
-                      } else if (_autService.getSelectedCity().isNotEmpty) {
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: Container(
-                        height: 50,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            gradient: LinearGradient(colors: GRADIANT_COLOR)),
-                        width: double.infinity,
-                        child: Center(
-                            child: Text(
-                          "ثبت",
-                          style: Get.textTheme.bodyLarge
-                              ?.copyWith(fontSize: 23)
-                              ?.copyWith(color: Colors.black),
-                        ))),
-                  ),
-                ],
-              ),
-            ),
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20))),
-          ),
-          isDismissible: _selectedCity.isNotEmpty,
-          enableDrag: _selectedCity.isNotEmpty);
-    } else {
-      _getWeather();
-    }
-  }
-
-  void _getWeather() {
-    _autService.getWeather();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        actions: [
-          Obx(() => _selectedCity.isNotEmpty
-              ? Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () {
-                       _checkSelectedCity(force: true);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: GRADIANT_COLOR),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 4, horizontal: 8),
-                            child: Row(
-                              children: [
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 6),
-                                  child: Text(
-                                    _selectedCity.value,
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Icon(Icons.keyboard_arrow_down_outlined)
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              : SizedBox.shrink())
-        ],
+        // actions: [
+        //   Obx(() => _autService.selectedCity.isNotEmpty
+        //       ? Padding(
+        //           padding: const EdgeInsets.all(8.0),
+        //           child: Container(
+        //             decoration: BoxDecoration(
+        //               gradient: LinearGradient(colors: GRADIANT_COLOR),
+        //               borderRadius: BorderRadius.circular(20),
+        //             ),
+        //             child: Padding(
+        //               padding: const EdgeInsets.all(2.0),
+        //               child: Container(
+        //                 decoration: BoxDecoration(
+        //                   color: Colors.white,
+        //                   borderRadius: BorderRadius.circular(20),
+        //                 ),
+        //                 child: Padding(
+        //                   padding: const EdgeInsets.symmetric(
+        //                       vertical: 4, horizontal: 8),
+        //                   child: Row(
+        //                     children: [
+        //                       Padding(
+        //                         padding:
+        //                             const EdgeInsets.symmetric(horizontal: 6),
+        //                         child: Text(
+        //                           _autService.selectedCity.value,
+        //                           style: TextStyle(fontWeight: FontWeight.bold),
+        //                         ),
+        //                       ),
+        //                     ],
+        //                   ),
+        //                 ),
+        //               ),
+        //             ),
+        //           ),
+        //         )
+        //       : SizedBox.shrink())
+        // ],
         backgroundColor: Colors.white,
         title: Text(
           "چوپو",
@@ -175,16 +89,16 @@ class _HomeViewState extends State<HomeView> {
               fontSize: 24, color: MAIN_COLOR, fontWeight: FontWeight.bold),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 7),
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 7),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(vertical: 13, horizontal: 10),
+                    const EdgeInsets.symmetric(vertical: 13, horizontal: 3),
                 child: Obx(() => _autService.weathers.isNotEmpty
                     ? SingleChildScrollView(
                         child: Row(
@@ -233,7 +147,7 @@ class _HomeViewState extends State<HomeView> {
                                                 Text(
                                                   element.temp.toString(),
                                                   style:
-                                                      TextStyle(fontSize: 10),
+                                                      TextStyle(fontSize: 9.5),
                                                 ),
                                                 SizedBox(
                                                   height: 1,
@@ -247,7 +161,7 @@ class _HomeViewState extends State<HomeView> {
                                             element.main,
                                             element.description,
                                           ).$1,
-                                          style: TextStyle(fontSize: 13),
+                                          style: TextStyle(fontSize: 10),
                                         ),
                                         Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -272,56 +186,81 @@ class _HomeViewState extends State<HomeView> {
                         height: 90,
                       )),
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildReport(
-                              "گوسفند داشتی(راس)",
-                              _visitService.avgPrices["گوسفند داشتی"] ??
-                                  '122521010',
-                              0.03,
-                              false),
-                          _buildReport(
-                              "گاو شیری(راس)",
-                              _visitService.avgPrices["گاو شیری"] ??
-                                  '901022622',
-                              0.01,
-                              true),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildReport(
-                              "شتر پرواری(نفر)",
-                              _visitService.avgPrices['شتر پرواری'] ??
-                                  '198334285',
-                              0.02,
-                              true),
-                          _buildReport(
-                              "قیمت جو(کیلوگرم)",
-                              _visitService.avgPrices['جو دامی وارداتی'] ??
-                                  '116616',
-                              0,
-                              true),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-              ),
+              StreamBuilder<PriceInfo?>(
+                  stream: _priceDao.watch(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data != null) {
+                      var info = snapshot.data!;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildReport(
+                                    "گوسفند داشتی(راس)",
+                                    info.gosfand.toString(),
+                                    info.dosfandD,
+                                  ),
+                                  _buildReport(
+                                    "گاو شیری(راس)",
+                                    info.gov.toString(),
+                                    info.govD,
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildReport("شتر پرواری(نفر)",
+                                      info.shotor.toString(), info.shotorD),
+                                  _buildReport("قیمت جو(کیلوگرم)",
+                                      info.go.toString(), info.goD),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "*",
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                  SizedBox(
+                                    width: 3,
+                                  ),
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Text(
+                                      "منبع میانگین قیمت ها شرکت گسترش توسعه گری پردیس می باشد.",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                      ),
+                                      maxLines: 2,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    return SizedBox.shrink();
+                  }),
               SizedBox(
                 height: 10,
               ),
@@ -352,9 +291,10 @@ class _HomeViewState extends State<HomeView> {
                               child: GestureDetector(
                                 behavior: HitTestBehavior.translucent,
                                 onTap: () {
-                                  Get.to(() => ShopGroupItemUi(
-                                        type: t.type,
-                                      ));
+                                  showShopItems(t.type.getName());
+                                  // Get.to(() => ShopGroupItemUi(
+                                  //       typeص: t.type,
+                                  //     ));
                                 },
                                 child: _shopItemUi(
                                     title: t.type.getName(),
@@ -386,23 +326,40 @@ class _HomeViewState extends State<HomeView> {
                         ],
                       ),
                     ),
-                    Center(
-                      child: SizedBox(
-                        height: 130,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildItem(() => Get.to(() => MessagesView()),
-                                'assets/messages.json', "پیام"),
-                            _buildItem(() => Get.to(() => InitialVisit()),
-                                'assets/visit.json', "بازدید اولیه"),
-                            _buildItem(() => Get.to(() => PeriodicVisits()),
-                                'assets/periodic.json', "بازدید دوره ای"),
-                            _buildItem(() => Get.to(() => VetVisit()),
-                                'assets/vetvisit.json', "بازدید دامپزشک"),
-                          ],
-                          // scrollDirection: Axis.horizontal,
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildItem(() => Get.to(() => MessagesView()),
+                                  'assets/messages.json', "پیام"),
+                              _buildItem(() => Get.to(() => InitialVisit()),
+                                  'assets/visit.json', "بازدید اولیه"),
+                              _buildItem(() => Get.to(() => PeriodicVisits()),
+                                  'assets/periodic.json', "بازدید دوره ای"),
+                            ],
+                            // scrollDirection: Axis.horizontal,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildItem(() => Get.to(() => VetVisit()),
+                                  'assets/vetvisit.json', "بازدید دامپزشک"),
+                              // _buildItem(() => Get.to(() => ProductVisit()),
+                              //     'assets/product.json', "بهره وری"),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 4, horizontal: 2),
+                                child: SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.24,
+                                ),
+                              )
+                            ],
+                          )
+                        ],
                       ),
                     ),
                   ],
@@ -428,7 +385,7 @@ class _HomeViewState extends State<HomeView> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.22,
+        width: MediaQuery.of(context).size.width * 0.24,
         height: 100,
         decoration: BoxDecoration(
             gradient: LinearGradient(colors: GRADIANT_COLOR),
@@ -531,9 +488,9 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildReport(String s, String count, double d, bool increase) {
+  Widget _buildReport(String s, String count, double d) {
     return Container(
-      height: 71,
+      height: 76,
       width: 162,
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -545,7 +502,7 @@ class _HomeViewState extends State<HomeView> {
       child: Padding(
         padding: const EdgeInsets.all(1),
         child: Container(
-          height: 70,
+          height: 80,
           // width: Get.width * 0.43,
           decoration: BoxDecoration(
             color: Colors.white,
@@ -569,32 +526,37 @@ class _HomeViewState extends State<HomeView> {
                     SizedBox(
                       width: 10,
                     ),
-                    Column(
-                      children: [
-                        Row(
-                          children: [
-                            Text("%" + d.toString(),
-                                style: TextStyle(fontSize: 8)),
-                            if (d != 0)
-                              if (increase)
-                                Icon(
-                                  Icons.trending_up,
-                                  color: Colors.blue,
-                                  size: 11,
-                                )
-                              else
-                                Icon(
-                                  Icons.trending_down,
-                                  color: Colors.red,
-                                  size: 11,
-                                )
-                          ],
-                        ),
-                        Text("از دیروز", style: TextStyle(fontSize: 8)),
-                      ],
-                    )
                   ],
-                )
+                ),
+                if (d != 0.0)
+                  Row(
+                    children: [
+                      Text(
+                          "%" +
+                              d
+                                  .abs()
+                                  .toString()
+                                  .substring(0, min(d.toString().length, 6)),
+                          style: TextStyle(fontSize: 8)),
+                      if (d != 0)
+                        if (d > 0)
+                          Icon(
+                            Icons.trending_up,
+                            color: Colors.blue,
+                            size: 11,
+                          )
+                        else
+                          Icon(
+                            Icons.trending_down,
+                            color: Colors.red,
+                            size: 11,
+                          ),
+                      SizedBox(
+                        width: 5,
+                      ),
+                      Text("از دیروز", style: TextStyle(fontSize: 8)),
+                    ],
+                  )
               ],
             ),
           ),
@@ -622,5 +584,9 @@ class _HomeViewState extends State<HomeView> {
       }
     }
     return sr;
+  }
+
+  void showShopItems(String group) {
+    Get.bottomSheet(bottomSheetTemplate(ShopItemSearchPage(group)));
   }
 }

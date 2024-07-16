@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/model/agentInfo.dart';
 import 'package:frappe_app/model/add_initial_visit_from_model.dart';
+import 'package:frappe_app/repo/RequestRepo.dart';
 import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/utils/date_mapper.dart';
+import 'package:frappe_app/widgets/agent_info_widget.dart';
 import 'package:frappe_app/widgets/checkBox.dart';
 import 'package:frappe_app/widgets/date.dart';
 import 'package:frappe_app/widgets/form/CustomTextFormField.dart';
@@ -12,6 +16,7 @@ import 'package:frappe_app/widgets/form/custom_dropownbuttom_formField.dart';
 import 'package:frappe_app/widgets/image_view.dart';
 import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
+import 'package:frappe_app/widgets/request_manage.dart';
 import 'package:frappe_app/widgets/select_location.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
@@ -30,6 +35,7 @@ class AddInitialReport extends StatefulWidget {
 }
 
 class _AddInitialReportState extends State<AddInitialReport> {
+  final _requestRepo = GetIt.I.get<RequestRepo>();
   late AddInitialVisitFormModel model;
 
   var _fileRepo = GetIt.I.get<FileRepo>();
@@ -47,6 +53,27 @@ class _AddInitialReportState extends State<AddInitialReport> {
     });
   }
 
+  Future<void> checkPendingRequest(String id) async {
+    try {
+      if (id.isNotEmpty) {
+        // _requestRepo.getByNationIdAndType(id, "Initial Visit").then((value) {
+        //   if (value != null) {
+        //     manageRequest("بازدید اولیه", value, Get.context!, () {
+        //       model =
+        //           AddInitialVisitFormModel.fromJson(json.decode(value.body));
+        //       time = value.time;
+        //       _dam.value = model.dam ?? 0;
+        //       _dateController.text = DateMapper.convert(model.vDate ?? '');
+        //       _latLng.value = LatLng(model.lat ?? 0, model.lon ?? 0);
+        //       _fetchImages();
+        //       setState(() {});
+        //     });
+        //   }
+        // });
+      }
+    } catch (e) {}
+  }
+
   @override
   void initState() {
     if (widget.addInitialVisitFormModel != null) {
@@ -54,7 +81,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
       _dam.value = model.dam ?? 0;
       _dateController.text = DateMapper.convert(model.vDate ?? '');
       _dateController.text = model.vDate ?? '';
-      _latLng = LatLng(model.lat ?? 0, model.lon ?? 0);
+      _latLng.value = LatLng(model.lat ?? 0, model.lon ?? 0);
       _fetchImages();
       _fetchAgentInfo();
     } else {
@@ -68,7 +95,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
   final _formKey = GlobalKey<FormState>();
   var time = 0;
   Rxn<AgentInfo> agentInfo = Rxn();
-  LatLng? _latLng;
+  Rxn<LatLng> _latLng = Rxn();
   final _dateController = TextEditingController();
   final _visitService = GetIt.I.get<VisitService>();
   final _imagePath = "".obs;
@@ -87,9 +114,9 @@ class _AddInitialReportState extends State<AddInitialReport> {
     return Scaffold(
       floatingActionButton: submitForm(() async {
         if (_formKey.currentState?.validate() ?? false) {
-          if (_latLng != null) {
-            model.lon = _latLng!.longitude;
-            model.lat = _latLng!.latitude;
+          if (_latLng.value != null) {
+            model.lon = _latLng.value!.longitude;
+            model.lat = _latLng.value!.latitude;
             model.image1 = _imagePath.value;
             model.image2 = _imagePath_2.value;
             if (model.image1 == null ||
@@ -106,6 +133,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                 model: model,
               );
               if (res) {
+                Get.back();
                 Get.back();
               }
             }
@@ -155,6 +183,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                               readOnly: widget.addInitialVisitFormModel != null,
                               height: 80,
                               onChanged: (_) {
+                                checkPendingRequest(_);
                                 model.nationalId = _;
                                 if (_.length == 10) {
                                   _fetchAgentInfo();
@@ -166,70 +195,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                               height: 10,
                             ),
                             Obx(() => agentInfo.value != null
-                                ? Column(
-                                    children: [
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.full_name,
-                                        label: "نام و نام خانوادگی",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.province,
-                                        label: "استان",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.city,
-                                        label: "شهرستان",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        readOnly: true,
-                                        maxLine: 3,
-                                        value: agentInfo.value!.address,
-                                        label: "آدرس",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.mobile,
-                                        label: "َشماره تلفن",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.rahbar,
-                                        label: "َراهبر اصلی",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.department,
-                                        label: "اداره کمیته امداد",
-                                      ),
-                                    ],
-                                  )
+                                ? agentInfoWidget(agentInfo.value!)
                                 : SizedBox.shrink()),
                             SizedBox(
                               height: 10,
@@ -548,18 +514,18 @@ class _AddInitialReportState extends State<AddInitialReport> {
                     const SizedBox(
                       height: 10,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: SelectLocation(
-                        readOnly: widget.addInitialVisitFormModel != null,
-                        latLng: model.lon != null
-                            ? LatLng(model.lat!, model.lon!)
-                            : null,
-                        onSelected: (_) {
-                          _latLng = _;
-                        },
-                      ),
-                    ),
+                     Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: SelectLocation(
+                            readOnly: widget.addInitialVisitFormModel != null,
+                            latLng: model.lon != null
+                                ? LatLng(model.lat!, model.lon!)
+                                : _latLng.value,
+                            onSelected: (_) {
+                              _latLng.value = _;
+                            },
+                          ),
+                        ),
                   ],
                 ),
               ),

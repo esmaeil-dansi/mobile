@@ -198,9 +198,9 @@ class _UserInfoState extends State<UserInfo> {
                                 SizedBox(
                                   height: 8,
                                 ),
-                                TitleCheckBox("دامدار هستم", (c) {
-                                  _damdar = c;
-                                }),
+                                // TitleCheckBox("دامدار هستم", (c) {
+                                //   _damdar = c;
+                                // }),
                               ],
                             ),
                           ),

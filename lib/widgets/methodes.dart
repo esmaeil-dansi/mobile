@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:frappe_app/views/desk/desk_view.dart';
 import 'package:get/get.dart';
 
 void handleDioError(DioException e, {bool showInfo = true}) {
@@ -35,6 +36,9 @@ void handleDioError(DioException e, {bool showInfo = true}) {
                   onPressed: () {
                     FocusScope.of(c).unfocus();
                     Navigator.pop(c);
+                    Future.delayed(Duration(milliseconds: 100), () {
+                      Get.offAll(() => DesktopView());
+                    });
                   },
                   child: Text(
                     "فهمیدم",
@@ -59,13 +63,17 @@ void showErrorMessage(dynamic msg) {
       String t = m["message"].toString();
       if (t.contains("Error: Value missing for")) {
         t = t.replaceAll("Error: Value missing for", "");
-        t = t.replaceAll("</>", "");
-        t = t.replaceAll("<", "");
-        t = t.replaceAll("/", "");
-        t = t.replaceAll(">", "");
+
         t = t.replaceAll("strong", "");
         t = t + " " + "وارد نشده است";
       }
+      t = t
+          .replaceAll("</>", "")
+          .replaceAll("<", "")
+          .replaceAll("/", "")
+          .replaceAll(">", "")
+          .replaceAll("summary", "")
+          .replaceAll("strong", "");
       errors.add(t);
     }
     if (errors.isNotEmpty) {

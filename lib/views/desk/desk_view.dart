@@ -1,17 +1,27 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/views/desk/home_view.dart';
+import 'package:frappe_app/views/desk/order_page.dart';
 import 'package:frappe_app/views/desk/profile_page.dart';
 import 'package:frappe_app/views/desk/request_page.dart';
 import 'package:frappe_app/views/desk/shop/my_shop_page.dart';
+import 'package:frappe_app/views/login/login_page.dart';
+import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get_it/get_it.dart';
 import 'package:gradient_icon/gradient_icon.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 
 class DesktopView extends StatefulWidget {
+  bool needToCheckUpdate;
+
+  DesktopView({this.needToCheckUpdate = true});
+
   @override
   State<DesktopView> createState() => _DesktopViewState();
 }
@@ -21,16 +31,86 @@ class _DesktopViewState extends State<DesktopView> {
 
   var unselectSize = 28.0;
   var selectedSize = 28.0;
-
   var _autService = GetIt.I.get<AutService>();
 
-  GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  @override
+  void initState() {
+    if (widget.needToCheckUpdate) {
+      _autService.checkLoginCertificate().then((value) {
+        if (!value) {
+          Get.offAll(() => Login());
+        }
+      });
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        var res = await Geolocator.requestPermission();
+        if (res == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          _autService.initOldWeather();
+        } else {
+          _getLocation();
+        }
+
+        // Get.bottomSheet(bottomSheetTemplate(Column(
+        //   mainAxisSize: MainAxisSize.min,
+        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //   children: [
+        //
+        //     Padding(
+        //       padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 20),
+        //       child: Text(
+        //           "پیشنهاد می شود برای دریافت آخرین وضعیت هواشناسی اجازه دسترسی به موقعیت مکانی را بدهد"),
+        //     ),
+        //
+        //     Padding(
+        //       padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 20),
+        //       child: GestureDetector(
+        //         behavior: HitTestBehavior.translucent,
+        //         onTap: () {
+        //
+        //
+        //         },
+        //         child: Container(
+        //             height: 50,
+        //             decoration: BoxDecoration(
+        //                 borderRadius: BorderRadius.circular(20),
+        //                 gradient: LinearGradient(colors: GRADIANT_COLOR)),
+        //             width: double.infinity,
+        //             child: Center(
+        //                 child: Text(
+        //               "موافقم",
+        //               style: Get.textTheme.bodyLarge
+        //                   ?.copyWith(fontSize: 23)
+        //                   ?.copyWith(color: Colors.black),
+        //             ))),
+        //       ),
+        //     ),
+        //   ],
+        // )));
+      } else {
+        _getLocation();
+      }
+    });
+
+    super.initState();
+  }
+
+  Future<void> _getLocation() async {
+    try {
+      var l = await Geolocator.getCurrentPosition();
+      _autService.getWeather(lat: l.latitude, lon: l.longitude);
+    } catch (e) {
+      _autService.initOldWeather();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Obx(
       () => Scaffold(
-        key: _scaffoldKey,
         appBar: index != 1
             ? null
             : AppBar(
@@ -58,17 +138,23 @@ class _DesktopViewState extends State<DesktopView> {
               activeIcon: _selectedIcon(Icons.home),
               label: 'خانه',
             ),
-            BottomNavigationBarItem(
-              icon: _unSelectedIcon(Icons.compare_arrows_outlined),
-              activeIcon: _selectedIcon(Icons.compare_arrows_outlined),
-              label: 'درخواست ها',
-            ),
+            if (_autService.isRahbar())
+              BottomNavigationBarItem(
+                icon: _unSelectedIcon(Icons.compare_arrows_outlined),
+                activeIcon: _selectedIcon(Icons.compare_arrows_outlined),
+                label: 'درخواست ها',
+              ),
             if (_autService.isSupplier())
               BottomNavigationBarItem(
                 icon: _unSelectedIcon(Icons.shopping_cart),
                 activeIcon: _selectedIcon(Icons.shopping_cart),
                 label: ' فروشگاه من',
               ),
+            BottomNavigationBarItem(
+              icon: _unSelectedIcon(Icons.list_alt_outlined),
+              activeIcon: _selectedIcon(Icons.list_alt_outlined),
+              label: 'سفارشات',
+            ),
             BottomNavigationBarItem(
               icon: _unSelectedIcon(Icons.person_outline_rounded),
               activeIcon: _selectedIcon(Icons.person_outline_rounded),
@@ -79,17 +165,46 @@ class _DesktopViewState extends State<DesktopView> {
             index.value = _;
           },
         ),
-        body: Container(
-            color: Colors.white,
-            child: Obx(() => index.value == 0
-                ? HomeView()
-                : index.value == 1
-                    ? RequestPage()
-                    : (index.value == 2 && _autService.isSupplier())
-                        ? MyShopPage()
-                        : ProfilePage())),
+        body:
+            Container(color: Colors.white, child: Obx(() => _getMainWidget())),
       ),
     );
+  }
+
+  Widget _getMainWidget() {
+    var i = index.value;
+    if (i == 0) {
+      return HomeView();
+    } else if (i == 1) {
+      if (_autService.isRahbar()) {
+        return RequestPage();
+      } else if (_autService.isSupplier()) {
+        return MyShopPage();
+      }
+      return OrderPage();
+    } else if (i == 2) {
+      if (_autService.isRahbar()) {
+        if (_autService.isSupplier()) {
+          return MyShopPage();
+        }
+        return OrderPage();
+      } else {
+        if (_autService.isSupplier()) {
+          return OrderPage();
+        }
+        return ProfilePage();
+      }
+    } else if (i == 3) {
+      if (_autService.isRahbar()) {
+        if (_autService.isSupplier()) {
+          return OrderPage();
+        }
+        return ProfilePage();
+      } else {
+        return ProfilePage();
+      }
+    }
+    return ProfilePage();
   }
 
   Widget _unSelectedIcon(IconData iconData) {

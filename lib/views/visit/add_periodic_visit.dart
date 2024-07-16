@@ -5,6 +5,7 @@ import 'package:frappe_app/model/agentInfo.dart';
 import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/utils/date_mapper.dart';
+import 'package:frappe_app/widgets/agent_info_widget.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/date.dart';
 import 'package:frappe_app/widgets/form/CustomTextFormField.dart';
@@ -91,7 +92,7 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
               if (imagePath.value.isEmpty) {
                 Fluttertoast.showToast(msg: "عکس را وارد  کنید");
               } else {
-                FocusScope.of(context).unfocus();
+                FocusScope.of(context).requestFocus(new FocusNode());
                 model.image = imagePath.value;
                 Progressbar.showProgress();
                 var res = await _visitService.sendPeriodicVisits(
@@ -99,8 +100,8 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                   time: time,
                   agentInfo: agentInfo.value ?? AgentInfo(),
                 );
-                FocusScope.of(context).unfocus();
                 if (res) {
+                  Get.back();
                   Get.back();
                 }
               }
@@ -160,71 +161,7 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                                 height: 10,
                               ),
                               Obx(() => agentInfo.value != null
-                                  ? Column(
-                                      children: [
-                                        CustomTextFormField(
-                                          height: 60,
-                                          readOnly: true,
-                                          value: agentInfo.value!.full_name,
-                                          label: "نام و نام خانوادگی",
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        CustomTextFormField(
-                                          height: 60,
-                                          readOnly: true,
-                                          value: agentInfo.value!.province,
-                                          label: "استان",
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        CustomTextFormField(
-                                          height: 60,
-                                          readOnly: true,
-                                          value: agentInfo.value!.city,
-                                          label: "شهرستان",
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        CustomTextFormField(
-                                          height: 60,
-                                          readOnly: true,
-                                          maxLine: 3,
-                                          value: agentInfo.value!.address,
-                                          label: "آدرس",
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        CustomTextFormField(
-                                          height: 60,
-                                          readOnly: true,
-                                          value: agentInfo.value!.mobile,
-                                          label: "َشماره تلفن",
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        CustomTextFormField(
-                                          height: 60,
-                                          readOnly: true,
-                                          value: agentInfo.value!.rahbar,
-                                          label: "َراهبر اصلی",
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        CustomTextFormField(
-                                          height: 60,
-                                          readOnly: true,
-                                          value: agentInfo.value!.department,
-                                          label: "اداره کمیته امداد",
-                                        ),
-                                      ],
-                                    )
+                                  ? agentInfoWidget(agentInfo.value!)
                                   : SizedBox.shrink()),
                               SizedBox(
                                 height: 10,
@@ -356,7 +293,7 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                               CustomDropdownButtonFormField(
                                 items: [
                                   "مرتب و تمیز",
-                                  "آلوده و نا مرتب",
+                                  "آلوده و نامرتب",
                                   "آذوقه در حال فساد",
                                 ],
                                 label: " وضعیت انبار آذوقه",

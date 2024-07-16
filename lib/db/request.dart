@@ -1,9 +1,10 @@
 import 'package:frappe_app/db/request_statuse.dart';
+import 'package:frappe_app/utils/constants.dart';
 import 'package:hive/hive.dart';
 
 part 'request.g.dart';
 
-@HiveType(typeId: 1)
+@HiveType(typeId: REQUEST_HIVE_ID)
 class Request {
   @HiveField(0)
   int time;

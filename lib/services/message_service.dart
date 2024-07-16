@@ -51,7 +51,7 @@ class MessageService {
             'filters': json.encode(filters),
             'order_by': '`tabMessage`.`modified` DESC',
             'start': start,
-            'page_length': 20,
+            'page_length': 50,
             'view': "List",
             'group_by': '`tabMessage`.`name`',
             'with_comment_count': 1
@@ -65,7 +65,9 @@ class MessageService {
       return messages
           .where((element) =>
               element.owner.contains(_autService.getFullNameChar()) ||
-              element.modified.contains(_autService.getFullNameChar()))
+              element.modified_by.contains(_autService.getFullNameChar()) ||
+              element.owner.contains(_autService.mainUserId()) ||
+              element.modified_by.contains(_autService.mainUserId()))
           .toList();
     } catch (e) {
       _logger.e(e);

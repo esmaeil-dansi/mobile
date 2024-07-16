@@ -10,8 +10,6 @@ import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-
 class Login extends StatefulWidget {
   @override
   State<Login> createState() => _LoginState();
@@ -50,7 +48,7 @@ class _LoginState extends State<Login> {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("حساب کاربری نداید؟"),
+                    Text("حساب کاربری ندارید؟"),
                     SizedBox(
                       width: 6,
                     ),
@@ -77,9 +75,8 @@ class _LoginState extends State<Login> {
                 width: 100,
                 height: 50,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
-                  gradient: LinearGradient(colors: GRADIANT_COLOR)
-                ),
+                    borderRadius: BorderRadius.circular(50),
+                    gradient: LinearGradient(colors: GRADIANT_COLOR)),
                 child: Obx(() => _loading.isTrue
                     ? Center(child: CircularProgressIndicator())
                     : Center(
@@ -170,8 +167,8 @@ class _LoginState extends State<Login> {
                                   : Icon(CupertinoIcons.eye_slash),
                             ),
                             border: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  width: 3, color: Colors.red),
+                              borderSide:
+                                  const BorderSide(width: 3, color: Colors.red),
                               //<-- SEE HERE
                               borderRadius: BorderRadius.circular(10.0),
                             ),
@@ -212,9 +209,11 @@ class _LoginState extends State<Login> {
     )
         .then((res) {
       _loading.value = false;
-      if (res) {
+      if (res.$1) {
         saveLogin();
-        Get.off(() => DesktopView());
+        Get.off(() => DesktopView(
+              needToCheckUpdate: false,
+            ));
       } else {
         Fluttertoast.showToast(msg: "خطایی رخ داده است");
       }

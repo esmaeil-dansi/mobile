@@ -3,6 +3,7 @@ import 'package:frappe_app/model/report.dart';
 import 'package:frappe_app/model/sort_dir.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
+import 'package:frappe_app/utils/visit_filters.dart';
 import 'package:frappe_app/views/visit/add_periodic_visit.dart';
 import 'package:frappe_app/views/visit/periodic_visit_info.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
@@ -32,7 +33,7 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
   final _noResult = false.obs;
   final _startSearch = true.obs;
   final _hasFilter = false.obs;
-  var _sortKey = GetIt.I.get<VisitService>().periodicVistiSortKeys().first;
+  var _sortKey = VisitFilters.periodicVisitSortKeys().first;
   var _sortDir = SortDir.DESC;
 
   @override
@@ -186,7 +187,7 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
                         _sortDir = s;
                         getReport();
                       },
-                      filters: _visitService.periodicVistiSortKeys())
+                      filters: VisitFilters.periodicVisitSortKeys())
                 ],
               ),
               SizedBox(

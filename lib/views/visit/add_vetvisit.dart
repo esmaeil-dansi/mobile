@@ -4,6 +4,7 @@ import 'package:frappe_app/model/add_vetvisit_form_model.dart';
 import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/utils/int_bool_converter.dart';
+import 'package:frappe_app/widgets/agent_info_widget.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/checkBox.dart';
 import 'package:frappe_app/widgets/form/CustomTextFormField.dart';
@@ -94,7 +95,7 @@ class _AddVetVisitState extends State<AddVetVisit> {
               if (imageDam.isEmpty || licenseSalamat.isEmpty) {
                 Fluttertoast.showToast(msg: "عکس را وارد  کنید");
               } else {
-                FocusScope.of(context).unfocus();
+                FocusScope.of(context).requestFocus(new FocusNode());
                 model.imageDam = imageDam.value;
                 model.licenseSalamat = licenseSalamat.value;
                 model.lon = _latLng!.longitude;
@@ -105,8 +106,8 @@ class _AddVetVisitState extends State<AddVetVisit> {
                   time: time,
                   model: model,
                 );
-                FocusScope.of(context).unfocus();
                 if (res) {
+                  Get.back();
                   Get.back();
                 }
               }
@@ -296,62 +297,7 @@ class _AddVetVisitState extends State<AddVetVisit> {
                               height: 10,
                             ),
                             Obx(() => agentInfo.value != null
-                                ? Column(
-                                    children: [
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.full_name,
-                                        label: "نام و نام خانوادگی",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.province,
-                                        label: "استان",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        maxLine: 3,
-                                        value: agentInfo.value!.city,
-                                        label: "شهرستان",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.mobile,
-                                        label: "َشماره تلفن",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.rahbar,
-                                        label: "َراهبر اصلی",
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      CustomTextFormField(
-                                        height: 60,
-                                        readOnly: true,
-                                        value: agentInfo.value!.department,
-                                        label: "اداره کمیته امداد",
-                                      ),
-                                    ],
-                                  )
+                                ? agentInfoWidget(agentInfo.value!)
                                 : SizedBox.shrink()),
                             SizedBox(
                               height: 10,

@@ -22,14 +22,14 @@ class AgentInfo {
 
   factory AgentInfo.fromJsom(Map<String, dynamic> data) {
     return AgentInfo(
-      name: data["name"],
-      rahbar: data["rahbar"],
-      full_name: data["full_name"],
-      address: data["address"],
-      city: data["city"],
-      province: data["province"],
-      mobile: data["mobile"],
-      department: data["department"] != null ? data["department"] : " ",
+      name: data["name"] ?? '',
+      rahbar: data["rahbar"] ?? '',
+      full_name: data["full_name"] ?? "",
+      address: data["address"] ?? "",
+      city: data["city"] ?? '',
+      province: data["province"] ?? '',
+      mobile: data["mobile"] ?? '',
+      department: data["department"] != null ? data["department"] : "",
     );
   }
 }

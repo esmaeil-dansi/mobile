@@ -1,38 +1,38 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'city.dart';
+part of 'file_info.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class CityAdapter extends TypeAdapter<City> {
+class FileInfoAdapter extends TypeAdapter<FileInfo> {
   @override
-  final int typeId = 2;
+  final int typeId = 5;
 
   @override
-  City read(BinaryReader reader) {
+  FileInfo read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return City(
-      name: fields[0] as String,
-      id: fields[1] as String,
-      province: fields[2] as String,
+    return FileInfo(
+      time: fields[0] as int,
+      key: fields[1] as String,
+      path: fields[2] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, City obj) {
+  void write(BinaryWriter writer, FileInfo obj) {
     writer
       ..writeByte(3)
       ..writeByte(0)
-      ..write(obj.name)
+      ..write(obj.time)
       ..writeByte(1)
-      ..write(obj.id)
+      ..write(obj.key)
       ..writeByte(2)
-      ..write(obj.province);
+      ..write(obj.path);
   }
 
   @override
@@ -41,7 +41,7 @@ class CityAdapter extends TypeAdapter<City> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CityAdapter &&
+      other is FileInfoAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

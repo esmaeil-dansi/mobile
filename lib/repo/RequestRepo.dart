@@ -5,8 +5,10 @@ import 'package:get_it/get_it.dart';
 class RequestRepo {
   final _requestDao = GetIt.I.get<RequestDao>();
 
-  Stream<List<Request>> watch() =>_requestDao.watch();
+  Stream<List<Request>> watch() => _requestDao.watch();
 
+  Future<Request?> getByNationIdAndType(String id, String type) =>
+      _requestDao.getByNationIdAndType(id, type);
 
   Future<void> save(Request request) => _requestDao.save(request);
 
