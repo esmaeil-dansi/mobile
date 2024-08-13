@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/model/add_per_vsiti_form_model.dart';
 import 'package:frappe_app/model/agentInfo.dart';
-import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/utils/date_mapper.dart';
 import 'package:frappe_app/widgets/agent_info_widget.dart';
@@ -32,16 +31,6 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
   int time = 0;
   late AddPerVisitFormModel model;
 
-  var _fileRepo = GetIt.I.get<FileRepo>();
-
-  Future<void> _fetchImages() async {
-    _fileRepo.getFile(widget.time.toString() + "image").then((_) {
-      if (_ != null) {
-        imagePath.value = _;
-      }
-    });
-  }
-
   @override
   void initState() {
     if (widget.addPerVisitFormModel != null) {
@@ -49,10 +38,11 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
       _dateController.text = DateMapper.convert(model.date ?? '');
       _nextDateController.text = DateMapper.convert(model.nextDate ?? '');
       _latLng = LatLng(model.lat!, model.lon!);
-      imagePath.value = model.image ?? "";
+      jaigah_dam.value = model.jaigahDam ?? "";
+      jaigah_dam1.value = model.jaigahDam1 ?? "";
+      jaigah_dam2.value = model.jaigahDam2 ?? "";
       _nationId.text = model.nationalId!;
       _fetchAgentInfo();
-      _fetchImages();
     } else {
       model = AddPerVisitFormModel();
     }
@@ -64,7 +54,9 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
 
   final _nextDateController = TextEditingController();
   final _visitService = GetIt.I.get<VisitService>();
-  var imagePath = "".obs;
+  var jaigah_dam = "".obs;
+  var jaigah_dam1 = "".obs;
+  var jaigah_dam2 = "".obs;
 
   final _nationId = TextEditingController();
 
@@ -85,31 +77,30 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
   Widget build(BuildContext context) {
     return Scaffold(
         floatingActionButton: submitForm(() async {
-          if (_formKey.currentState?.validate() ?? false) {
-            if (_latLng != null) {
-              model.lat = _latLng!.latitude;
-              model.lon = _latLng!.longitude;
-              if (imagePath.value.isEmpty) {
-                Fluttertoast.showToast(msg: "عکس را وارد  کنید");
-              } else {
-                FocusScope.of(context).requestFocus(new FocusNode());
-                model.image = imagePath.value;
-                Progressbar.showProgress();
-                var res = await _visitService.sendPeriodicVisits(
-                  addPerVisitFormModel: model,
-                  time: time,
-                  agentInfo: agentInfo.value ?? AgentInfo(),
-                );
-                if (res) {
-                  Get.back();
-                  Get.back();
+          if (widget.addPerVisitFormModel != null) {
+            await _submit(context);
+          } else {
+            if (_formKey.currentState?.validate() ?? false) {
+              if (_latLng != null) {
+                model.lat = _latLng!.latitude;
+                model.lon = _latLng!.longitude;
+                if (jaigah_dam.value.isEmpty ||
+                    jaigah_dam1.value.isEmpty ||
+                    jaigah_dam2.value.isEmpty) {
+                  Fluttertoast.showToast(msg: "تصویر را وارد  کنید");
+                } else {
+                  if (_dateController.text.isEmpty) {
+                    Fluttertoast.showToast(msg: "تاریخ را انتخاب کنید");
+                  } else {
+                    await _submit(context);
+                  }
                 }
+              } else {
+                Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
               }
             } else {
-              Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
+              Fluttertoast.showToast(msg: "فیلد های مورد نیاز را پر کنید");
             }
-          } else {
-            Fluttertoast.showToast(msg: "فیلد های مورد نیاز را پر کنید");
           }
         }),
         appBar: appSliverAppBar("بازدید دوره ای جدید"),
@@ -323,8 +314,20 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
                       SizedBox(
                         height: 10,
                       ),
-                      ImageView(imagePath, "تصویر جایگاه دام",
-                          defaultValue: imagePath.value,
+                      ImageView(jaigah_dam, "تصویر جایگاه دام",
+                          defaultValue: jaigah_dam.value,
+                          canReplace: widget.addPerVisitFormModel == null),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      ImageView(jaigah_dam1, "تصویر راهبر",
+                          defaultValue: jaigah_dam1.value,
+                          canReplace: widget.addPerVisitFormModel == null),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      ImageView(jaigah_dam2, "تصویر متقاضی",
+                          defaultValue: jaigah_dam2.value,
                           canReplace: widget.addPerVisitFormModel == null),
                       SizedBox(
                         height: 10,
@@ -451,5 +454,27 @@ class _AddPeriodicReportState extends State<AddPeriodicReport> {
             ),
           ),
         ));
+  }
+
+  Future<void> _submit(BuildContext context) async {
+    FocusScope.of(context).requestFocus(new FocusNode());
+    model.jaigahDam = jaigah_dam.value;
+    model.jaigahDam1 = jaigah_dam1.value;
+    model.jaigahDam2 = jaigah_dam2.value;
+    Progressbar.showProgress();
+    var agi = agentInfo.value ?? AgentInfo();
+    model.department = agi.department;
+    model.province = agi.province;
+    model.city = agi.city;
+    model.rahbar = agi.rahbar;
+    model.fullName = agi.full_name;
+    var res = await _visitService.sendPeriodicVisits(
+      addPerVisitFormModel: model,
+      time: time,
+    );
+    if (res) {
+      Get.back();
+      Get.back();
+    }
   }
 }

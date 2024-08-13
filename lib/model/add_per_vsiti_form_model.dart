@@ -15,6 +15,8 @@ class AddPerVisitFormModel {
   String? ventilation;
   String? vaziat;
   String? jaigahDam;
+  String? jaigahDam1;
+  String? jaigahDam2;
   String? fullName;
   String? province;
   String? city;
@@ -29,30 +31,33 @@ class AddPerVisitFormModel {
   String? enheraf;
   String? description_p;
   String? description_l;
+  String? geolocation;
 
   AddPerVisitFormModel({
-    this.docstatus,
-    this.doctype,
-    this.name,
-    this.iIslocal,
+    this.docstatus = 0,
+    this.doctype = "Periodic visits",
+    this.name = "new-periodic-visits-1",
+    this.iIslocal = 1,
     this.lat,
     this.lon,
     this.enheraf,
     this.description_l,
     this.description_p,
-    this.iUnsaved,
+    this.iUnsaved = 1,
     this.owner,
     this.outbreak,
     this.stableCondition,
     this.manger,
     this.losses,
     this.bazdid,
-    this.water,
     this.image,
+    this.water,
     this.supplySituation,
     this.ventilation,
     this.vaziat,
     this.jaigahDam,
+    this.jaigahDam1,
+    this.jaigahDam2,
     this.fullName,
     this.province,
     this.city,
@@ -61,14 +66,15 @@ class AddPerVisitFormModel {
     this.nationalId,
     this.date,
     this.nextDate,
+    this.geolocation,
   });
 
   AddPerVisitFormModel.fromJson(Map<String, dynamic> json) {
-    docstatus = json['docstatus'];
-    doctype = json['doctype'];
-    name = json['name'];
-    iIslocal = json['__islocal'];
-    iUnsaved = json['__unsaved'];
+    docstatus = json['docstatus'] ?? 0;
+    doctype = json['doctype'] ?? "Periodic visits";
+    name = json['name'] ?? "new-periodic-visits-1";
+    iIslocal = json['__islocal'] ?? 1;
+    iUnsaved = json['__unsaved'] ?? 1;
     owner = json['owner'];
     outbreak = json['outbreak'];
     stableCondition = json['stable_condition'];
@@ -80,6 +86,9 @@ class AddPerVisitFormModel {
     ventilation = json['ventilation'];
     vaziat = json['vaziat'];
     jaigahDam = json['jaigah_dam'];
+    jaigahDam1 = json['jaigah_dam1'];
+    jaigahDam2 = json['jaigah_dam2'];
+    image = json['image'];
     fullName = json['full_name'];
     province = json['province'];
     city = json['city'];
@@ -90,7 +99,6 @@ class AddPerVisitFormModel {
     lon = json['lon'];
     date = json['date'];
     nextDate = json['next_date'];
-    image = json['image'];
     description_p = json['description_p'];
     description_l = json['description_l'];
     enheraf = json['enheraf'];
@@ -110,10 +118,13 @@ class AddPerVisitFormModel {
     data['losses'] = losses;
     data['bazdid'] = bazdid;
     data['water'] = water;
+    data['image'] = image;
     data['supply_situation'] = supplySituation;
     data['ventilation'] = ventilation;
     data['vaziat'] = vaziat;
     data['jaigah_dam'] = jaigahDam;
+    data['jaigah_dam1'] = jaigahDam1;
+    data['jaigah_dam2'] = jaigahDam2;
     data['full_name'] = fullName;
     data['province'] = province;
     data['city'] = city;
@@ -123,11 +134,12 @@ class AddPerVisitFormModel {
     data['lat'] = lat;
     data['lon'] = lon;
     data['date'] = date;
-    data['image'] = image;
     data['description_l'] = description_l;
     data['description_p'] = description_p;
     data['enheraf'] = enheraf;
     data['next_date'] = nextDate;
+    data['geolocation'] =
+        "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${lon},${lat}]}}]}";
     return data;
   }
 }

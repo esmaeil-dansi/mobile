@@ -32,31 +32,20 @@ class _AddVetVisitState extends State<AddVetVisit> {
   int time = 0;
   final _formKey = GlobalKey<FormState>();
   late AddVetVisitFormModel model;
-  var _fileRepo = GetIt.I.get<FileRepo>();
-
-  Future<void> _fetchImages() async {
-    _fileRepo.getFile(widget.time.toString() + "imageDam").then((_) {
-      if (_ != null) {
-        imageDam.value = _;
-      }
-    });
-    _fileRepo.getFile(widget.time.toString() + "licenseSalamat").then((_) {
-      if (_ != null) {
-        licenseSalamat.value = _;
-      }
-    });
-  }
 
   @override
   void initState() {
     if (widget.addVetVisitFormModel != null) {
+      licenseSalamat.value = widget.addVetVisitFormModel?.licenseSalamat ?? "";
       this._nationId.text = widget.addVetVisitFormModel!.nationalId ?? '';
       _latLng = LatLng(
           widget.addVetVisitFormModel!.lat!, widget.addVetVisitFormModel!.lon!);
       licenseSalamat.value = widget.addVetVisitFormModel!.licenseSalamat ?? '';
       imageDam.value = widget.addVetVisitFormModel!.imageDam ?? '';
+      imageDam1.value = widget.addVetVisitFormModel!.imageDam2 ?? '';
+      imageDam2.value = widget.addVetVisitFormModel!.imageDam3 ?? '';
+      imageDam3.value = widget.addVetVisitFormModel!.imageDam3 ?? '';
       _fetchAgentInfo();
-      _fetchImages();
     }
     time = widget.time ?? DateTime.now().millisecondsSinceEpoch;
     model = widget.addVetVisitFormModel ?? AddVetVisitFormModel();
@@ -67,7 +56,9 @@ class _AddVetVisitState extends State<AddVetVisit> {
   final _bime = 0.obs;
 
   var imageDam = "".obs;
-
+  var imageDam1 = "".obs;
+  var imageDam2 = "".obs;
+  var imageDam3 = "".obs;
   var licenseSalamat = "".obs;
 
   final _visitService = GetIt.I.get<VisitService>();
@@ -88,32 +79,26 @@ class _AddVetVisitState extends State<AddVetVisit> {
     return Scaffold(
       floatingActionButton: submitForm(
         () async {
-          if (_formKey.currentState?.validate() ?? false) {
-            if (_latLng == null) {
-              Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
-            } else {
-              if (imageDam.isEmpty || licenseSalamat.isEmpty) {
-                Fluttertoast.showToast(msg: "عکس را وارد  کنید");
+          if (widget.addVetVisitFormModel != null) {
+            await _submit(context);
+          } else {
+            if (_formKey.currentState?.validate() ?? false) {
+              if (_latLng == null) {
+                Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
               } else {
-                FocusScope.of(context).requestFocus(new FocusNode());
-                model.imageDam = imageDam.value;
-                model.licenseSalamat = licenseSalamat.value;
-                model.lon = _latLng!.longitude;
-                model.lat = _latLng!.latitude;
-                Progressbar.showProgress();
-                var res = await _visitService.saveVetVisit(
-                  agentInfo: agentInfo.value ?? AgentInfo(),
-                  time: time,
-                  model: model,
-                );
-                if (res) {
-                  Get.back();
-                  Get.back();
+                if (imageDam.isEmpty ||
+                    licenseSalamat.isEmpty ||
+                    imageDam1.isEmpty ||
+                    imageDam3.isEmpty ||
+                    imageDam2.isEmpty) {
+                  Fluttertoast.showToast(msg: "تصویر را وارد  کنید");
+                } else {
+                  await _submit(context);
                 }
               }
+            } else {
+              Fluttertoast.showToast(msg: "فیلد های مورد نیاز را پر کنید");
             }
-          } else {
-            Fluttertoast.showToast(msg: "فیلد های مورد نیاز را پر کنید");
           }
         },
       ),
@@ -1181,6 +1166,24 @@ class _AddVetVisitState extends State<AddVetVisit> {
                     SizedBox(
                       height: 10,
                     ),
+                    ImageView(imageDam1, "تصویر جایگاه",
+                        defaultValue: model.imageDam1,
+                        canReplace: widget.addVetVisitFormModel == null),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    ImageView(imageDam2, "تصویر راهبر",
+                        defaultValue: model.imageDam2,
+                        canReplace: widget.addVetVisitFormModel == null),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    ImageView(imageDam3, "تصویر متقاضی",
+                        defaultValue: model.imageDam3,
+                        canReplace: widget.addVetVisitFormModel == null),
                     ImageView(licenseSalamat, "گواهی تایید سلامت",
                         defaultValue: model.licenseSalamat,
                         canReplace: widget.addVetVisitFormModel == null),
@@ -1219,5 +1222,26 @@ class _AddVetVisitState extends State<AddVetVisit> {
         ),
       ),
     );
+  }
+
+  Future<void> _submit(BuildContext context) async {
+       FocusScope.of(context).requestFocus(new FocusNode());
+    model.imageDam1 = imageDam1.value;
+    model.imageDam2 = imageDam2.value;
+    model.imageDam3 = imageDam3.value;
+    model.imageDam = imageDam.value;
+    model.licenseSalamat = licenseSalamat.value;
+    model.lon = _latLng!.longitude;
+    model.lat = _latLng!.latitude;
+    Progressbar.showProgress();
+    var res = await _visitService.saveVetVisit(
+      agentInfo: agentInfo.value ?? AgentInfo(),
+      time: time,
+      model: model,
+    );
+    if (res) {
+      Get.back();
+      Get.back();
+    }
   }
 }

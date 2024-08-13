@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:frappe_app/db/shop_info.dart';
+import 'package:frappe_app/model/shop_item_base_model.dart';
 import 'package:frappe_app/model/shop_item_tamin_info.dart';
 import 'package:frappe_app/model/shop_tamin.dart';
 import 'package:frappe_app/repo/shop_repo.dart';
 import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/widgets/methodes.dart';
 import 'package:get/get.dart' as g;
 import 'package:frappe_app/model/shop_Item_model.dart';
 import 'package:frappe_app/services/file_service.dart';
@@ -19,7 +23,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ShopService {
   var _httpService = GetIt.I.get<HttpService>();
   var _fileService = GetIt.I.get<FileService>();
+  var _autService = GetIt.I.get<AutService>();
   var _logger = Logger();
+
+  var units = Map<String, String>();
 
   String _SHOP_IMAGE = "SHOP_IMAGE";
   String _SHOP_NAME = "SHOP_NAME";
@@ -33,10 +40,11 @@ class ShopService {
     SharedPreferences.getInstance().then((value) => sharedPreferences = value);
   }
 
-  Future<void> fetchShopInfo(String userId) async {
+  Future<void> fetchShopInfo() async {
     try {
-      var res =
-          await _httpService.get("/api/method/get_supplier?name_user=$userId");
+      var res = await _httpService
+          .get("/api/method/get_supplier?name_user=${_autService.getUserId()}");
+      await _shopRepo.deleteAllSShop();
       _extractShopInf(res!.data!["res"]);
     } catch (e) {
       _logger.e(e);
@@ -49,27 +57,92 @@ class ShopService {
 
   void _extractShopInf(List<dynamic> data) {
     try {
-      var shopName = data[0];
-      sharedPreferences.setString(_SHOP_NAME, shopName);
-      _shopRepo.save(ShopInfo(
-          name: shopName,
-          id: data[1] ?? "",
-          items: (data[2] as List<dynamic>).map((e) => e.toString()).toList(),
-          items_amount:
-              (data[3] as List<dynamic>).map((e) => e.toString()).toList()));
-      _fetchShopAvatar(shopName);
+      var l = data.length;
+      List<List<dynamic>> sData = [];
+      int j = 0;
+      while (j < l) {
+        List<dynamic> s = data.sublist(j, min(l, j + 6));
+        sData.add(s);
+        j = j + 6;
+      }
+      for (var info in sData) {
+        try {
+          _shopRepo.save(ShopInfo(
+              name: (info[0] ?? "").toString(),
+              id: info.length > 1 ? info[1] ?? "" : "",
+              items: info.length > 2
+                  ? ((info[2] ?? <dynamic>[]) as List<dynamic>)
+                      .map((e) => e.toString())
+                      .toList()
+                  : [],
+              items_prices: info.length > 3
+                  ? ((info[3] ?? <dynamic>[]) as List<dynamic>)
+                      .map((e) => e.toString())
+                      .toList()
+                  : [],
+              items_amount: info.length > 4
+                  ? ((info[4] ?? <dynamic>[]) as List<dynamic>)
+                      .map((e) => e.toString())
+                      .toList()
+                  : [],
+              descriptions: info.length > 5
+                  ? ((info[5] ?? <dynamic>[]) as List<dynamic>)
+                      .map((e) => e.toString())
+                      .toList()
+                  : []));
+        } catch (e) {
+          _logger.e(e);
+        }
+      }
+
+      // _fetchShopAvatar(shopName);
     } catch (e) {
       _logger.e(e);
     }
   }
 
-  Future<List<String>> fetchShopGroupItems(String group) async {
+  Future<void> fetchAllItemsUnit() async {
+    fetchShopGroupItems("دام");
+    fetchShopGroupItems("نهاده");
+  }
+
+  Future<List<ShopItemBaseModel>> fetchShopGroupItems(String group) async {
     try {
       String key = "مواد اولیه" + " " + group;
       var res = await _httpService.get("/api/method/get_item?item_group=$key");
-      return (res?.data["item_name"] as List<dynamic>)
-          .map((e) => e.toString())
-          .toList();
+      var items =
+          (res?.data["res"] as List<dynamic>).map((e) => e.toString()).toList();
+      var result = <ShopItemBaseModel>[];
+      int j = 0;
+      while (j < items.length - 1) {
+        result.add(ShopItemBaseModel(name: items[j], unit: items[j + 1]));
+        j = j + 2;
+      }
+      result.forEach((element) {
+        units[element.name] = element.unit;
+      });
+      return result;
+    } catch (e) {
+      _logger.e(e);
+    }
+    return [];
+  }
+
+  Future<List<ShopItemBaseModel>> fetchAvailableShopGroupItems(
+      String group) async {
+    try {
+      String key = "مواد اولیه" + " " + group;
+      var res =
+          await _httpService.get("/api/method/get_avail_item?item_group=$key");
+      var items =
+          (res?.data["res"] as List<dynamic>).map((e) => e.toString()).toList();
+      var result = <ShopItemBaseModel>[];
+      int j = 0;
+      while (j < items.length) {
+        result.add(ShopItemBaseModel(name: items[j], unit: ""));
+        j = j + 1;
+      }
+      return result;
     } catch (e) {
       _logger.e(e);
     }
@@ -122,7 +195,6 @@ class ShopService {
     return false;
   }
 
-  // {"name":"تامین کننده تست","owner":"mmokary@gmail.com","creation":"2024-06-23 09:19:36.952077","modified":"2024-06-28 23:05:10.273659","modified_by":"mmokary@gmail.com","docstatus":0,"idx":0,"naming_series":"SUP-.YYYY.-","supplier_name":"تامین کننده تست","country":"Iran","custom_national_id":"0082424705","custom_emdad_supplier":1,"supplier_group":"خدمات","supplier_type":"Individual","is_transporter":0,"image":"/files/dar5 (1).jpg","custom_province":"تهران","is_internal_supplier":0,"represents_company":"","language":"fa","allow_purchase_invoice_creation_without_purchase_order":0,"allow_purchase_invoice_creation_without_purchase_receipt":0,"is_frozen":0,"disabled":0,"warn_rfqs":0,"warn_pos":0,"prevent_rfqs":0,"prevent_pos":0,"on_hold":0,"hold_type":"","doctype":"Supplier","custom__county":[],"custom_items_supplier":[],"accounts":[],"companies":[],"portal_users":[{"name":"642799ca5b","owner":"mmokary@gmail.com","creation":"2024-06-23 09:19:36.952077","modified":"2024-06-28 23:05:10.273659","modified_by":"mmokary@gmail.com","docstatus":0,"idx":1,"user":"mmokary@gmail.com","parent":"تامین کننده تست","parentfield":"portal_users","parenttype":"Supplier","doctype":"Portal User"}],"__onload":{"addr_list":[],"contact_list":[],"dashboard_info":[]},"__unsaved":1}
   Future<List<ShopItemServerModel>> searchInShopItem(String name) async {
     try {
       List<List<String>> filters = [];
@@ -205,6 +277,15 @@ class ShopService {
             'group_by': '`tabSupplier`.`name`',
             'with_comment_count': 1
           }));
+      // if (kDebugMode)
+      //   return [
+      //     ShopTamin(
+      //         name: "test tamin",
+      //         owner: "owner",
+      //         supplier_name: "supplier_name",
+      //         supplier_group: "supplier_group",
+      //         custom_provinc: "custom_provinc")
+      //   ];
       List<ShopTamin> r = [];
       var sData = (result!.data["message"]["values"]) as List<dynamic>;
       for (var d in sData) {
@@ -220,28 +301,84 @@ class ShopService {
   }
 
   Future<List<ShopItemTaminInfo>> fetchShiopItemsTaminInfo(String id) async {
+    List<ShopItemTaminInfo> items = [];
     try {
-      var res = await _httpService.get(
-          "/api/method/frappe.desk.form.load.getdoc?doctype=Supplier&name=SUP-IMP-114620&_=${DateTime.now().millisecondsSinceEpoch}");
-      List<ShopItemTaminInfo> items = [];
-      for(var data in res!.data["docs"][0]["custom_items_supplier"]){
-        var ex = ShopItemTaminInfo.fromJson(data);
-        if(ex!= null){
-          items.add(ex);
-        }
+      var res =
+          await _httpService.get("/api/method/get_supplier_by_id?name=$id");
+
+      // if (kDebugMode) {
+      //   items.addAll([
+      //     ShopItemTaminInfo(amount: "1000", name: "test item", price: 1000),
+      //     ShopItemTaminInfo(amount: "2000", name: "test item 2", price: 1000),
+      //     ShopItemTaminInfo(amount: "3000", name: "test item 3", price: 3000)
+      //   ]);
+      // }
+      var names = (res?.data?["res"][1] as List<dynamic>)
+          .map((e) => e.toString())
+          .toList();
+      var amounts = (res?.data?["res"][3] as List<dynamic>)
+          .map((e) => e.toString())
+          .toList();
+      var prices = (res?.data?["res"][2] as List<dynamic>)
+          .map((e) => double.parse(e.toString()))
+          .toList();
+
+      for (var i = 0; i < names.length; i++) {
+        items.add(ShopItemTaminInfo(
+            name: names[i], amount: amounts[i], price: prices[i]));
       }
-      var labels = (res.data["_link_titles"]);
-      items.forEach((element) {
-        element.name = labels["Item::"+element.supplier_items];
-      });
 
       return items;
-
-
-
     } catch (e) {
       _logger.e(e);
     }
-    return [];
+    return items;
+  }
+
+  Future<bool> addShopItem(
+      {required String name, required ShopItemTaminInfo info}) async {
+    try {
+      var res = await _httpService.post(
+          "/api/method/frappe.desk.form.save.savedocs",
+          FormData.fromMap({
+            "doc": json.encode({
+              "name": name,
+              "owner": _autService.getUserId(),
+              "modified_by": _autService.getUserId(),
+              "docstatus": 0,
+              "idx": 2,
+              "creation": "2024-06-23 09:19:36.952077",
+              "modified": "2024-07-13 13:08:32.973431",
+              "doctype": "Supplier",
+              "custom__county": [],
+              "custom_items_supplier": [
+                {
+                  "name": "504626c4d1",
+                  "owner": _autService.getUserId(),
+                  "modified_by": _autService.getUserId(),
+                  "docstatus": 0,
+                  "idx": 1,
+                  "creation": "2024-06-23 09:19:36.952077",
+                  "modified": "2024-07-13 13:08:32.973431",
+                  "supplier_items": info.name,
+                  "amount": info.amount,
+                  "price": info.price,
+                  "parent": name,
+                  "parentfield": "custom_items_supplier",
+                  "parenttype": "Supplier",
+                  "doctype": "Items supplier"
+                },
+              ],
+              "__unsaved": 1,
+              "__last_sync_on": "2024-07-19T20:10:37.044Z"
+            }),
+            "action": "Save"
+          }));
+      showErrorMessage(res?.data["_server_messages"]);
+      print(res!.data);
+    } catch (e) {
+      _logger.e(e);
+    }
+    return false;
   }
 }

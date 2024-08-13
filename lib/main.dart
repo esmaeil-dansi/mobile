@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frappe_app/db/advertisement.dart';
+import 'package:frappe_app/db/cart.dart';
 import 'package:frappe_app/db/dao/advertisement_dao.dart';
+import 'package:frappe_app/db/dao/cart_dao.dart';
 import 'package:frappe_app/db/dao/file_info_dao.dart';
 import 'package:frappe_app/db/dao/price_dao.dart';
 import 'package:frappe_app/db/dao/request_dao.dart';
@@ -10,7 +12,7 @@ import 'package:frappe_app/db/price_avg.dart';
 import 'package:frappe_app/db/request.dart';
 import 'package:frappe_app/db/request_statuse.dart';
 import 'package:frappe_app/db/shop_info.dart';
-import 'package:frappe_app/repo/RequestRepo.dart';
+import 'package:frappe_app/repo/request_repo.dart';
 import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/repo/shop_repo.dart';
 import 'package:frappe_app/services/aut_service.dart';
@@ -35,6 +37,7 @@ void main() async {
   Hive.registerAdapter(FileInfoAdapter());
   Hive.registerAdapter(ShopInfoAdapter());
   Hive.registerAdapter(PriceAvgAdapter());
+  Hive.registerAdapter(CartAdapter());
   initServicesAndRepo();
 
   runApp(MyApp());
@@ -43,6 +46,7 @@ void main() async {
 void initServicesAndRepo() {
   GetIt.instance.registerSingleton<AdvertisementDao>(AdvertisementDao());
   GetIt.instance.registerSingleton<PriceAvgDao>(PriceAvgDao());
+  GetIt.instance.registerSingleton<CartDao>(CartDao());
   GetIt.instance.registerSingleton<ShopDao>(ShopDao());
   GetIt.instance.registerSingleton<AutService>(AutService());
   GetIt.instance.registerSingleton<FileInfoDao>(FileInfoDao());

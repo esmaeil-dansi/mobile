@@ -11,7 +11,7 @@ description: A new Flutter project.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.4.0+8
+version: 3.9.4+1073
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -19,6 +19,7 @@ environment:
 
 
 dependencies:
+  flutter_image_slideshow: any
   flutter_js: 0.8.0
   device_preview:
   weather_icons: ^3.0.0
@@ -56,7 +57,7 @@ dependencies:
   sms_autofill: 2.3.0
   flutter_map: 5.0.0
   image_picker: 1.1.2
-  persian_datetime_picker: 2.6.0
+  persian_datetime_picker: 2.7.0
   hive: 2.2.3
   hive_flutter: 1.1.0
   flutter_cache_manager: ^3.3.0
@@ -109,7 +110,7 @@ flutter_icons:
   image_path: "assets/frappe_icon.jpg"
 
 dependency_overrides:
-  flutter_colorpicker: ^1.0.3
+  flutter_colorpicker: 1.1.0
 
 
 

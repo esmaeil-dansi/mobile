@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/utils/constants.dart';
 import 'package:frappe_app/views/desk/advertisement_page.dart';
 import 'package:frappe_app/views/login/login_page.dart';
 import 'package:frappe_app/widgets/attach_image.dart';
@@ -391,7 +392,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   SizedBox(
                                     width: 15,
                                   ),
-                                  Text("نسخه\t 3.6 ")
+                                  Text("نسخه\t " + VERSION)
                                 ],
                               ),
                             ],
@@ -418,7 +419,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 showDialog(
                                     context: context,
                                     builder: (_) => AlertDialog(
-                                          content: Text("از خروج مطمنید؟"),
+                                          content: Text("از خروج مطمئن هستید؟"),
                                           actions: [
                                             ElevatedButton(
                                                 onPressed: () async {

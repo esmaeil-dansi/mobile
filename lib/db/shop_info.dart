@@ -18,10 +18,18 @@ class ShopInfo {
   @HiveField(5)
   List<String> items_amount;
 
+  @HiveField(6)
+  List<String> items_prices;
+
+  @HiveField(7)
+  List<String> descriptions;
+
   ShopInfo({
     required this.name,
     required this.id,
     required this.items,
+    required this.items_prices,
     required this.items_amount,
+    required this.descriptions,
   });
 }

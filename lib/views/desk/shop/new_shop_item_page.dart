@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/model/shop_Item_model.dart';
+import 'package:frappe_app/model/shop_item_base_model.dart';
+import 'package:frappe_app/model/shop_item_tamin_info.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:get/get.dart';
@@ -11,10 +13,15 @@ import 'package:dropdown_search/dropdown_search.dart';
 import '../../../widgets/constant.dart';
 
 class NewShopItemPage extends StatelessWidget {
+  String shopName;
+
+  NewShopItemPage(this.shopName);
+
   final _group = "".obs;
+  ShopItemBaseModel infoModel = ShopItemBaseModel(name: "", unit: "");
   Rxn<String> _item = Rxn();
   var _shopService = GetIt.I.get<ShopService>();
-  Rxn<ShopItemServerModel> shopItemServerModel = Rxn();
+  ShopItemTaminInfo info = ShopItemTaminInfo();
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +31,7 @@ class NewShopItemPage extends StatelessWidget {
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () {
-            if (shopItemServerModel.value == null) {
-              Fluttertoast.showToast(msg: "محصول مورد نظر را انتخاب کنید");
-            }
+            _shopService.addShopItem(name: shopName, info: info);
           },
           child: Container(
               width: 120,
@@ -57,8 +62,8 @@ class NewShopItemPage extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(10)),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 0),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -67,7 +72,6 @@ class NewShopItemPage extends StatelessWidget {
                         ),
                         Column(
                           children: [
-
                             SizedBox(
                               height: 70,
                               child: DropdownButtonFormField<String>(
@@ -93,6 +97,7 @@ class NewShopItemPage extends StatelessWidget {
                                   if (value != null && value != _group.value) {
                                     _item.value = null;
                                     _group.value = value;
+                                    info.name = _item.value ?? "";
                                   }
                                 },
                               ),
@@ -113,51 +118,47 @@ class NewShopItemPage extends StatelessWidget {
                                             return SizedBox(
                                                 height: 70,
                                                 child: Obx(() =>
-                                                        DropdownSearch<String>(
-                                                          popupProps:
-                                                              PopupProps.menu(
-                                                            searchDelay:
-                                                                Duration(
-                                                                    milliseconds:
-                                                                        40),
+                                                    DropdownSearch<String>(
+                                                      popupProps:
+                                                          PopupProps.menu(
+                                                        searchDelay: Duration(
+                                                            milliseconds: 40),
 
-                                                            showSelectedItems:
-                                                                true,
-                                                            showSearchBox: true,
-                                                            fit: FlexFit.tight,
-                                                            // disabledItemFn: (String s) => s.startsWith('I'),
+                                                        showSelectedItems: true,
+                                                        showSearchBox: true,
+                                                        fit: FlexFit.tight,
+                                                        // disabledItemFn: (String s) => s.startsWith('I'),
+                                                      ),
+                                                      items: s.data!
+                                                          .map((e) => e.name)
+                                                          .toList(),
+                                                      dropdownDecoratorProps:
+                                                          DropDownDecoratorProps(
+                                                        dropdownSearchDecoration:
+                                                            InputDecoration(
+                                                          labelText: "محصول",
+                                                          border:
+                                                              OutlineInputBorder(
+                                                            borderSide:
+                                                                const BorderSide(
+                                                                    width: 2,
+                                                                    color: Colors
+                                                                        .red),
+                                                            //<-- SEE HERE
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20),
                                                           ),
-                                                          items: s.data!,
-                                                          dropdownDecoratorProps:
-                                                              DropDownDecoratorProps(
-                                                            dropdownSearchDecoration:
-                                                                InputDecoration(
-                                                              labelText:
-                                                                  "محصول",
-                                                              border:
-                                                                  OutlineInputBorder(
-                                                                borderSide:
-                                                                    const BorderSide(
-                                                                        width:
-                                                                            2,
-                                                                        color: Colors
-                                                                            .red),
-                                                                //<-- SEE HERE
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            20),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          onChanged: (_) {
-                                                            _item.value = _;
-                                                          },
-                                                          selectedItem:
-                                                              _item.value,
-                                                        )
-
-                                                    ));
+                                                        ),
+                                                      ),
+                                                      onChanged: (_) {
+                                                        _item.value = _;
+                                                        info.name =
+                                                            _item.value ?? "";
+                                                      },
+                                                      selectedItem: _item.value,
+                                                    )));
                                           } else if (s.connectionState ==
                                               ConnectionState.waiting) {
                                             return Center(
@@ -176,10 +177,29 @@ class NewShopItemPage extends StatelessWidget {
                                           TextField(
                                             keyboardType: TextInputType.number,
                                             onChanged: (_) {
-                                              // name_dam = _;
+                                              info.price = double.parse(_);
                                             },
                                             decoration: InputDecoration(
                                               labelText: "قیمت",
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(20.0),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          TextField(
+                                            keyboardType: TextInputType.number,
+                                            onChanged: (_) {
+                                              info.amount = _;
+                                            },
+                                            decoration: InputDecoration(
+                                              suffix: Text(_shopService
+                                                      .units[_item.value] ??
+                                                  ""),
+                                              labelText: "موجودی",
                                               border: OutlineInputBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(20.0),
@@ -198,7 +218,6 @@ class NewShopItemPage extends StatelessWidget {
                                             maxLines: 3,
                                             decoration: InputDecoration(
                                               labelText: "توضیحات",
-
                                               border: OutlineInputBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(20.0),

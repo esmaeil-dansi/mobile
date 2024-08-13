@@ -21,8 +21,8 @@ class ShopTamin {
           owner: data[1],
           supplier_group: data[13],
           supplier_name: data[11],
-          image: data[15],
-          custom_provinc: data[14]);
+          image: data[15] != null ? data[15] : null,
+          custom_provinc: data[14] != null ? data[14] : "");
     } catch (e) {
       print(e);
       return null;

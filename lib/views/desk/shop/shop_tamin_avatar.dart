@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/widgets/constant.dart';
+import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
 class ShopTaminavatar extends StatelessWidget {
@@ -11,7 +12,7 @@ class ShopTaminavatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // width: ,
+      width: Get.width*.9,
       height: 180,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),

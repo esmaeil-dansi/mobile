@@ -17,14 +17,16 @@ import 'package:frappe_app/model/product_report_model.dart';
 import 'package:frappe_app/model/report.dart';
 import 'package:frappe_app/model/sort_dir.dart';
 import 'package:frappe_app/model/vet_visit_info_model.dart';
-import 'package:frappe_app/repo/RequestRepo.dart';
+import 'package:frappe_app/repo/request_repo.dart';
 import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/utils/city_utils.dart';
+import 'package:frappe_app/utils/constants.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../db/request.dart';
 import '../db/request_statuse.dart';
 import '../widgets/methodes.dart';
@@ -39,6 +41,8 @@ class VisitService {
   final _fileRepo = GetIt.I.get<FileRepo>();
   var _logger = Logger();
 
+  late SharedPreferences _shared;
+
   Map<String, String> prices = {
     "SHOTOR": "شتر پرواری",
     "GOV": "گاو شیری",
@@ -46,9 +50,17 @@ class VisitService {
     "GOSFAND": "گوسفند داشتی"
   };
 
+  VisitService() {
+    SharedPreferences.getInstance().then((_) => _shared = _);
+  }
+
   Future<void> fetchPrices() async {
-    var np = await _fetch();
-    savePrice(np);
+    var time = _shared.getInt(LAST_FETCH_AVG_PRICE_TIME);
+    if (time == null ||
+        DateTime.now().millisecondsSinceEpoch - time > 24 * 60 * 60 * 1000) {
+      var np = await _fetch();
+      savePrice(np);
+    }
   }
 
   Future<Map<String, int>> _fetch() async {
@@ -58,6 +70,8 @@ class VisitService {
         var result = await _httpService
             .get("/api/method/get_market_price?item=${prices[m]}");
         p[m] = (result?.data["avg"] ?? 0);
+        _shared.setInt(
+            LAST_FETCH_AVG_PRICE_TIME, DateTime.now().millisecondsSinceEpoch);
       } catch (e) {
         _logger.e(e);
       }
@@ -392,80 +406,59 @@ class VisitService {
       {required AgentInfo agentInfo,
       required AddInitialVisitFormModel model,
       required int time}) async {
-    var body = json.encode({
-      "docstatus": 0,
-      "doctype": "Initial Visit",
-      "name": "new-initial-visit-1",
-      "__islocal": 1,
-      "__unsaved": 1,
-      "owner": _autService.getUserId(),
-      "tarh": model.tarh,
-      "dam": model.dam,
-      "noe_dam": model.noeDam,
-      "malekiyat": model.malekiyat,
-      "vaziat": model.vaziat,
-      "noe_jaygah": model.noeJaygah,
-      "quality_water": model.qualityWater,
-      "tamin_water": model.taminWater,
-      "ajor_madani": model.ajorMadani,
-      "sang_namak": model.sangNamak,
-      "adavat": model.adavat,
-      "kaf_jaygah": model.kafJaygah,
-      "status": model.status,
-      "sayeban": model.sayeban,
-      "adam_hesar": model.adamHesar,
-      "astarkeshi": model.astarkeshi,
-      "mahal_negahdari": model.mahalNegahdari,
-      "adam_abkhor": model.adamAbkhor,
-      "adam_noor": model.adamNoor,
-      "adam_tahvie": model.adamTahvie,
-      "national_id": model.nationalId,
-      "full_name": agentInfo.full_name,
-      "province": agentInfo.province,
-      "city": agentInfo.city,
-      "address": agentInfo.address,
-      "mobile": agentInfo.mobile,
-      "rahbar": agentInfo.rahbar,
-      "department": agentInfo.department,
-      "image1": "",
-      "eghdamat": model.eghdamat,
-      "sayer": model.sayer,
-      "v_date": model.vDate,
-      "geolocation":
-          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model.lon},${model.lat}]}}]}"
-    });
+    _sendUserTag(nationalId: agentInfo.nationId, type: "Initial Visit");
+    model.owner = _autService.getUserId();
+    model.rahbar = agentInfo.rahbar;
+    model.city = agentInfo.city;
+    model.province = agentInfo.province;
+    model.mobile = agentInfo.mobile;
+    model.fullName = agentInfo.full_name;
+    model.address = agentInfo.address;
+    model.department = agentInfo.department;
+    var body = json.encode(model.toJson());
     try {
-      var newBody =
-          await _uploadInitVisitFile(model.image1 ?? '', body, "image1");
-      if (newBody != null) {
-        newBody =
-            await _uploadInitVisitFile(model.image2 ?? '', newBody, "image2");
-        if (newBody != null) {
-          var result = await _sendRequest(newBody);
-          unawaited(_requestRepo.save(Request(
-            filePaths: [model.image1 ?? '', model.image2 ?? ''],
-            nationId: model.nationalId!,
-            body: json.encode(model),
-            time: time,
-            type: "Initial Visit",
-            status: result?.statusCode == 200
-                ? RequestStatus.Success
-                : RequestStatus.Pending,
-          )));
-          if (result?.statusCode == 200) {
-            _sendUserTag(nationalId: agentInfo.nationId, type: "Initial Visit");
-            Fluttertoast.showToast(msg: "ثبت شد");
-            return true;
-          } else {
-            _saveFile(model.image1!, "image1", time);
-            _saveFile(model.image2!, "image2", time);
-            Progressbar.dismiss();
-            showErrorMessage(result?.data["_server_messages"]);
-            return false;
-          }
-        }
+      if (model.image1 != null) {
+        body = await _uploadInitVisitFile(model.image1 ?? '', body, "image1") ??
+            body;
+      }
+      if (model.image2 != null) {
+        body = await _uploadInitVisitFile(model.image2 ?? '', body, "image2") ??
+            body;
+      }
+      if (model.image3 != null) {
+        body = await _uploadInitVisitFile(model.image3 ?? '', body, "image3") ??
+            body;
+      }
+      var result = await _sendRequest(body);
+      unawaited(_requestRepo.save(Request(
+        filePaths: [model.image1 ?? '', model.image2 ?? ''],
+        nationId: model.nationalId!,
+        body: json.encode(model),
+        time: time,
+        type: "Initial Visit",
+        status: result?.statusCode == 200
+            ? RequestStatus.Success
+            : RequestStatus.Pending,
+      )));
+      if (result?.statusCode == 200) {
+        _sendUserTag(nationalId: agentInfo.nationId, type: "Initial Visit");
+        Fluttertoast.showToast(msg: "ثبت شد");
+        return true;
       } else {
-        Fluttertoast.showToast(msg: "خطایی رخ داده است.");
+        await _saveInitVisitFile(time, model);
+        unawaited(_requestRepo.save(Request(
+          filePaths: [model.image1 ?? '', model.image2 ?? ''],
+          nationId: model.nationalId!,
+          body: json.encode(model),
+          time: time,
+          type: "Initial Visit",
+          status: result?.statusCode == 200
+              ? RequestStatus.Success
+              : RequestStatus.Pending,
+        )));
+        Progressbar.dismiss();
+        showErrorMessage(result?.data["_server_messages"]);
+        return false;
       }
     } on DioException catch (e) {
       Progressbar.dismiss();
@@ -475,8 +468,8 @@ class VisitService {
     } catch (e) {
       showErrorToast(null);
     }
-    _saveFile(model.image1!, "image1", time);
-    _saveFile(model.image2!, "image2", time);
+    await _saveInitVisitFile(time, model);
+
     unawaited(_requestRepo.save(Request(
       filePaths: [model.image1 ?? '', model.image2 ?? ''],
       body: json.encode(model),
@@ -486,6 +479,62 @@ class VisitService {
       status: RequestStatus.Pending,
     )));
     return false;
+  }
+
+  Future<void> _saveInitVisitFile(
+      int time, AddInitialVisitFormModel model) async {
+    if (model.image1 != null) {
+      var path = await _fileRepo.saveFile(
+          time: time, key: "image1", path: model.image1!);
+      if (path != null) {
+        model.image1 = path;
+      }
+    }
+    if (model.image2 != null) {
+      var path2 = await _fileRepo.saveFile(
+          time: time, key: "image2", path: model.image2!);
+      if (path2 != null) {
+        model.image2 = path2;
+      }
+    }
+    if (model.image3 != null) {
+      var path3 = await _fileRepo.saveFile(
+          time: time, key: "image3", path: model.image3!);
+      if (path3 != null) {
+        model.image3 = path3;
+      }
+    }
+  }
+
+  Future<void> _savePerVisitFile(int time, AddPerVisitFormModel model) async {
+    if (model.image != null) {
+      var path = await _fileRepo.saveFile(
+          time: time, key: "image2", path: model.image!);
+      if (path != null) {
+        model.jaigahDam = path;
+      }
+    }
+    if (model.jaigahDam != null) {
+      var path = await _fileRepo.saveFile(
+          time: time, key: "jaigahDam", path: model.jaigahDam!);
+      if (path != null) {
+        model.jaigahDam = path;
+      }
+    }
+    if (model.jaigahDam1 != null) {
+      var path2 = await _fileRepo.saveFile(
+          time: time, key: "jaigahDam1", path: model.jaigahDam1!);
+      if (path2 != null) {
+        model.jaigahDam1 = path2;
+      }
+    }
+    if (model.jaigahDam2 != null) {
+      var path3 = await _fileRepo.saveFile(
+          time: time, key: "jaigahDam2", path: model.jaigahDam2!);
+      if (path3 != null) {
+        model.jaigahDam2 = path3;
+      }
+    }
   }
 
   Future<String?> _uploadInitVisitFile(
@@ -505,16 +554,17 @@ class VisitService {
     return null;
   }
 
-  Future<String?> _uploadPerVisitFile(String path, String body) async {
+  Future<String?> _uploadPerVisitFile(
+      String path, String body, String key) async {
     try {
       if (path.isEmpty) {
         return body;
       }
       var image = await _fileService.uploadFile(path, "Periodic visits",
-          fieldname: "jaigah_dam", docname: 'new-periodic-visits-1');
+          fieldname: key, docname: 'new-periodic-visits-1');
       if (image != null) {
         var newBody = json.decode(body);
-        newBody["jaigah_dam"] = image;
+        newBody[key] = image;
         return json.encode(newBody);
       }
     } catch (e) {}
@@ -523,65 +573,58 @@ class VisitService {
 
   Future<bool> sendPeriodicVisits(
       {required AddPerVisitFormModel addPerVisitFormModel,
-      required AgentInfo agentInfo,
       required int time,
       required}) async {
-    var body = json.encode({
-      "docstatus": 0,
-      "doctype": "Periodic visits",
-      "name": "new-periodic-visits-1",
-      "__islocal": 1,
-      "__unsaved": 1,
-      "owner": _autService.getUserId(),
-      "outbreak": addPerVisitFormModel.outbreak,
-      "stable_condition": addPerVisitFormModel.stableCondition,
-      "manger": addPerVisitFormModel.manger,
-      "losses": addPerVisitFormModel.losses,
-      "bazdid": addPerVisitFormModel.bazdid,
-      "water": addPerVisitFormModel.water,
-      "supply_situation": addPerVisitFormModel.supplySituation,
-      "ventilation": addPerVisitFormModel.ventilation,
-      "vaziat": addPerVisitFormModel.vaziat,
-      "jaigah_dam": "",
-      "full_name": agentInfo.full_name,
-      "province": agentInfo.province,
-      "city": agentInfo.city,
-      "rahbar": agentInfo.rahbar,
-      "department": agentInfo.department,
-      "national_id": addPerVisitFormModel.nationalId,
-      "geolocation":
-          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${addPerVisitFormModel.lon},${addPerVisitFormModel.lat}]}}]}",
-      "date": addPerVisitFormModel.date,
-      "next_date": addPerVisitFormModel.nextDate,
-      "description_p": addPerVisitFormModel.description_p,
-      "description_l": addPerVisitFormModel.description_l,
-      "enheraf": addPerVisitFormModel.enheraf,
-    });
+    var body = json.encode(addPerVisitFormModel);
     try {
-      var newBody =
-          await _uploadPerVisitFile(addPerVisitFormModel.image ?? '', body);
-      if (newBody != null) {
-        var res = await _sendRequest(newBody);
+      addPerVisitFormModel.owner = _autService.getUserId();
+      var updated = body;
+      if (addPerVisitFormModel.image != null &&
+          addPerVisitFormModel.image!.isNotEmpty) {
+        updated = await _uploadPerVisitFile(
+                addPerVisitFormModel.image ?? '', body, "jaigah_dam") ??
+            body;
+      }
+      var updated1 = await _uploadPerVisitFile(
+              addPerVisitFormModel.jaigahDam ?? '', updated, "jaigah_dam") ??
+          updated;
+      var updated2 = await _uploadPerVisitFile(
+              addPerVisitFormModel.jaigahDam1 ?? '', updated1, "jaigah_dam1") ??
+          updated1;
+      var updated3 = await _uploadPerVisitFile(
+              addPerVisitFormModel.jaigahDam2 ?? '', updated2, "jaigah_dam2") ??
+          updated2;
+      var res = await _sendRequest(updated3);
+      unawaited(_requestRepo.save(Request(
+          time: time,
+          type: "Periodic visits",
+          nationId: addPerVisitFormModel.nationalId!,
+          filePaths: [],
+          status: res?.statusCode == 200
+              ? RequestStatus.Success
+              : RequestStatus.Pending,
+          body: json.encode(addPerVisitFormModel))));
+
+      if (res?.statusCode == 200) {
+        _sendUserTag(
+            nationalId: addPerVisitFormModel.nationalId ?? "",
+            type: "Periodic visits");
+        Fluttertoast.showToast(msg: "ثبت شد");
+        return true;
+      } else {
+        _savePerVisitFile(time, addPerVisitFormModel);
         unawaited(_requestRepo.save(Request(
             time: time,
             type: "Periodic visits",
             nationId: addPerVisitFormModel.nationalId!,
-            filePaths: [addPerVisitFormModel.image!],
+            filePaths: [],
             status: res?.statusCode == 200
                 ? RequestStatus.Success
                 : RequestStatus.Pending,
             body: json.encode(addPerVisitFormModel))));
-
-        if (res?.statusCode == 200) {
-          _sendUserTag(nationalId: agentInfo.nationId, type: "Periodic visits");
-          Fluttertoast.showToast(msg: "ثبت شد");
-          return true;
-        } else {
-          _saveFile(addPerVisitFormModel.image!, "image", time);
-          Progressbar.dismiss();
-          showErrorMessage(res?.data["_server_messages"]);
-          return false;
-        }
+        Progressbar.dismiss();
+        showErrorMessage(res?.data["_server_messages"]);
+        return false;
       }
     } on DioException catch (e) {
       Progressbar.dismiss();
@@ -592,7 +635,7 @@ class VisitService {
       Progressbar.dismiss();
       showErrorToast(null);
     }
-    _saveFile(addPerVisitFormModel.image!, "image", time);
+    _savePerVisitFile(time, addPerVisitFormModel);
     unawaited(_requestRepo.save(Request(
         time: time,
         type: "Periodic visits",
@@ -1068,90 +1111,16 @@ class VisitService {
       {required AddVetVisitFormModel model,
       required int time,
       required AgentInfo agentInfo}) async {
-    var body = json.encode({
-      "docstatus": 0,
-      "doctype": "Vet Visit",
-      "name": "new-vet-visit-1",
-      "__islocal": 1,
-      "__unsaved": 1,
-      "owner": _autService.getUserId(),
-      "bime": model.bime,
-      "pelak": model.pelak,
-      "galleh": model.galleh,
-      "types": model.types,
-      "result": model.result,
-      "name_damp": model.nameDamp,
-      "code_n": model.codeN,
-      "national_id_doc": model.nationalIdDoc,
-      "rahbar": agentInfo.rahbar,
-      "department": agentInfo.department,
-      "pelak_az": model.pelakAz,
-      "pelak_ta": model.pelakTa,
-      "national_id": model.nationalId,
-      "teeth_1": model.teeth1,
-      "teeth_2": model.teeth2,
-      "teeth_3": model.teeth3,
-      "province": agentInfo.province,
-      "city": agentInfo.city,
-      "galle_d": model.galleD,
-      "age": model.age,
-      "name_1": agentInfo.name,
-      "full_name": agentInfo.full_name,
-      "address": agentInfo.address,
-      "eye_1": model.eye1,
-      "eye_2": model.eye2,
-      "eye_3": model.eye3,
-      "eye_4": model.eye4,
-      "eye_5": model.eye5,
-      "breth_1": model.breth1,
-      "breth_2": model.breth2,
-      "breth_3": model.breth2,
-      "mucus_1": model.mucus1,
-      "mucus_2": model.mucus2,
-      "mucus_3": model.mucus3,
-      "mucus_4": model.mucus4,
-      "mucus_5": model.mucus5,
-      "ear_1": model.eye1,
-      "ear_2": model.eye2,
-      "skin_1": model.skin1,
-      "skin_2": model.skin2,
-      "skin_3": model.skin3,
-      "skin_4": model.skin4,
-      "skin_5": model.skin5,
-      "skin_6": model.skin6,
-      "leech_1": model.leech1,
-      "leech_2": model.leech2,
-      "leech_3": model.leech3,
-      "mouth_1": model.mouth1,
-      "mouth_2": model.mouth2,
-      "mouth_3": model.mouth3,
-      "mouth_4": model.mouth4,
-      "hoof_1": model.hoof1,
-      "hoof_2": model.hoof2,
-      "hoof_3": model.hoof3,
-      "hoof_4": model.hoof4,
-      "urine_1": model.urine1,
-      "urine_2": model.urine2,
-      "urine_3": model.urine3,
-      "nodes_1": model.nodes1,
-      "nodes_2": model.nodes2,
-      "nodes_3": model.nodes3,
-      "crown_1": model.crown1,
-      "crown_2": model.crown2,
-      "crown_3": model.crown3,
-      "sole_1": model.sole1,
-      "sole_2": model.sole2,
-      "sole_3": model.sole3,
-      "number": model.number,
-      "image_dam": "",
-      "license_salamat": "",
-      "disapproval_reason": model.disapprovalReason,
-      "geolocation":
-          "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${model.lon},${model.lat}]}}]}"
-    });
+    model.rahbar = agentInfo.rahbar;
+    model.department = agentInfo.department;
+    model.fullName = agentInfo.full_name;
+    model.name1 = agentInfo.name;
+    model.province = agentInfo.province;
+    model.address = agentInfo.address;
+    model.owner = _autService.getUserId();
+    var body = json.encode(model.toJson());
     try {
-      var newBody = await _uploadVetVisitFiles(
-          model.imageDam ?? '', model.licenseSalamat ?? '', body);
+      var newBody = await _uploadVetVisitFiles(model, body);
       if (newBody != null) {
         var res = await _sendRequest(newBody);
         unawaited(_requestRepo.save(Request(
@@ -1168,8 +1137,16 @@ class VisitService {
           Fluttertoast.showToast(msg: "ثبت شد");
           return true;
         } else {
-          _saveFile(model.imageDam!, "imageDam", time);
-          _saveFile(model.licenseSalamat!, "licenseSalamat", time);
+          await _saveVetVistiFiles(time, model);
+          unawaited(_requestRepo.save(Request(
+              time: time,
+              type: "Vet Visit",
+              nationId: model.nationalId ?? '',
+              filePaths: [],
+              status: res?.statusCode == 200
+                  ? RequestStatus.Success
+                  : RequestStatus.Pending,
+              body: json.encode(model))));
           Progressbar.dismiss();
           showErrorMessage(res?.data["_server_messages"]);
           return false;
@@ -1185,8 +1162,7 @@ class VisitService {
     } catch (e) {
       showErrorToast(null);
     }
-    _saveFile(model.imageDam!, "imageDam", time);
-    _saveFile(model.licenseSalamat!, "licenseSalamat", time);
+    await _saveVetVistiFiles(time, model);
     unawaited(_requestRepo.save(Request(
         time: time,
         nationId: model.nationalId ?? '',
@@ -1197,19 +1173,67 @@ class VisitService {
     return false;
   }
 
+  Future<void> _saveVetVistiFiles(int time, AddVetVisitFormModel model) async {
+    var imageDam1 = await _fileRepo.saveFile(
+        time: time, key: "imageDam1", path: model.imageDam1 ?? "");
+    if (imageDam1 != null) {
+      model.imageDam1 = imageDam1;
+    }
+    var licenseSalamat = await _fileRepo.saveFile(
+        time: time, key: "licenseSalamat", path: model.licenseSalamat!);
+    if (licenseSalamat != null) {
+      model.licenseSalamat = licenseSalamat;
+    }
+    var imageDam2 = await _fileRepo.saveFile(
+        time: time, key: "imageDam2", path: model.imageDam2 ?? "");
+    if (imageDam2 != null) {
+      model.imageDam2 = imageDam2;
+    }
+    var imageDam3 = await _fileRepo.saveFile(
+        time: time, key: "imageDam3", path: model.imageDam3 ?? "");
+    if (imageDam3 != null) {
+      model.imageDam3 = imageDam3;
+    }
+    var imageDam = await _fileRepo.saveFile(
+        time: time, key: "imageDam", path: model.imageDam ?? "");
+    if (imageDam != null) {
+      model.imageDam = imageDam;
+    }
+  }
+
   Future<String?> _uploadVetVisitFiles(
-      String image_dam, String license_salamat, dynamic body) async {
+      AddVetVisitFormModel model, dynamic body) async {
     var newBody = json.decode(body);
-    if (image_dam.isNotEmpty) {
-      var image_dam_res = await _fileService.uploadFile(image_dam, "Vet Visit",
+    if (model.imageDam != null) {
+      var image_dam_res = await _fileService.uploadFile(
+          model.imageDam!, "Vet Visit",
           fieldname: "image_dam", docname: "new-vet-visit-1");
       newBody["image_dam"] = image_dam_res;
     }
-    if (license_salamat.isNotEmpty) {
+    if (model.licenseSalamat != null) {
       var license_salamat_res = await _fileService.uploadFile(
-          license_salamat, "Vet Visit",
+          model.licenseSalamat!, "Vet Visit",
           fieldname: "license_salamat", docname: "new-vet-visit-1");
       newBody["license_salamat"] = license_salamat_res;
+    }
+    if (model.imageDam1 != null) {
+      var image_dam1_res = await _fileService.uploadFile(
+          model.imageDam1!, "Vet Visit",
+          fieldname: "image_dam1", docname: "new-vet-visit-1");
+      newBody["image_dam1"] = image_dam1_res;
+    }
+    if (model.imageDam2 != null) {
+      var image_dam2_rs = await _fileService.uploadFile(
+          model.imageDam2!, "Vet Visit",
+          fieldname: "image_dam3", docname: "new-vet-visit-1");
+      newBody["image_dam2"] = image_dam2_rs;
+    }
+
+    if (model.imageDam3 != null) {
+      var image_dam3_rs = await _fileService.uploadFile(
+          model.imageDam3!, "Vet Visit",
+          fieldname: "image_dam3", docname: "new-vet-visit-1");
+      newBody["image_dam3"] = image_dam3_rs;
     }
 
     return json.encode(newBody);
@@ -1358,8 +1382,10 @@ class VisitService {
   Future<void> _sendUserTag(
       {required String nationalId, required String type}) async {
     try {
-      _httpService.post("/api/method/frappe.desk.doctype.tag.tag.add_tag",
+      var rs = await _httpService.post(
+          "/api/method/frappe.desk.doctype.tag.tag.add_tag",
           FormData.fromMap({"dn": nationalId, "dt": type, "tag": "ANDROID"}));
+      print(rs);
     } catch (e) {
       _logger.e(e);
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:frappe_app/model/shop_item_base_model.dart';
 import 'package:frappe_app/model/shop_item_tamin_info.dart';
 import 'package:frappe_app/model/shop_tamin.dart';
 import 'package:frappe_app/views/desk/shop/shop_item_tamin_info_page.dart';
@@ -9,8 +10,9 @@ import 'package:get/get.dart';
 
 class ShopItemTaminPage extends StatelessWidget {
   ShopTamin shopTamin;
+  ShopItemBaseModel item;
 
-  ShopItemTaminPage(this.shopTamin);
+  ShopItemTaminPage(this.shopTamin,this.item);
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +37,11 @@ class ShopItemTaminPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          shopTamin.name,
+                          shopTamin.supplier_name,
                           style: TextStyle(fontSize: 18),
                         ),
                         Text(
-                          shopTamin.supplier_name,
+                          shopTamin.name,
                           style: TextStyle(fontSize: 17),
                         ),
                         Text("گروه " + shopTamin.supplier_group),

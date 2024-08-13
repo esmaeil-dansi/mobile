@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:frappe_app/db/shop_info.dart';
 import 'package:frappe_app/model/shop_Item_model.dart';
 import 'package:frappe_app/repo/shop_repo.dart';
 import 'package:frappe_app/services/aut_service.dart';
@@ -15,10 +16,12 @@ import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
-class MyShopPage extends StatelessWidget {
+class ShopInfoPage extends StatelessWidget {
+  ShopInfo shopInfo;
+
+  ShopInfoPage(this.shopInfo);
+
   var _shopService = GetIt.I.get<ShopService>();
-  var _shopRepo = GetIt.I.get<ShopRepo>();
-  var _autService = GetIt.I.get<AutService>();
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +31,7 @@ class MyShopPage extends StatelessWidget {
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () {
-            Get.to(() => NewShopItemPage());
+            Get.to(() => NewShopItemPage(shopInfo.id));
           },
           child: Container(
               width: 120,
@@ -44,6 +47,12 @@ class MyShopPage extends StatelessWidget {
         ),
       ),
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_sharp, color: Colors.black),
+          onPressed: () {
+            Get.back();
+          },
+        ),
         backgroundColor: Colors.white,
         actions: [
           Padding(
@@ -119,90 +128,105 @@ class MyShopPage extends StatelessWidget {
                   SizedBox(
                     height: 30,
                   ),
-                  FutureBuilder(
-                      future: _shopRepo.getShopInfo(),
-                      builder: (c, s) {
-                        if (s.hasData &&
-                            s.data != null &&
-                            s.data!.items.isNotEmpty) {
-                          var items = s.data!.items;
-                          var amounts = s.data!.items_amount;
-                          return SizedBox(
-                            height: Get.height * 0.3,
-                            child: InputDecorator(
-                              decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  labelText: "محصولات",
-                                  labelStyle: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold)),
-                              child: ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: items.length,
-                                  itemBuilder: (c, i) {
-                                    var item = items[i];
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 5),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                            border: Border.all()),
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                SizedBox(
-                                                  width: Get.width * 0.5,
-                                                  child: Text(
-                                                    item,
-                                                    style:
-                                                        TextStyle(fontSize: 17),
-                                                  ),
-                                                ),
-                                                Text(amounts[i],
-                                                    style:
-                                                        TextStyle(fontSize: 12))
-                                              ],
-                                            ),
-                                            Row(
-                                              children: [
-                                                IconButton(
-                                                    onPressed: () {
-                                                      // showEdit(item);
-                                                    },
-                                                    icon: Icon(
-                                                      Icons.edit,
-                                                      size: 16,
-                                                      color: Colors.black,
-                                                    )),
-                                              ],
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  }),
+                  InputDecorator(
+                    decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        labelText: "محصولات",
+                        labelStyle: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                              width: Get.width * 0.25,
+                              child: Text(
+                                "کالا",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          );
-                        } else if (s.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        } else {
-                          return Text("شما اقلامی برای فروش ندارید");
-                        }
-                      }),
+                            SizedBox(
+                              width: Get.width * 0.2,
+                              child: Text(
+                                "موجودی",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            SizedBox(
+                              width: Get.width * 0.2,
+                              child: Center(
+                                child: Text(
+                                  "قیمت",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: Get.width * 0.15,
+                              child: Text(
+                                "ویرایش",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Divider(),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: shopInfo.items.length,
+                          itemBuilder: (c, i) {
+                            var item = shopInfo.items[i];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 5),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  SizedBox(
+                                    width: Get.width * 0.25,
+                                    child: Text(
+                                      item,
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: Get.width * 0.1,
+                                    child: Center(
+                                      child: Text(shopInfo.items_amount[i],
+                                          style: TextStyle(fontSize: 12)),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: Get.width * 0.2,
+                                    child: Center(
+                                      child: Text(shopInfo.items_prices[i],
+                                          style: TextStyle(fontSize: 12)),
+                                    ),
+                                  ),
+                                  IconButton(
+                                      onPressed: () {
+                                        // showEdit(item);
+                                      },
+                                      icon: Icon(
+                                        Icons.edit,
+                                        size: 16,
+                                        color: Colors.black,
+                                      ))
+                                ],
+                              ),
+                            );
+                          },
+                          separatorBuilder: (BuildContext context, int index) {
+                            return Divider();
+                          },
+                        ),
+                      ],
+                    ),
+                  )
                 ],
               ),
               decoration: BoxDecoration(

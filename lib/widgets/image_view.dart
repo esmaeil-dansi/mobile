@@ -11,7 +11,7 @@ import 'package:get_it/get_it.dart';
 Widget ImageView(Rx<String> path, String title,
     {String? defaultValue,
     bool canReplace = true,
-    double labelFontSize = 24,
+    double labelFontSize = 20,
     bool isNetWorkImage = false}) {
   if (defaultValue != null) {
     path.value = defaultValue;

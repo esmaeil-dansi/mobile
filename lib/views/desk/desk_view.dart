@@ -4,11 +4,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/views/desk/home_view.dart';
 import 'package:frappe_app/views/desk/order_page.dart';
 import 'package:frappe_app/views/desk/profile_page.dart';
 import 'package:frappe_app/views/desk/request_page.dart';
-import 'package:frappe_app/views/desk/shop/my_shop_page.dart';
+import 'package:frappe_app/views/desk/shop/all_shop_page.dart';
+import 'package:frappe_app/views/desk/shop/shop_info_page.dart';
 import 'package:frappe_app/views/login/login_page.dart';
 import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:geolocator/geolocator.dart';
@@ -28,13 +30,14 @@ class DesktopView extends StatefulWidget {
 
 class _DesktopViewState extends State<DesktopView> {
   var index = 0.obs;
-
+  final _visitService = GetIt.I.get<VisitService>();
   var unselectSize = 28.0;
   var selectedSize = 28.0;
   var _autService = GetIt.I.get<AutService>();
 
   @override
   void initState() {
+    _visitService.fetchPrices();
     if (widget.needToCheckUpdate) {
       _autService.checkLoginCertificate().then((value) {
         if (!value) {
@@ -53,43 +56,6 @@ class _DesktopViewState extends State<DesktopView> {
         } else {
           _getLocation();
         }
-
-        // Get.bottomSheet(bottomSheetTemplate(Column(
-        //   mainAxisSize: MainAxisSize.min,
-        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //   children: [
-        //
-        //     Padding(
-        //       padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 20),
-        //       child: Text(
-        //           "پیشنهاد می شود برای دریافت آخرین وضعیت هواشناسی اجازه دسترسی به موقعیت مکانی را بدهد"),
-        //     ),
-        //
-        //     Padding(
-        //       padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 20),
-        //       child: GestureDetector(
-        //         behavior: HitTestBehavior.translucent,
-        //         onTap: () {
-        //
-        //
-        //         },
-        //         child: Container(
-        //             height: 50,
-        //             decoration: BoxDecoration(
-        //                 borderRadius: BorderRadius.circular(20),
-        //                 gradient: LinearGradient(colors: GRADIANT_COLOR)),
-        //             width: double.infinity,
-        //             child: Center(
-        //                 child: Text(
-        //               "موافقم",
-        //               style: Get.textTheme.bodyLarge
-        //                   ?.copyWith(fontSize: 23)
-        //                   ?.copyWith(color: Colors.black),
-        //             ))),
-        //       ),
-        //     ),
-        //   ],
-        // )));
       } else {
         _getLocation();
       }
@@ -111,18 +77,6 @@ class _DesktopViewState extends State<DesktopView> {
   Widget build(BuildContext context) {
     return Obx(
       () => Scaffold(
-        appBar: index != 1
-            ? null
-            : AppBar(
-                backgroundColor: Colors.white,
-                title: Text(
-                  "چوپو",
-                  style: TextStyle(
-                      fontSize: 24,
-                      color: MAIN_COLOR,
-                      fontWeight: FontWeight.bold),
-                ),
-              ),
         bottomNavigationBar: BottomNavigationBar(
           showUnselectedLabels: true,
           showSelectedLabels: true,
@@ -179,13 +133,13 @@ class _DesktopViewState extends State<DesktopView> {
       if (_autService.isRahbar()) {
         return RequestPage();
       } else if (_autService.isSupplier()) {
-        return MyShopPage();
+        return AllShopPage();
       }
       return OrderPage();
     } else if (i == 2) {
       if (_autService.isRahbar()) {
         if (_autService.isSupplier()) {
-          return MyShopPage();
+          return AllShopPage();
         }
         return OrderPage();
       } else {

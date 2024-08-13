@@ -240,7 +240,7 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
   final pointY = 150.0;
   late LatLng currentLocation;
   late LatLng pointerLocation;
-  late Position userCurrentLocation;
+  Position? userCurrentLocation;
 
   @override
   void initState() {
@@ -269,7 +269,7 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
                   mapController: mapController,
                   options: MapOptions(
                     maxZoom: 17,
-                    zoom: 15,
+                    zoom: 16,
                     minZoom: 7,
                     onMapEvent: (event) {
                       updatePoint(null, context);
@@ -397,12 +397,15 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
   Future<bool> distance(double lat2, double lon2) async {
     const r = 6371; // km
     const p = pi / 180;
+    if (userCurrentLocation == null) {
+      userCurrentLocation = await Geolocator.getCurrentPosition();
+    }
 
     var a = 0.5 -
-        cos((lat2 - userCurrentLocation.latitude) * p) / 2 +
-        cos(userCurrentLocation.latitude * p) *
+        cos((lat2 - userCurrentLocation!.latitude) * p) / 2 +
+        cos(userCurrentLocation!.latitude * p) *
             cos(lat2 * p) *
-            (1 - cos((lon2 - userCurrentLocation.longitude) * p)) /
+            (1 - cos((lon2 - userCurrentLocation!.longitude) * p)) /
             2;
 
     return (2 * r * asin(sqrt(a))) * 1000 < 200;

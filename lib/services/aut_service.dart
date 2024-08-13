@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:frappe_app/db/advertisement.dart';
 import 'package:frappe_app/db/dao/advertisement_dao.dart';
 import 'package:frappe_app/model/weather.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
-import 'package:frappe_app/services/shop_service.dart';
-import 'package:frappe_app/widgets/file_picker_widget.dart';
+import 'package:frappe_app/utils/constants.dart';
 import 'package:frappe_app/widgets/methodes.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart' as g;
@@ -21,30 +20,14 @@ import 'package:shamsi_date/shamsi_date.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AutService {
-  String SID = "sid";
-  String LAST_FETCH_WEATHER_TIME = "LAST_FETCH_WEATHER_TIME";
-  String USERNAME = "username";
-  String LAST_UPDATE_TIME = "last_update_time";
-  String PASSWORD = "password";
-  String FULL_NAME = "full_name";
-  String FULL_NAME_CHAR = "full_name_char";
-  String USER_ID = "user_id";
-  String ROLES = "roles";
-  String USER_IMAGE = "user_image";
-  String NAME = "name";
-  String LAST_NAME = "last_name";
-  String USER_NAME = "user_name";
-  String PROVINCE = "province";
-  String CITY = "city";
-  String SELECTED_CITY = "selected_city";
-  String WAETHER_KEY = "WAETHER_KEY";
-
   Rx<String> selectedCity = "".obs;
   var weathers = <Weather>[].obs;
 
   var _logger = Logger();
   String phone = "";
   String verifyCode = "";
+
+  var remainCredit = 0.obs;
 
   String _sid = "";
   String _full_name = "";
@@ -84,7 +67,7 @@ class AutService {
   }
 
   String mainUserId() {
-    return _user_id.replaceAll("%40", "@") ?? "";
+    return _user_id.replaceAll("%40", "@");
   }
 
   var advDao = GetIt.I.get<AdvertisementDao>();
@@ -93,7 +76,38 @@ class AutService {
 
   AutService() {
     init();
+    try {
+      Connectivity().onConnectivityChanged.listen((result) {
+        if (result.contains(ConnectivityResult.mobile) ||
+            result.contains(ConnectivityResult.bluetooth) ||
+            result.contains(ConnectivityResult.vpn) ||
+            result.contains(ConnectivityResult.other) ||
+            result.contains(ConnectivityResult.ethernet) ||
+            result.contains(ConnectivityResult.wifi)) {
+          checkLoginCertificate();
+        }
+      });
+    } catch (_) {
+      _logger.e(_);
+    }
   }
+
+  Future<void> fetchRemainCredit() async {
+    try {
+      remainCredit.value = _sharedPreferences.getInt(REMAIN_CREDIT_KEY) ?? 0;
+      final info = await GetIt.I
+          .get<HttpService>()
+          .get("/api/method/get_remain_credit?username=${_user_id}");
+      final r = info?.data["remain_list"];
+      _sharedPreferences.setInt(REMAIN_CREDIT_KEY, r);
+      remainCredit.value = r;
+    } catch (_) {
+      _logger.e(_);
+    }
+  }
+
+  double getRemainCredit() =>
+      _sharedPreferences.getDouble(REMAIN_CREDIT_KEY) ?? 0.0;
 
   bool needToFetchWeather() {
     return DateTime.now().millisecondsSinceEpoch -
@@ -134,8 +148,8 @@ class AutService {
     _user_id = _sharedPreferences.getString(USER_ID) ?? "";
     _user_image.value = _sharedPreferences.getString(USER_IMAGE) ?? "";
     _roles = _sharedPreferences.getStringList(ROLES) ?? [];
-    GetIt.I.get<ShopService>().fetchShopInfo(_user_id);
     selectedCity.value = _sharedPreferences.getString(SELECTED_CITY) ?? "";
+    fetchRemainCredit();
   }
 
   String _decodePercentEncodedString(String encoded) {
@@ -288,7 +302,6 @@ class AutService {
         _sharedPreferences.setString(PASSWORD, password);
         await _getUserRole();
         getPermission();
-        GetIt.I.get<ShopService>().fetchShopInfo(_user_id);
         return (true, false);
       } else {
         return (false, res?.statusCode == 500);

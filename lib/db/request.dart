@@ -31,4 +31,32 @@ class Request {
       required this.filePaths,
       required this.status,
       required this.body});
+
+  Map<String, dynamic> toJson() => {
+        'time': this.time,
+        'body': this.body,
+        'type': this.type,
+        'status': this.status.name,
+        'nationId': this.nationId,
+        'filePaths': this.filePaths,
+      };
+
+  static Request? fromJson(dynamic data) {
+    try {
+      return Request(
+          time: data["time"],
+          type: data["type"],
+          nationId: data["nationId"],
+          filePaths: ((data["filePaths"] ?? []) as List<dynamic>)
+              .map((e) => e.toString())
+              .toList(),
+          status: RequestStatus.values
+              .where((element) => element.name == data["status"])
+              .first,
+          body: data["body"]);
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
 }

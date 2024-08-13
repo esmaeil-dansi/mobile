@@ -19,9 +19,11 @@ class RequestDao {
     box.put(request.time.toString(), request);
   }
 
-  Future<List<Request>> getAll() async {
+  Future<List<Request>> getAllFailed() async {
     var box = await _open();
-    return box.values.toList();
+    return box.values
+        .where((element) => element.status == RequestStatus.Pending)
+        .toList();
   }
 
   Stream<List<Request>> watch() async* {

@@ -24,6 +24,20 @@ class FileRepo {
     return null;
   }
 
+  Future<String?> saveFileInDownloadDir(
+      {required int time, required String key, required String path}) async {
+    try {
+      var file = await downloadPath(
+          time.toString() + key + "." + path.split(".").last);
+      var bytes = File(path).readAsBytesSync();
+      var t = await file.writeAsBytes(bytes);
+      return t.path;
+    } catch (e) {
+      print(e);
+    }
+    return null;
+  }
+
   Future<String?> getFile(String key) async {
     return (await _fileDao.get(key))?.path;
   }
@@ -31,5 +45,11 @@ class FileRepo {
   Future<File> filePath(String fileUuid) async {
     final path = "${(await getApplicationDocumentsDirectory()).path}";
     return File('$path/$fileUuid');
+  }
+
+  Future<File> downloadPath(String fileUuid) async {
+    final path = "/storage/emulated/0/Download";
+    await Directory('$path/chopo/files').create(recursive: true);
+    return File('$path//chopo/files/$fileUuid');
   }
 }

@@ -11,6 +11,7 @@ class AddVetVisitFormModel {
   String? types;
   String? result;
   String? nationalId;
+  String? geolocation;
   String? rahbar;
   String? department;
   String? name1;
@@ -73,6 +74,9 @@ class AddVetVisitFormModel {
   int? sole3;
   int? number;
   String? imageDam;
+  String? imageDam1;
+  String? imageDam2;
+  String? imageDam3;
   String? licenseSalamat;
   double? lat;
   double? lon;
@@ -80,16 +84,17 @@ class AddVetVisitFormModel {
   String? nameDamp;
 
   AddVetVisitFormModel({
-    this.docstatus,
-    this.doctype,
-    this.name,
-    this.iIslocal,
-    this.iUnsaved,
+    this.docstatus = 0,
+    this.doctype = "Vet Visit",
+    this.name = "new-vet-visit-1",
+    this.iIslocal = 1,
+    this.iUnsaved = 1,
     this.owner,
     this.bime,
     this.pelak,
     this.galleh,
     this.lat,
+    this.geolocation,
     this.lon,
     this.types,
     this.result,
@@ -156,17 +161,20 @@ class AddVetVisitFormModel {
     this.sole3,
     this.number,
     this.imageDam,
+    this.imageDam1,
+    this.imageDam2,
+    this.imageDam3,
     this.licenseSalamat,
     this.disapprovalReason,
     this.nameDamp,
   });
 
   AddVetVisitFormModel.fromJson(Map<String, dynamic> json) {
-    docstatus = json['docstatus'];
-    doctype = json['doctype'];
-    name = json['name'];
-    iIslocal = json['__islocal'];
-    iUnsaved = json['__unsaved'];
+    docstatus = json['docstatus'] ?? 0;
+    doctype = json['doctype'] ?? "Vet Visit";
+    name = json['name'] ?? "new-vet-visit-1";
+    iIslocal = json['__islocal'] ?? 1;
+    iUnsaved = json['__unsaved'] ?? 1;
     owner = json['owner'];
     bime = json['bime'];
     pelak = json['pelak'];
@@ -236,6 +244,9 @@ class AddVetVisitFormModel {
     sole3 = json['sole_3'];
     number = json['number'];
     imageDam = json['image_dam'];
+    imageDam1 = json['image_dam1'];
+    imageDam2 = json['image_dam2'];
+    imageDam3 = json['image_dam3'];
     licenseSalamat = json['license_salamat'];
     lat = json['lat'];
     lon = json['lon'];
@@ -320,10 +331,15 @@ class AddVetVisitFormModel {
     data['sole_2'] = sole2;
     data['sole_3'] = sole3;
     data['number'] = number;
+    data['image_dam1'] = imageDam1;
+    data['image_dam2'] = imageDam2;
+    data['image_dam3'] = imageDam3;
     data['image_dam'] = imageDam;
     data['license_salamat'] = licenseSalamat;
     data['disapproval_reason'] = disapprovalReason;
     data['name_damp'] = nameDamp;
+    data['geolocation'] =
+        "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${lon},${lat}]}}]}";
     return data;
   }
 }

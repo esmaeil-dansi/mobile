@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/model/agentInfo.dart';
 import 'package:frappe_app/model/add_initial_visit_from_model.dart';
-import 'package:frappe_app/repo/RequestRepo.dart';
-import 'package:frappe_app/repo/file_repo.dart';
+import 'package:frappe_app/repo/request_repo.dart';
+
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/utils/date_mapper.dart';
 import 'package:frappe_app/widgets/agent_info_widget.dart';
@@ -16,7 +14,6 @@ import 'package:frappe_app/widgets/form/custom_dropownbuttom_formField.dart';
 import 'package:frappe_app/widgets/image_view.dart';
 import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
-import 'package:frappe_app/widgets/request_manage.dart';
 import 'package:frappe_app/widgets/select_location.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
@@ -37,21 +34,6 @@ class AddInitialReport extends StatefulWidget {
 class _AddInitialReportState extends State<AddInitialReport> {
   final _requestRepo = GetIt.I.get<RequestRepo>();
   late AddInitialVisitFormModel model;
-
-  var _fileRepo = GetIt.I.get<FileRepo>();
-
-  Future<void> _fetchImages() async {
-    _fileRepo.getFile(widget.time.toString() + "image1").then((_) {
-      if (_ != null) {
-        _imagePath.value = _;
-      }
-    });
-    _fileRepo.getFile(widget.time.toString() + "image2").then((_) {
-      if (_ != null) {
-        _imagePath_2.value = _;
-      }
-    });
-  }
 
   Future<void> checkPendingRequest(String id) async {
     try {
@@ -80,9 +62,10 @@ class _AddInitialReportState extends State<AddInitialReport> {
       model = widget.addInitialVisitFormModel!;
       _dam.value = model.dam ?? 0;
       _dateController.text = DateMapper.convert(model.vDate ?? '');
-      _dateController.text = model.vDate ?? '';
       _latLng.value = LatLng(model.lat ?? 0, model.lon ?? 0);
-      _fetchImages();
+      _imagePath.value = model.image1 ?? "";
+      _imagePath_2.value = model.image2 ?? "";
+      _imagePath_3.value = model.image3 ?? "";
       _fetchAgentInfo();
     } else {
       model = AddInitialVisitFormModel();
@@ -100,6 +83,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
   final _visitService = GetIt.I.get<VisitService>();
   final _imagePath = "".obs;
   final _imagePath_2 = "".obs;
+  final _imagePath_3 = "".obs;
   var _dam = 0.obs;
 
   void _fetchAgentInfo() {
@@ -113,35 +97,36 @@ class _AddInitialReportState extends State<AddInitialReport> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: submitForm(() async {
-        if (_formKey.currentState?.validate() ?? false) {
-          if (_latLng.value != null) {
-            model.lon = _latLng.value!.longitude;
-            model.lat = _latLng.value!.latitude;
-            model.image1 = _imagePath.value;
-            model.image2 = _imagePath_2.value;
-            if (model.image1 == null ||
-                model.image1!.isEmpty ||
-                model.image2 == null ||
-                model.image2!.isEmpty) {
-              Fluttertoast.showToast(msg: "عکس را وارد  کنید");
-            } else {
-              FocusScope.of(context).requestFocus(new FocusNode());
-              Progressbar.showProgress();
-              var res = await _visitService.saveInitVisit(
-                time: time,
-                agentInfo: agentInfo.value ?? AgentInfo(),
-                model: model,
-              );
-              if (res) {
-                Get.back();
-                Get.back();
+        if (widget.addInitialVisitFormModel != null) {
+          await _submit(context);
+        } else {
+          if (_formKey.currentState?.validate() ?? false) {
+            if (_latLng.value != null) {
+              model.lon = _latLng.value!.longitude;
+              model.lat = _latLng.value!.latitude;
+              model.image1 = _imagePath.value;
+              model.image2 = _imagePath_2.value;
+              model.image3 = _imagePath_3.value;
+              if (model.image1 == null ||
+                  model.image1!.isEmpty ||
+                  model.image2 == null ||
+                  model.image2!.isEmpty ||
+                  model.image3 == null ||
+                  model.image3!.isEmpty) {
+                Fluttertoast.showToast(msg: "تصویر را وارد  کنید");
+              } else {
+                if (_dateController.text.isEmpty) {
+                  Fluttertoast.showToast(msg: "تاریخ را انتخاب کنید");
+                } else {
+                  await _submit(context);
+                }
               }
+            } else {
+              Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
             }
           } else {
-            Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
+            Fluttertoast.showToast(msg: "فیلد های مورد نیاز را پر کنید");
           }
-        } else {
-          Fluttertoast.showToast(msg: "فیلد های مورد نیاز را پر کنید");
         }
       }),
       appBar: appSliverAppBar("اضافه کردن بازدید"),
@@ -412,15 +397,22 @@ class _AddInitialReportState extends State<AddInitialReport> {
                             SizedBox(
                               height: 10,
                             ),
-                            ImageView(_imagePath, "تصویر جایگاه 1",
+                            ImageView(_imagePath, "تصویر جایگاه ",
                                 defaultValue: _imagePath.value,
                                 canReplace:
                                     widget.addInitialVisitFormModel == null),
                             SizedBox(
                               height: 10,
                             ),
-                            ImageView(_imagePath_2, "تصویر جایگاه 2",
+                            ImageView(_imagePath_2, "تصویر راهبر",
                                 defaultValue: _imagePath_2.value,
+                                canReplace:
+                                    widget.addInitialVisitFormModel == null),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            ImageView(_imagePath_3, "تصویر متقاضی",
+                                defaultValue: _imagePath_3.value,
                                 canReplace:
                                     widget.addInitialVisitFormModel == null),
                             SizedBox(
@@ -514,18 +506,18 @@ class _AddInitialReportState extends State<AddInitialReport> {
                     const SizedBox(
                       height: 10,
                     ),
-                     Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: SelectLocation(
-                            readOnly: widget.addInitialVisitFormModel != null,
-                            latLng: model.lon != null
-                                ? LatLng(model.lat!, model.lon!)
-                                : _latLng.value,
-                            onSelected: (_) {
-                              _latLng.value = _;
-                            },
-                          ),
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: SelectLocation(
+                        readOnly: widget.addInitialVisitFormModel != null,
+                        latLng: model.lon != null
+                            ? LatLng(model.lat!, model.lon!)
+                            : _latLng.value,
+                        onSelected: (_) {
+                          _latLng.value = _;
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -534,5 +526,19 @@ class _AddInitialReportState extends State<AddInitialReport> {
         ),
       ),
     );
+  }
+
+  Future<void> _submit(BuildContext context) async {
+    FocusScope.of(context).requestFocus(new FocusNode());
+    Progressbar.showProgress();
+    var res = await _visitService.saveInitVisit(
+      time: time,
+      agentInfo: agentInfo.value ?? AgentInfo(),
+      model: model,
+    );
+    if (res) {
+      Get.back();
+      Get.back();
+    }
   }
 }

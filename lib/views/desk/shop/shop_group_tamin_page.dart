@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:frappe_app/model/shop_item_base_model.dart';
 import 'package:frappe_app/model/shop_tamin.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/views/desk/shop/shop_item_tamin_page.dart';
@@ -8,7 +9,7 @@ import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
 class ShopGroupTaminPage extends StatefulWidget {
-  String group;
+  ShopItemBaseModel group;
 
   ShopGroupTaminPage(this.group);
 
@@ -39,7 +40,7 @@ class _ShopGroupTaminPageState extends State<ShopGroupTaminPage> {
           },
         ),
         title: Text(
-          "تامین کننده های " + widget.group,
+          "تامین کننده های " + widget.group.name,
           style: TextStyle(fontSize: 20),
         ),
       ),
@@ -49,7 +50,7 @@ class _ShopGroupTaminPageState extends State<ShopGroupTaminPage> {
           padding: const EdgeInsets.all(1.0),
           child: Container(
             child: FutureBuilder(
-              future: _shopService.fetchShopTamin(widget.group),
+              future: _shopService.fetchShopTamin(widget.group.name),
               builder: (BuildContext context,
                   AsyncSnapshot<List<ShopTamin>> snapshot) {
                 if (snapshot.hasData && snapshot.data != null) {
@@ -62,7 +63,7 @@ class _ShopGroupTaminPageState extends State<ShopGroupTaminPage> {
                     return ListView.builder(
                         itemCount: tamins.length,
                         itemBuilder: (c, i) {
-                          return ShopItemTaminPage(tamins[i]);
+                          return ShopItemTaminPage(tamins[i], widget.group);
                         });
                   }
                 } else if (snapshot.connectionState ==

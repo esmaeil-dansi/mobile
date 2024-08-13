@@ -38,15 +38,17 @@ class AddInitialVisitFormModel {
   String? sayer;
   String? vDate;
   String? image2;
+  String? image3;
   double? lat;
   double? lon;
+  String? geolocation;
 
   AddInitialVisitFormModel(
-      {this.docstatus,
-      this.doctype,
-      this.name,
-      this.iIslocal,
-      this.iUnsaved,
+      {this.docstatus = 0,
+      this.doctype = "Initial Visit",
+      this.name = "new-initial-visit-1",
+      this.iIslocal = 1,
+      this.iUnsaved = 1,
       this.owner,
       this.tarh,
       this.dam,
@@ -71,6 +73,7 @@ class AddInitialVisitFormModel {
       this.nationalId,
       this.fullName,
       this.image2,
+      this.image3,
       this.province,
       this.city,
       this.address,
@@ -82,14 +85,15 @@ class AddInitialVisitFormModel {
       this.eghdamat,
       this.vDate,
       this.lat,
+      this.geolocation,
       this.lon});
 
   AddInitialVisitFormModel.fromJson(Map<String, dynamic> json) {
-    docstatus = json['docstatus'];
-    doctype = json['doctype'];
-    name = json['name'];
-    iIslocal = json['__islocal'];
-    iUnsaved = json['__unsaved'];
+    docstatus = json['docstatus'] ?? 0;
+    doctype = json['doctype'] ?? "Initial Visit";
+    name = json['name'] ?? "new-initial-visit-1";
+    iIslocal = json['__islocal'] ?? 1;
+    iUnsaved = json['__unsaved'] ?? 1;
     owner = json['owner'];
     tarh = json['tarh'];
     dam = json['dam'];
@@ -121,6 +125,7 @@ class AddInitialVisitFormModel {
     department = json['department'];
     image1 = json['image1'];
     image2 = json['image2'];
+    image3 = json['image3'];
     eghdamat = json['eghdamat'];
     vDate = json['v_date'];
     lon = json['lon'];
@@ -166,11 +171,14 @@ class AddInitialVisitFormModel {
     data['department'] = this.department;
     data['image1'] = this.image1;
     data['image2'] = this.image2;
+    data['image3'] = this.image3;
     data['eghdamat'] = this.eghdamat;
     data['v_date'] = this.vDate;
     data['lat'] = this.lat;
     data['lon'] = this.lon;
     data['sayer'] = this.sayer;
+    data['geolocation'] =
+        "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{},\"geometry\":{\"type\":\"Point\",\"coordinates\":[${lon},${lat}]}}]}";
     return data;
   }
 }

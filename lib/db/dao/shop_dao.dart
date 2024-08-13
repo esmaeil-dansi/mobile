@@ -15,7 +15,15 @@ class ShopDao {
 
   Future<void> save(ShopInfo info) async {
     var box = await _open();
-    box.put(_my_key(), info);
+    box.put(info.id, info);
+  }
+
+  Stream<List<ShopInfo>> watchAll() async* {
+    var box = await _open();
+
+    yield box.values.toList();
+
+    yield* box.watch().map((event) => box.values.toList());
   }
 
   Future<ShopInfo?> get() async {
@@ -27,7 +35,14 @@ class ShopDao {
     }
   }
 
-  String _key() => "shop_info";
+  String _key() => "shop_infos_1";
 
-  String _my_key() => "shop_info_key";
+  String _my_key() => "shop_info_key_1";
+
+  Future<void> deleteAll() async {
+    try {
+      var box = await _open();
+      await box.clear();
+    } catch (e) {}
+  }
 }

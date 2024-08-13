@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frappe_app/db/request.dart';
-import 'package:frappe_app/repo/RequestRepo.dart';
+import 'package:frappe_app/repo/request_repo.dart';
 import 'package:get_it/get_it.dart';
 
 void manageRequest(

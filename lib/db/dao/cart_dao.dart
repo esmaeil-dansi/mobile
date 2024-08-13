@@ -1,0 +1,48 @@
+import 'dart:async';
+
+import 'package:frappe_app/db/cart.dart';
+import 'package:hive/hive.dart';
+
+class CartDao {
+  Future<Box<Cart>> _open() async {
+    try {
+      return Hive.openBox<Cart>(_key());
+    } catch (e) {
+      await Hive.deleteBoxFromDisk(_key());
+      return Hive.openBox<Cart>(_key());
+    }
+  }
+
+  Future<void> save(Cart cart) async {
+    var box = await _open();
+    box.put(_getId(cart), cart);
+  }
+
+  Stream<Map<String, Cart>> watch() async* {
+    var box = await _open();
+    yield _map(_sorted(box.values.toList()));
+    yield* box.watch().map((event) => _map(_sorted(box.values.toList())));
+  }
+
+  Map<String, Cart> _map(List<Cart> carts) {
+    return Map.fromIterable(carts, key: (c) {
+      return _getId(c as Cart);
+    }, value: (c) {
+      return c;
+    });
+  }
+
+  List<Cart> _sorted(List<Cart> carts) {
+    carts.sort((a, b) => a.time - b.time);
+    return carts;
+  }
+
+  Future<void> delete(String id) async {
+    var box = await _open();
+    await box.delete(id);
+  }
+
+  String _getId(Cart cart) => cart.shopId + cart.item;
+
+  String _key() => "carts";
+}

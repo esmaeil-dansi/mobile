@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:frappe_app/model/shop_item_base_model.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/views/desk/shop/shop_group_tamin_page.dart';
 import 'package:get/get.dart';
@@ -15,16 +16,17 @@ class ShopItemSearchPage extends StatefulWidget {
 }
 
 class _ShopItemSearchPageState extends State<ShopItemSearchPage> {
-  RxList<String> filteredItems = RxList();
+  RxList<ShopItemBaseModel> filteredItems = RxList();
   final _inSearch = true.obs;
-  List<String> items = [];
+  List<ShopItemBaseModel> items = [];
   var _shopService = GetIt.I.get<ShopService>();
   TextEditingController _controller = TextEditingController();
   var _hasText = false.obs;
 
   @override
   void initState() {
-    _shopService.fetchShopGroupItems(widget.group).then((_) {
+    _shopService.fetchAllItemsUnit();
+    _shopService.fetchAvailableShopGroupItems(widget.group).then((_) {
       items = _;
       filteredItems.addAll(items);
       _inSearch.value = false;
@@ -35,7 +37,8 @@ class _ShopItemSearchPageState extends State<ShopItemSearchPage> {
       _hasText.value = t.isNotEmpty;
       if (t.isNotEmpty) {
         filteredItems.clear();
-        filteredItems.addAll(items.where((element) => element.contains(t)));
+        filteredItems
+            .addAll(items.where((element) => element.name.contains(t)));
       } else {
         filteredItems.clear();
         filteredItems.addAll(items);
@@ -102,7 +105,8 @@ class _ShopItemSearchPageState extends State<ShopItemSearchPage> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 2, vertical: 5),
                                 child: SizedBox(
-                                    height: 25, child: Text(filteredItems[i])),
+                                    height: 25,
+                                    child: Text(filteredItems[i].name)),
                               ),
                             );
                           },
