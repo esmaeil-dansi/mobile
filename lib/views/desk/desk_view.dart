@@ -21,6 +21,7 @@ import 'package:get_it/get_it.dart';
 import 'package:gradient_icon/gradient_icon.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 
 class DesktopView extends StatefulWidget {
   bool needToCheckUpdate;

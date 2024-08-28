@@ -19,6 +19,7 @@ class UserInfo extends StatefulWidget {
 class _UserInfoState extends State<UserInfo> {
   final _autService = GetIt.I.get<AutService>();
   var _damdar = false;
+  var _taminUser = false;
   final _name = TextEditingController();
 
   final _lastName = TextEditingController();
@@ -198,9 +199,9 @@ class _UserInfoState extends State<UserInfo> {
                                 SizedBox(
                                   height: 8,
                                 ),
-                                // TitleCheckBox("دامدار هستم", (c) {
-                                //   _damdar = c;
-                                // }),
+                                TitleCheckBox("تامین کننده هستم", (c) {
+                                  _taminUser = c;
+                                }),
                               ],
                             ),
                           ),
@@ -225,7 +226,7 @@ class _UserInfoState extends State<UserInfo> {
                               Progressbar.showProgress();
                               if (await _autService.sendInfo(
                                   password: _pass.text,
-                                  damdar: _damdar,
+                                  tamin: _taminUser,
                                   nationalId: _nationId.text,
                                   province: _province.text,
                                   bio: _bio.text,

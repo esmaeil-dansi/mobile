@@ -9,7 +9,6 @@ import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/model/shop_group.dart';
 import 'package:frappe_app/model/shop_type.dart';
 import 'package:frappe_app/services/aut_service.dart';
-import 'package:frappe_app/views/desk/profile_page.dart';
 import 'package:frappe_app/views/desk/shop/cart_page.dart';
 import 'package:frappe_app/views/desk/shop/shop_group_item_ui.dart';
 import 'package:frappe_app/views/desk/shop/shop_item_search_page.dart';
@@ -36,6 +35,8 @@ class _HomeViewState extends State<HomeView> {
   final _visitService = GetIt.I.get<VisitService>();
   final _priceDao = GetIt.I.get<PriceAvgDao>();
   final _shopService = GetIt.I.get<ShopService>();
+  TextEditingController _searchController = TextEditingController();
+
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +90,18 @@ class _HomeViewState extends State<HomeView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'جستجو',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  onChanged: (value) {
+                  },
+                ),
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(vertical: 13, horizontal: 3),
@@ -179,81 +192,82 @@ class _HomeViewState extends State<HomeView> {
                           height: 90,
                         )),
                 ),
-                StreamBuilder<PriceInfo?>(
-                    stream: _priceDao.watch(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData && snapshot.data != null) {
-                        var info = snapshot.data!;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildReport(
-                                      "گوسفند داشتی(راس)",
-                                      info.gosfand.toString(),
-                                      info.dosfandD,
-                                    ),
-                                    _buildReport(
-                                      "گاو شیری(راس)",
-                                      info.gov.toString(),
-                                      info.govD,
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildReport("شتر پرواری(نفر)",
-                                        info.shotor.toString(), info.shotorD),
-                                    _buildReport("قیمت جو(کیلوگرم)",
-                                        info.go.toString(), info.goD),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "*",
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                    SizedBox(
-                                      width: 3,
-                                    ),
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Text(
-                                        "منبع میانگین قیمت ها شرکت گسترش توسعه گری پردیس می باشد.",
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                        ),
-                                        maxLines: 2,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-                      return SizedBox.shrink();
-                    }),
+                // این قسمت به صورت گزینه هدایت شد به صفحه PricesView
+                // StreamBuilder<PriceInfo?>(
+                //     stream: _priceDao.watch(),
+                //     builder: (context, snapshot) {
+                //       if (snapshot.hasData && snapshot.data != null) {
+                //         var info = snapshot.data!;
+                //         return Padding(
+                //           padding: const EdgeInsets.symmetric(
+                //               horizontal: 8, vertical: 3),
+                //           child: Container(
+                //             decoration: BoxDecoration(
+                //               borderRadius: BorderRadius.circular(10),
+                //             ),
+                //             child: Column(
+                //               children: [
+                //                 Row(
+                //                   mainAxisAlignment:
+                //                       MainAxisAlignment.spaceBetween,
+                //                   children: [
+                //                     _buildReport(
+                //                       "گوسفند داشتی(راس)",
+                //                       info.gosfand.toString(),
+                //                       info.dosfandD,
+                //                     ),
+                //                     _buildReport(
+                //                       "گاو شیری(راس)",
+                //                       info.gov.toString(),
+                //                       info.govD,
+                //                     ),
+                //                   ],
+                //                 ),
+                //                 SizedBox(
+                //                   height: 5,
+                //                 ),
+                //                 Row(
+                //                   mainAxisAlignment:
+                //                       MainAxisAlignment.spaceBetween,
+                //                   children: [
+                //                     _buildReport("شتر پرواری(نفر)",
+                //                         info.shotor.toString(), info.shotorD),
+                //                     _buildReport("قیمت جو(کیلوگرم)",
+                //                         info.go.toString(), info.goD),
+                //                   ],
+                //                 ),
+                //                 SizedBox(
+                //                   height: 5,
+                //                 ),
+                //                 Row(
+                //                   crossAxisAlignment: CrossAxisAlignment.start,
+                //                   children: [
+                //                     Text(
+                //                       "*",
+                //                       style: TextStyle(color: Colors.red),
+                //                     ),
+                //                     SizedBox(
+                //                       width: 3,
+                //                     ),
+                //                     SingleChildScrollView(
+                //                       scrollDirection: Axis.horizontal,
+                //                       child: Text(
+                //                         "منبع میانگین قیمت ها شرکت گسترش توسعه گری پردیس می باشد.",
+                //                         style: TextStyle(
+                //                           fontSize: 11,
+                //                         ),
+                //                         maxLines: 2,
+                //                       ),
+                //                     ),
+                //                   ],
+                //                 )
+                //               ],
+                //             ),
+                //           ),
+                //         );
+                //       }
+                //       return SizedBox.shrink();
+                //     }),
                 SizedBox(
                   height: 10,
                 ),
@@ -325,8 +339,26 @@ class _HomeViewState extends State<HomeView> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                _buildItem(() => Get.to(() => WeatherView()),
+                                    'assets/weather.json', "آب و هوا"),
+                                _buildItem(() => Get.to(() => PricesView()),
+                                    'assets/price.json', "قیمت ها"),
                                 _buildItem(() => Get.to(() => MessagesView()),
                                     'assets/messages.json', "پیام"),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 4, horizontal: 2),
+                                  child: SizedBox(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.24,
+                                  ),
+                                )
+                              ],
+                              // scrollDirection: Axis.horizontal,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
                                 _buildItem(() => Get.to(() => InitialVisit()),
                                     'assets/visit.json', "بازدید اولیه"),
                                 _buildItem(() => Get.to(() => PeriodicVisits()),
@@ -468,11 +500,11 @@ class _HomeViewState extends State<HomeView> {
                           isLoop: true,
                           children: ["🐂", "🐐", "🐑", "🐪", "🐔", "🦃"]
                               .map((e) => Center(
-                                    child: Text(
+                                child: Text(
                                       e,
                                       style: TextStyle(fontSize: 50),
                                     ),
-                                  ))
+                              ))
                               .toList(),
                         )
                       : ImageSlideshow(
@@ -491,7 +523,7 @@ class _HomeViewState extends State<HomeView> {
                           ]
                               .map((e) => Image.asset(
                                     e,
-                                    // width: 110,
+                                     // width: 110,
                                     height: 70,
                                     fit: BoxFit.fill,
                                   ))
