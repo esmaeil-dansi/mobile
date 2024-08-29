@@ -9,6 +9,7 @@ import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/model/shop_group.dart';
 import 'package:frappe_app/model/shop_type.dart';
 import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/views/desk/profile_page.dart';
 import 'package:frappe_app/views/desk/shop/cart_page.dart';
 import 'package:frappe_app/views/desk/shop/shop_group_item_ui.dart';
 import 'package:frappe_app/views/desk/shop/shop_item_search_page.dart';
@@ -53,6 +54,19 @@ class _HomeViewState extends State<HomeView> {
                   Icons.wallet,
                   size: 28,
                   color: Colors.green,
+                )),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 15, left: 20, right: 20),
+            child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  Get.to(() => ProfilePage());
+                },
+                child: Icon(
+                  Icons.person,
+                  size: 30,
+                  color: Colors.black,
                 )),
           ),
         ],
@@ -454,11 +468,11 @@ class _HomeViewState extends State<HomeView> {
                           isLoop: true,
                           children: ["🐂", "🐐", "🐑", "🐪", "🐔", "🦃"]
                               .map((e) => Center(
-                                child: Text(
+                                    child: Text(
                                       e,
                                       style: TextStyle(fontSize: 50),
                                     ),
-                              ))
+                                  ))
                               .toList(),
                         )
                       : ImageSlideshow(
@@ -477,7 +491,7 @@ class _HomeViewState extends State<HomeView> {
                           ]
                               .map((e) => Image.asset(
                                     e,
-                                     // width: 110,
+                                    // width: 110,
                                     height: 70,
                                     fit: BoxFit.fill,
                                   ))

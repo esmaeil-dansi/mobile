@@ -13,6 +13,7 @@ import 'package:frappe_app/widgets/edit_profile_page.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../widgets/AvatarWidget.dart';
 
@@ -29,6 +30,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final _isDarkMode = Get.isDarkMode.obs;
   late SharedPreferences _sharedPreferences;
   var _obscureText = false.obs;
+  TextEditingController _controller = TextEditingController();
 
   @override
   void initState() {
@@ -43,6 +45,12 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_sharp),
+            onPressed: () {
+              Get.back();
+            },
+          ),
           title: Text(
             "حساب کاربری",
             textAlign: TextAlign.center,
@@ -236,21 +244,27 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                         Divider(),
-                        SizedBox(
-                          height: 37,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(Icons.phone),
-                                  SizedBox(
-                                    width: 15,
-                                  ),
-                                  Text("تماس با ما")
-                                ],
-                              ),
-                            ],
+                        GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onTap: () {
+                            launchUrl(Uri.parse('tel:02191693961'));
+                          },
+                          child: SizedBox(
+                            height: 37,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.phone),
+                                    SizedBox(
+                                      width: 15,
+                                    ),
+                                    Text("تماس با ما")
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         Divider(),
@@ -276,6 +290,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           behavior: HitTestBehavior.translucent,
                           onTap: () {
                             Get.bottomSheet(Container(
+                              height: Get.height / 2,
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.only(
@@ -285,55 +300,62 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "ثبت پیام",
-                                          style: Get.textTheme.bodyLarge
-                                              ?.copyWith(fontSize: 18),
-                                        ),
-                                        SizedBox(
-                                          width: 10,
-                                        ),
-                                        Icon(Icons.support_agent_outlined)
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: 30,
-                                    ),
-                                    TextField(
-                                      maxLines: 3,
-                                      obscureText: _obscureText.value,
-                                      decoration: InputDecoration(
-                                        labelText: "پیام",
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            "ثبت پیام",
+                                            style: Get.textTheme.bodyLarge
+                                                ?.copyWith(fontSize: 18),
+                                          ),
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+                                          Icon(Icons.support_agent_outlined)
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: 30,
+                                      ),
+                                      TextField(
+                                        maxLines: 3,
+                                        controller: _controller,
+                                        obscureText: _obscureText.value,
+                                        decoration: InputDecoration(
+                                          labelText: "پیام",
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20.0),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: MAIN_COLOR),
-                                      onPressed: () {
-                                        Fluttertoast.showToast(msg: "ثبت شد");
-                                        Navigator.pop(context);
-                                      },
-                                      child: Container(
-                                          width: Get.width * 0.9,
-                                          child: Center(
-                                              child: Text(
-                                            "ثبت",
-                                            style: Get.textTheme.bodyLarge
-                                                ?.copyWith(color: Colors.white),
-                                          ))),
-                                    )
-                                  ],
+                                      SizedBox(
+                                        height: 20,
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                            backgroundColor: MAIN_COLOR),
+                                        onPressed: () {
+                                          _autService
+                                              .sendReport(_controller.text);
+                                          _controller.clear();
+                                          Fluttertoast.showToast(msg: "ثبت شد");
+                                          Navigator.pop(context);
+                                        },
+                                        child: Container(
+                                            width: Get.width * 0.9,
+                                            child: Center(
+                                                child: Text(
+                                              "ثبت",
+                                              style: Get.textTheme.bodyLarge
+                                                  ?.copyWith(
+                                                      color: Colors.white),
+                                            ))),
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ),
                             ));
@@ -349,7 +371,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     SizedBox(
                                       width: 15,
                                     ),
-                                    Text("پشتیبانی")
+                                    Text("انتقادات و پیشنهادات ")
                                   ],
                                 ),
                               ],

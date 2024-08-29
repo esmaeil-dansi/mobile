@@ -50,59 +50,50 @@ Widget buildCircleAvatar(bool uploading, String newAvatar, Rx<String> avatar) {
 }
 
 Widget buildShopAvatar(bool uploading, String newAvatar, Rx<String> avatar) {
-  return (avatar.isNotEmpty || uploading)
-      ? Container(
+  return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        // borderRadius: BorderRadius.circular(10),
+        // border: Border.all(),
+        gradient: LinearGradient(colors: GRADIANT_COLOR),
+        // shape: BoxShape.circle,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(1.0),
+        child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            gradient: LinearGradient(colors: GRADIANT_COLOR),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(1.0),
-            child: Container(
-              width: Get.width,
-              height: 200,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                gradient: LinearGradient(colors: GRADIANT_COLOR),
-                // shape: BoxShape.circle,
-                image: DecorationImage(
-                    fit: BoxFit.fill,
-                    image: uploading
-                        ? Image.file(File(newAvatar)).image
-                        : NetworkImage("https://icasp.ir" + avatar.value,
-                            headers: {
-                                'cookie':
-                                    GetIt.I.get<HttpService>().getCookie(),
-                              })),
-              ),
-            ),
-          ),
-        )
-      : Container(
-          width: Get.width,
-          height: 200,
-          decoration: BoxDecoration(
+            shape: BoxShape.circle,
             color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+            // borderRadius: BorderRadius.circular(10),
             // border: Border.all(),
-            gradient: LinearGradient(colors: GRADIANT_COLOR),
             // shape: BoxShape.circle,
           ),
           child: Padding(
-            padding: const EdgeInsets.all(1.0),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: Colors.white,
-                // border: Border.all(),
-                // shape: BoxShape.circle,
-              ),
-              child: Icon(
-                CupertinoIcons.shopping_cart,
-                color: Colors.blueGrey,
-                size: 70,
-              ),
-            ),
+            padding: EdgeInsets.all(20),
+            child: (avatar.isNotEmpty || uploading)
+                ? Container(
+                    decoration: BoxDecoration(
+                      // shape: BoxShape.circle,
+                      // gradient: LinearGradient(colors: GRADIANT_COLOR),
+                      // shape: BoxShape.circle,
+                      image: DecorationImage(
+                          fit: BoxFit.fill,
+                          image: uploading
+                              ? Image.file(File(newAvatar)).image
+                              : NetworkImage("https://icasp.ir" + avatar.value,
+                                  headers: {
+                                      'cookie': GetIt.I
+                                          .get<HttpService>()
+                                          .getCookie(),
+                                    })),
+                    ),
+                  )
+                : Icon(
+                    CupertinoIcons.shopping_cart,
+                    color: Colors.blueGrey,
+                    size: 60,
+                  ),
           ),
-        );
+        ),
+      ));
 }

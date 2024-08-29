@@ -11,6 +11,8 @@ import 'package:frappe_app/views/desk/profile_page.dart';
 import 'package:frappe_app/views/desk/request_page.dart';
 import 'package:frappe_app/views/desk/shop/all_shop_page.dart';
 import 'package:frappe_app/views/desk/shop/shop_info_page.dart';
+import 'package:frappe_app/views/desk/store_keeper_page.dart';
+import 'package:frappe_app/views/desk/supplier_info_page.dart';
 import 'package:frappe_app/views/login/login_page.dart';
 import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:geolocator/geolocator.dart';
@@ -37,6 +39,8 @@ class _DesktopViewState extends State<DesktopView> {
 
   @override
   void initState() {
+    _checkSupplierInfoState();
+
     _visitService.fetchPrices();
     if (widget.needToCheckUpdate) {
       _autService.checkLoginCertificate().then((value) {
@@ -45,6 +49,7 @@ class _DesktopViewState extends State<DesktopView> {
         }
       });
     }
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied ||
@@ -62,6 +67,14 @@ class _DesktopViewState extends State<DesktopView> {
     });
 
     super.initState();
+  }
+
+  Future<void> _checkSupplierInfoState() async {
+    if (_autService.isSupplier()) {
+      if (!await _autService.supplierInfoSubmitted()) {
+        Get.offAll(() => SupplierInfoPage());
+      }
+    }
   }
 
   Future<void> _getLocation() async {
@@ -109,11 +122,12 @@ class _DesktopViewState extends State<DesktopView> {
               activeIcon: _selectedIcon(Icons.list_alt_outlined),
               label: 'سفارشات',
             ),
-            BottomNavigationBarItem(
-              icon: _unSelectedIcon(Icons.person_outline_rounded),
-              activeIcon: _selectedIcon(Icons.person_outline_rounded),
-              label: 'پروفایل من',
-            ),
+            if (_autService.isStorekeeper())
+              BottomNavigationBarItem(
+                icon: _unSelectedIcon(Icons.table_chart_sharp),
+                activeIcon: _selectedIcon(Icons.table_chart_sharp),
+                label: 'انبار من',
+              ),
           ],
           onTap: (_) {
             index.value = _;
@@ -145,20 +159,29 @@ class _DesktopViewState extends State<DesktopView> {
       } else {
         if (_autService.isSupplier()) {
           return OrderPage();
+        } else if (_autService.isStorekeeper()) {
+          return StoreKeeperPage();
         }
-        return ProfilePage();
+        return SizedBox();
       }
     } else if (i == 3) {
       if (_autService.isRahbar()) {
         if (_autService.isSupplier()) {
           return OrderPage();
         }
-        return ProfilePage();
+        if (_autService.isStorekeeper()) {
+          return StoreKeeperPage();
+        }
       } else {
-        return ProfilePage();
+        if (_autService.isStorekeeper()) {
+          return StoreKeeperPage();
+        }
       }
     }
-    return ProfilePage();
+    if (_autService.isStorekeeper()) {
+      return StoreKeeperPage();
+    }
+    return CircularProgressIndicator();
   }
 
   Widget _unSelectedIcon(IconData iconData) {

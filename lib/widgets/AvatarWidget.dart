@@ -49,9 +49,12 @@ class AvatarWidget extends StatelessWidget {
                     children: [
                       buildCircleAvatar(_uploading.value, newAvatar, avatar),
                       if (_uploading.isTrue)
-                        Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.yellowAccent,
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.yellowAccent,
+                            ),
                           ),
                         ),
                       Positioned(

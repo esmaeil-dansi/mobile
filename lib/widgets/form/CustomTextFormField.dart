@@ -12,6 +12,7 @@ class CustomTextFormField extends StatefulWidget {
   String validator;
   bool readOnly;
   String value;
+  Widget? prefix;
 
   CustomTextFormField(
       {this.label,
@@ -19,6 +20,7 @@ class CustomTextFormField extends StatefulWidget {
       this.maxLine = 1,
       this.maxLength,
       this.value = "",
+      this.prefix,
       this.textInputType,
       this.readOnly = false,
       this.onChanged,
@@ -47,7 +49,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
                 : null),
         readOnly: widget.readOnly,
         maxLines: widget.maxLine,
-        keyboardType:widget.textInputType,
+        keyboardType: widget.textInputType,
         maxLength: widget.maxLength,
         onChanged: (_) {
           if (widget.onChanged != null) {
@@ -55,6 +57,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           }
         },
         decoration: InputDecoration(
+          suffix: widget.prefix,
           labelText: widget.label,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20.0),

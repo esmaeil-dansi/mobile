@@ -1,4 +1,3 @@
-import 'package:frappe_app/db/request_statuse.dart';
 import 'package:frappe_app/utils/constants.dart';
 import 'package:hive/hive.dart';
 
@@ -11,6 +10,9 @@ class Cart {
 
   @HiveField(1)
   String shopId;
+
+  @HiveField(5)
+  String shopOwner;
 
   @HiveField(2)
   String item;
@@ -25,6 +27,7 @@ class Cart {
       {required this.time,
       required this.shopId,
       required this.item,
+      required this.shopOwner,
       required this.amount,
       required this.price});
 }

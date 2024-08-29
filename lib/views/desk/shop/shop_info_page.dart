@@ -16,106 +16,127 @@ import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
-class ShopInfoPage extends StatelessWidget {
+class ShopInfoPage extends StatefulWidget {
   ShopInfo shopInfo;
 
   ShopInfoPage(this.shopInfo);
 
+  @override
+  State<ShopInfoPage> createState() => _ShopInfoPageState();
+}
+
+class _ShopInfoPageState extends State<ShopInfoPage> {
   var _shopService = GetIt.I.get<ShopService>();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 10, left: 10),
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () {
-            Get.to(() => NewShopItemPage(shopInfo.id));
-          },
-          child: Container(
-              width: 120,
-              height: 50,
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
-                  gradient: LinearGradient(colors: GRADIANT_COLOR)),
-              child: Center(
-                  child: Text(
-                "محصول جدید",
-                style: Get.textTheme.bodyLarge?.copyWith(color: Colors.black),
-              ))),
-        ),
-      ),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_sharp, color: Colors.black),
-          onPressed: () {
-            Get.back();
-          },
-        ),
-        backgroundColor: Colors.white,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: GestureDetector(
-                onTap: () {
-                  showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                            content: Text("از حذف فروشگاه مطمنید؟"),
-                            actions: [
-                              ElevatedButton(
-                                  onPressed: () async {
-                                    Navigator.pop(_);
-                                  },
-                                  child: Text("لغو")),
-                              ElevatedButton(
-                                  onPressed: () async {
-                                    Navigator.pop(_);
-                                    // await _autService.logout();
-                                    // Get.offAll(() => Login());
-                                  },
-                                  child: Text(
-                                    "بله",
-                                    style: TextStyle(color: Colors.red),
-                                  )),
-                            ],
-                          ));
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                      border: Border.all(),
-                      borderRadius: BorderRadius.circular(30)),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    child: Row(
-                      children: [
-                        Text(
-                          "حذف فروشگاه",
-                          style: TextStyle(color: Colors.red),
-                        ),
-                        Icon(
-                          Icons.delete,
-                          color: Colors.red,
-                        )
-                      ],
-                    ),
-                  ),
-                )),
-          )
-        ],
-        title: Text(
-          _shopService.getShopName(),
-          style: TextStyle(
-              fontSize: 24, color: MAIN_COLOR, fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Container(
+    return Container(
+      color: Colors.white,
+      child: Scaffold(
+        floatingActionButton: Container(
+          color: Colors.white,
           child: Padding(
-            padding: const EdgeInsets.all(2.0),
+            padding: const EdgeInsets.only(bottom: 10, left: 10),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                Get.to(() =>
+                    NewShopItemPage(
+                      shopInfo: widget.shopInfo,
+                      onAdd: (_) {
+                        widget.shopInfo.items.add(_.name);
+                        widget.shopInfo.items_prices.add(_.price.toString());
+                        widget.shopInfo.items_amount.add(_.amount);
+                        widget.shopInfo.descriptions.add(_.description);
+                        setState(() {});
+                      },
+                    ));
+              },
+              child: Container(
+                  width: 120,
+                  height: 50,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      gradient: LinearGradient(colors: GRADIANT_COLOR)),
+                  child: Center(
+                      child: Text(
+                        "محصول جدید",
+                        style:
+                        Get.textTheme.bodyLarge?.copyWith(color: Colors.black),
+                      ))),
+            ),
+          ),
+        ),
+        appBar: AppBar(
+          title: Text(
+            widget.shopInfo.name,
+            style: TextStyle(fontSize: 16),
+          ),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_sharp, color: Colors.black),
+            onPressed: () {
+              Get.back();
+            },
+          ),
+          backgroundColor: Colors.white,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (_) =>
+                            AlertDialog(
+                              content: Text("از حذف فروشگاه مطمنید؟"),
+                              actions: [
+                                ElevatedButton(
+                                    onPressed: () async {
+                                      Navigator.pop(_);
+                                    },
+                                    child: Text("لغو")),
+                                ElevatedButton(
+                                    onPressed: () async {
+                                      Navigator.pop(_);
+                                      // await _autService.logout();
+                                      // Get.offAll(() => Login());
+                                    },
+                                    child: Text(
+                                      "بله",
+                                      style: TextStyle(color: Colors.red),
+                                    )),
+                              ],
+                            ));
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(),
+                        borderRadius: BorderRadius.circular(30)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      child: Row(
+                        children: [
+                          Text(
+                            "حذف فروشگاه",
+                            style: TextStyle(color: Colors.red),
+                          ),
+                          Icon(
+                            Icons.delete,
+                            color: Colors.red,
+                          )
+                        ],
+                      ),
+                    ),
+                  )),
+            )
+          ],
+        ),
+        body: Container(
+          height: Get.height,
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
             child: Container(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -149,80 +170,103 @@ class ShopInfoPage extends StatelessWidget {
                               ),
                             ),
                             SizedBox(
-                              width: Get.width * 0.2,
+                              width: Get.width * 0.25,
                               child: Text(
                                 "موجودی",
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ),
                             SizedBox(
-                              width: Get.width * 0.2,
-                              child: Center(
-                                child: Text(
-                                  "قیمت",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
+                              width: Get.width * 0.25,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    "قیمت",
+                                    style:
+                                    TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ],
                               ),
                             ),
-                            SizedBox(
-                              width: Get.width * 0.15,
-                              child: Text(
-                                "ویرایش",
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ),
+                            // SizedBox(
+                            //   width: Get.width * 0.15,
+                            //   child: Text(
+                            //     "ویرایش",
+                            //     style: TextStyle(fontWeight: FontWeight.bold),
+                            //   ),
+                            // ),
                           ],
                         ),
                         Divider(),
-                        ListView.separated(
-                          shrinkWrap: true,
-                          itemCount: shopInfo.items.length,
-                          itemBuilder: (c, i) {
-                            var item = shopInfo.items[i];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 5),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  SizedBox(
-                                    width: Get.width * 0.25,
-                                    child: Text(
-                                      item,
-                                      style: TextStyle(fontSize: 14),
+                        SizedBox(
+                          height: Get.height * 0.45,
+                          child: ListView.separated(
+                            controller: ScrollController(),
+                            shrinkWrap: true,
+                            itemCount: widget.shopInfo.items.length,
+                            itemBuilder: (c, i) {
+                              var item = widget.shopInfo.items[i];
+                              return Padding(
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 5),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    SizedBox(
+                                      width: Get.width * 0.25,
+                                      child: Text(
+                                        item,
+                                        style: TextStyle(fontSize: 14),
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(
-                                    width: Get.width * 0.1,
-                                    child: Center(
-                                      child: Text(shopInfo.items_amount[i],
-                                          style: TextStyle(fontSize: 12)),
+                                    SizedBox(
+                                      width: Get.width * 0.25,
+                                      child: Center(
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                                widget.shopInfo
+                                                    .items_amount[i] +
+                                                    "\t" +
+                                                    (_shopService.units[item] ??
+                                                        ""),
+                                                style: TextStyle(fontSize: 12)),
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(
-                                    width: Get.width * 0.2,
-                                    child: Center(
-                                      child: Text(shopInfo.items_prices[i],
-                                          style: TextStyle(fontSize: 12)),
+                                    SizedBox(
+                                      width: Get.width * 0.25,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.end,
+                                        children: [
+                                          Text(widget.shopInfo.items_prices[i],
+                                              style: TextStyle(fontSize: 12)),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  IconButton(
-                                      onPressed: () {
-                                        // showEdit(item);
-                                      },
-                                      icon: Icon(
-                                        Icons.edit,
-                                        size: 16,
-                                        color: Colors.black,
-                                      ))
-                                ],
-                              ),
-                            );
-                          },
-                          separatorBuilder: (BuildContext context, int index) {
-                            return Divider();
-                          },
+                                    // IconButton(
+                                    //     onPressed: () {
+                                    //       // showEdit(item);
+                                    //     },
+                                    //     icon: Icon(
+                                    //       Icons.edit,
+                                    //       size: 16,
+                                    //       color: Colors.black,
+                                    //     ))
+                                  ],
+                                ),
+                              );
+                            },
+                            separatorBuilder:
+                                (BuildContext context, int index) {
+                              return Divider();
+                            },
+                          ),
                         ),
                       ],
                     ),
@@ -254,7 +298,7 @@ class ShopInfoPage extends StatelessWidget {
               child: Container(
                 child: Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -338,15 +382,15 @@ class ShopInfoPage extends StatelessWidget {
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 gradient:
-                                    LinearGradient(colors: GRADIANT_COLOR)),
+                                LinearGradient(colors: GRADIANT_COLOR)),
                             width: double.infinity,
                             child: Center(
                                 child: Text(
-                              "ثبت",
-                              style: Get.textTheme.bodyLarge
-                                  ?.copyWith(fontSize: 23)
-                                  ?.copyWith(color: Colors.black),
-                            ))),
+                                  "ثبت",
+                                  style: Get.textTheme.bodyLarge
+                                      ?.copyWith(fontSize: 23)
+                                      ?.copyWith(color: Colors.black),
+                                ))),
                       ),
                     ],
                   ),

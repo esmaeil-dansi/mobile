@@ -42,7 +42,12 @@ class CartDao {
     await box.delete(id);
   }
 
-  String _getId(Cart cart) => cart.shopId + cart.item;
+  Future<void> deleteAll() async {
+    var box = await _open();
+    await box.clear();
+  }
 
-  String _key() => "carts";
+  String _getId(Cart cart) => cart.shopId + cart.item + cart.price.toString();
+
+  String _key() => "carts_db";
 }

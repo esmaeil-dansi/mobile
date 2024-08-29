@@ -18,7 +18,7 @@ class ShopTamin {
     try {
       return ShopTamin(
           name: data[0],
-          owner: data[1],
+          owner: data[4],
           supplier_group: data[13],
           supplier_name: data[11],
           image: data[15] != null ? data[15] : null,

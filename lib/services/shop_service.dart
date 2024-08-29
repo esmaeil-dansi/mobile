@@ -4,13 +4,20 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:frappe_app/db/cart.dart';
 import 'package:frappe_app/db/shop_info.dart';
 import 'package:frappe_app/model/shop_item_base_model.dart';
 import 'package:frappe_app/model/shop_item_tamin_info.dart';
+import 'package:frappe_app/model/shop_order_model.dart';
 import 'package:frappe_app/model/shop_tamin.dart';
+import 'package:frappe_app/model/transaction.dart';
 import 'package:frappe_app/repo/shop_repo.dart';
 import 'package:frappe_app/services/aut_service.dart';
+
 import 'package:frappe_app/widgets/methodes.dart';
+import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart' as g;
 import 'package:frappe_app/model/shop_Item_model.dart';
 import 'package:frappe_app/services/file_service.dart';
@@ -272,7 +279,7 @@ class ShopService {
             'filters': json.encode(filters),
             'order_by': '`tabSupplier`.`creation` desc',
             'start': 0,
-            'page_length': 20,
+            'page_length': 100, //todo
             'view': 'List',
             'group_by': '`tabSupplier`.`name`',
             'with_comment_count': 1
@@ -306,13 +313,6 @@ class ShopService {
       var res =
           await _httpService.get("/api/method/get_supplier_by_id?name=$id");
 
-      // if (kDebugMode) {
-      //   items.addAll([
-      //     ShopItemTaminInfo(amount: "1000", name: "test item", price: 1000),
-      //     ShopItemTaminInfo(amount: "2000", name: "test item 2", price: 1000),
-      //     ShopItemTaminInfo(amount: "3000", name: "test item 3", price: 3000)
-      //   ]);
-      // }
       var names = (res?.data?["res"][1] as List<dynamic>)
           .map((e) => e.toString())
           .toList();
@@ -336,49 +336,230 @@ class ShopService {
   }
 
   Future<bool> addShopItem(
-      {required String name, required ShopItemTaminInfo info}) async {
+      {required ShopInfo shopInfo, required ShopItemTaminInfo info}) async {
     try {
       var res = await _httpService.post(
-          "/api/method/frappe.desk.form.save.savedocs",
-          FormData.fromMap({
-            "doc": json.encode({
-              "name": name,
-              "owner": _autService.getUserId(),
-              "modified_by": _autService.getUserId(),
-              "docstatus": 0,
-              "idx": 2,
-              "creation": "2024-06-23 09:19:36.952077",
-              "modified": "2024-07-13 13:08:32.973431",
-              "doctype": "Supplier",
-              "custom__county": [],
-              "custom_items_supplier": [
-                {
-                  "name": "504626c4d1",
-                  "owner": _autService.getUserId(),
-                  "modified_by": _autService.getUserId(),
-                  "docstatus": 0,
-                  "idx": 1,
-                  "creation": "2024-06-23 09:19:36.952077",
-                  "modified": "2024-07-13 13:08:32.973431",
-                  "supplier_items": info.name,
-                  "amount": info.amount,
-                  "price": info.price,
-                  "parent": name,
-                  "parentfield": "custom_items_supplier",
-                  "parenttype": "Supplier",
-                  "doctype": "Items supplier"
-                },
-              ],
-              "__unsaved": 1,
-              "__last_sync_on": "2024-07-19T20:10:37.044Z"
-            }),
-            "action": "Save"
-          }));
-      showErrorMessage(res?.data["_server_messages"]);
-      print(res!.data);
+          "/api/method/add_item_chopo?name=${shopInfo.id}&supplier_items=${info.name}&amount=${info.amount}&price=${info.price}&description=${info.description}&name_supplier=${shopInfo.id}",
+          FormData.fromMap({}));
+
+      Fluttertoast.showToast(msg: res?.data["message"]);
+      return res?.statusCode == 200;
     } catch (e) {
+      Fluttertoast.showToast(msg: "خطایی رخ داده است");
       _logger.e(e);
     }
     return false;
+  }
+
+  Future<bool> saveTransaction(List<Cart> items, {bool byCredit = true}) async {
+    try {
+      Progressbar.showProgress();
+      var res = await _httpService.postFormData(
+          "/api/method/add_market_transactions",
+          jsonEncode({
+            "id_store": items.first.shopId,
+            "id_seller": items.first.shopOwner,
+            "id_buyer":
+                _autService.getUserId().toString().replaceAll("%40", "@"),
+            "status": "آماده تحویل",
+            "items": items
+                .map((d) => Transaction(
+                        supplier_items: d.item,
+                        amount: d.amount.floor(),
+                        price: d.price.floor(),
+                        description: "_")
+                    .toJson())
+                .toList()
+          }));
+      Progressbar.dismiss();
+      showTransactionResult(res?.data["message"]);
+      if (res?.statusCode == 200) {
+        if (byCredit) {
+          decreaseCredit(int.parse((res?.data["total_sum"] ?? "0").toString()));
+        }
+
+        var code = res?.data["message"].replaceAll(new RegExp(r'[^0-9]'), '');
+        _sendSmsToSeller(
+            code: code,
+            name: items.first.shopId,
+            userId: items.first.shopOwner);
+        _decreaseSupply(code);
+      }
+      return res?.statusCode == 200;
+    } catch (e) {
+      showErrorToast(null);
+      _logger.e(e);
+    }
+    return false;
+  }
+
+  Future<void> _sendSmsToSeller(
+      {required String code,
+      required String userId,
+      required String name}) async {
+    var mobile = await _autService.fetchMobile(userId);
+    if (mobile != null) {
+      sendSms(
+          text: "خریدی در بازار $name با کد پیگیری " +
+              "" +
+              " \t" +
+              code +
+              "\t" +
+              "انجام شد برای مشاهده جزئیات به برنامه چوپو مراجعه کنید",
+          phone: mobile);
+    }
+  }
+
+  Future<void> sendSms(
+      {required String text, required String phone, bool retry = true}) async {
+    try {
+      Dio().get(
+          "https://www.my.mizbansms.ir/WsSms.asmx/sendsms?username=mpi_09384501252&password=09384501252&to=${kDebugMode ? 09114583949 : phone}&text=$text&from=5000467254&api=50");
+    } catch (e) {
+      if (retry) {
+        sendSms(text: text, phone: phone, retry: false);
+      }
+      _logger.e(e);
+    }
+  }
+
+  Future<List<ShopOrderModel>> fetchBuyOrders({String? id}) async {
+    try {
+      var result = await _httpService.get(
+          "/api/method/get_buy_transaction?buyer_name=${id ?? _autService.getUserId()}");
+      return (result?.data["res"] as List<dynamic>)
+          .map((e) => ShopOrderModel.fromJson(e))
+          .toList();
+    } catch (e) {
+      _logger.e(e);
+    }
+    return [];
+  }
+
+  Future<List<ShopOrderModel>> fetchSellOrders({String? id}) async {
+    try {
+      var result = await _httpService.get(
+          "/api/method/get_sell_transaction?seller_name=${id ?? _autService.getUserId()}");
+      return (result?.data["res"] as List<dynamic>)
+          .map((e) => ShopOrderModel.fromJson(e))
+          .toList();
+    } catch (e) {
+      _logger.e(e);
+    }
+    return [];
+  }
+
+  Future<void> changeTransactionState(String id,
+      {String state = "تحویل شده"}) async {
+    try {
+      var result = await _httpService.post(
+          "/api/method/change_status?transaction=$id&status=تحویل شده",
+          FormData());
+      Fluttertoast.showToast(msg: result?.data["message"]);
+    } catch (e) {
+      _logger.e(e);
+    }
+  }
+
+  Future<List<String>> getTaminForCurrentUser() async {
+    try {
+      var result = await _httpService.get(
+          "/api/method/get_supplier_bywarehouser?user_id=${_autService.getUserId()}");
+      return ((result?.data["supplier_name"] ?? []) as List<dynamic>)
+          .map((e) => e.toString())
+          .toList();
+    } catch (e) {
+      _logger.e(e);
+    }
+    return [];
+  }
+
+  Future<TransactionInfo?> fetchBuyTransactionsInfo(String id) async {
+    try {
+      var result = await _httpService
+          .get("/api/method/get_buy_transaction?transaction=$id");
+      return TransactionInfo.fromJson(result?.data);
+    } catch (e) {
+      _logger.e(e);
+    }
+    return null;
+  }
+
+  Future<TransactionInfo?> fetchSellTransactionsInfo(String id) async {
+    try {
+      var result = await _httpService
+          .get("/api/method/get_sell_transaction?transaction=$id");
+      return TransactionInfo.fromJson(result?.data);
+    } catch (e) {
+      _logger.e(e);
+    }
+    return null;
+  }
+
+  Future<void> decreaseCredit(int amount) async {
+    try {
+      var nationCode = await _autService.fetchCurrentUserNationNumber();
+      if (nationCode != null) {
+        var result = await _httpService.post(
+            "/api/method/deduction_credit?buyer_id=$nationCode&transaction_total=$amount",
+            FormData.fromMap({}));
+        print(result);
+        _autService.fetchRemainCredit();
+      }
+    } catch (e) {
+      _logger.e(e);
+    }
+  }
+
+  Future<void> saveAndSendVerificationCode(String code, String userId) async {
+    int randomNumber = new Random().nextInt(9000) + 1000;
+    if (await sendVerificationCode(code, randomNumber.toString(), userId)) {
+      _shopRepo.saveTransaction(code, randomNumber.toString());
+      Fluttertoast.showToast(msg: "کد تحویل برای خریدار ارسال شد.");
+    } else {
+      Fluttertoast.showToast(msg: "خطایی رخ داده است");
+    }
+  }
+
+  Future<bool> sendVerificationCode(
+      String code, String verificationCode, String userId) async {
+    var mobile = await _autService.fetchMobile(userId);
+    if (mobile != null) {
+      await sendSms(
+          text: "خرید با کد پیگیری" +
+              "\t" +
+              code +
+              "\t" +
+              "تحویل انبار دار شد\t" +
+              "\n" +
+              "کد تحویل" +
+              ":" "\t" +
+              verificationCode,
+          phone: mobile);
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> closeTransaction(String code) async {
+    try {
+      var res = await _httpService.post(
+          "/api/method/change_deposit_inventory?transaction=$code",
+          FormData.fromMap({}));
+      _logger.i(res);
+    } catch (_) {
+      _logger.e(_);
+    }
+  }
+
+  Future<void> _decreaseSupply(String code) async {
+    try {
+      var res = await _httpService.post(
+          "/api/method/change_inventory_supplier?transaction=$code",
+          FormData.fromMap({}));
+      _logger.i(res);
+    } catch (_) {
+      _logger.e(_);
+    }
   }
 }

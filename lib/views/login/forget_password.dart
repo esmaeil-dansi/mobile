@@ -33,9 +33,11 @@ class ForgetPassword extends StatelessWidget {
             }
           },
           child: Container(
+
             width: 100,
             height: 50,
             decoration: BoxDecoration(
+              color: Colors.white,
                 borderRadius: BorderRadius.circular(50),
                 gradient: LinearGradient(colors: GRADIANT_COLOR)),
             child: Obx(() => _loading.isTrue
@@ -52,71 +54,81 @@ class ForgetPassword extends StatelessWidget {
       appBar: AppBar(
         title: Text("بازیابی رمز عبور"),
       ),
-      body: Obx(() => codeIsSend.isTrue
-          ? Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Text("کد اعتبار سنجی برای شما پیامک شد"),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: 12,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: TextField(
-                    controller: _codeController,
-                    keyboardType: TextInputType.number,
-                    maxLength: 4,
-                    decoration: InputDecoration(
-                      labelText: "کد اعتبار سنجی",
-                      border: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(width: 3, color: Colors.red),
-                        //<-- SEE HERE
-                        borderRadius: BorderRadius.circular(10.0),
+      body: Container(
+        color: Colors.white,
+        child: Obx(() => codeIsSend.isTrue
+            ? Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          Text("کد اعتبار سنجی برای شما پیامک شد"),
+                        ],
                       ),
                     ),
-                  ),
-                )
-              ],
+                    SizedBox(
+                      height: 12,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: TextField(
+                        controller: _codeController,
+                        keyboardType: TextInputType.number,
+                        maxLength: 4,
+                        decoration: InputDecoration(
+                          labelText: "کد اعتبار سنجی",
+                          border: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(width: 3, color: Colors.red),
+                            //<-- SEE HERE
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
             )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Text("کد ملی خود را وارد کنید"),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: 12,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: TextField(
-                    controller: _usernameController,
-                    decoration: InputDecoration(
-                      labelText: "کد ملی",
-                      border: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(width: 3, color: Colors.red),
-                        //<-- SEE HERE
-                        borderRadius: BorderRadius.circular(10.0),
+            : Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          Text("کد ملی خود را وارد کنید"),
+                        ],
                       ),
                     ),
-                  ),
-                )
-              ],
+                    SizedBox(
+                      height: 12,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: TextField(
+                        maxLength: 10,
+                        controller: _usernameController,
+                        decoration: InputDecoration(
+                          labelText: "کد ملی",
+                          border: OutlineInputBorder(
+                            borderSide:
+                                const BorderSide(width: 3, color: Colors.red),
+                            //<-- SEE HERE
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
             )),
+      ),
     );
   }
 

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:frappe_app/model/shop_Item_model.dart';
+import 'package:frappe_app/db/shop_info.dart';
 import 'package:frappe_app/model/shop_item_base_model.dart';
 import 'package:frappe_app/model/shop_item_tamin_info.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
+import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart';
 import 'package:get/get_rx/get_rx.dart';
 import 'package:get_it/get_it.dart';
@@ -13,9 +13,11 @@ import 'package:dropdown_search/dropdown_search.dart';
 import '../../../widgets/constant.dart';
 
 class NewShopItemPage extends StatelessWidget {
-  String shopName;
+  ShopInfo shopInfo;
 
-  NewShopItemPage(this.shopName);
+  NewShopItemPage({required this.shopInfo, required this.onAdd});
+
+  Function(ShopItemTaminInfo) onAdd;
 
   final _group = "".obs;
   ShopItemBaseModel infoModel = ShopItemBaseModel(name: "", unit: "");
@@ -30,8 +32,18 @@ class NewShopItemPage extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 10, left: 10),
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
-          onTap: () {
-            _shopService.addShopItem(name: shopName, info: info);
+          onTap: () async {
+            FocusScope.of(context).requestFocus(new FocusNode());
+            Progressbar.showProgress();
+            if (info.description.isEmpty) {
+              info.description = "_";
+            }
+            if (await _shopService.addShopItem(
+                shopInfo: shopInfo, info: info)) {
+              onAdd(info);
+              Get.back();
+            }
+            Progressbar.dismiss();
           },
           child: Container(
               width: 120,
@@ -212,7 +224,7 @@ class NewShopItemPage extends StatelessWidget {
                                           TextField(
                                             keyboardType: TextInputType.text,
                                             onChanged: (_) {
-                                              // name_dam = _;
+                                              info.description = _;
                                             },
                                             minLines: 2,
                                             maxLines: 3,

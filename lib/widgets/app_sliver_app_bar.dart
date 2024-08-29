@@ -24,6 +24,7 @@ PreferredSizeWidget appSliverAppBar(String title, {PreferredSizeWidget? bottom})
     // title of appbar
     title: Text(
       title,
+      style: TextStyle(fontSize: 19),
     ),
     bottom: bottom,
   );

@@ -1,5 +1,5 @@
 class Weather {
-  double temp;
+  String temp;
   String icon;
   String main;
   String description;

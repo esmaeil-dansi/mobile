@@ -41,7 +41,7 @@ class _ShopGroupTaminPageState extends State<ShopGroupTaminPage> {
         ),
         title: Text(
           "تامین کننده های " + widget.group.name,
-          style: TextStyle(fontSize: 20),
+          style: TextStyle(fontSize: 18),
         ),
       ),
       body: Padding(
@@ -63,7 +63,10 @@ class _ShopGroupTaminPageState extends State<ShopGroupTaminPage> {
                     return ListView.builder(
                         itemCount: tamins.length,
                         itemBuilder: (c, i) {
-                          return ShopItemTaminPage(tamins[i], widget.group);
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ShopItemTaminPage(tamins[i], widget.group),
+                          );
                         });
                   }
                 } else if (snapshot.connectionState ==

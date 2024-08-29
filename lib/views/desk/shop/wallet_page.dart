@@ -78,19 +78,11 @@ class _WalletPageState extends State<WalletPage> {
                         SizedBox(
                           width: 4,
                         ),
-                        Obx(()=>
-                        Text(
-                          _autService.remainCredit.value.toString(),
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20),
-                        )),
-                        SizedBox(
-                          width: 4,
-                        ),
-                        Text(
-                          "تومان",
-                          style: TextStyle(color: Colors.blueGrey),
-                        ),
+                        Obx(() => Text(
+                              _autService.remainCredit.value.toString(),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 20),
+                            )),
                       ],
                     )
                   ],

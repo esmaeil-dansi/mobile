@@ -406,7 +406,6 @@ class VisitService {
       {required AgentInfo agentInfo,
       required AddInitialVisitFormModel model,
       required int time}) async {
-    _sendUserTag(nationalId: agentInfo.nationId, type: "Initial Visit");
     model.owner = _autService.getUserId();
     model.rahbar = agentInfo.rahbar;
     model.city = agentInfo.city;
@@ -441,7 +440,7 @@ class VisitService {
             : RequestStatus.Pending,
       )));
       if (result?.statusCode == 200) {
-        _sendUserTag(nationalId: agentInfo.nationId, type: "Initial Visit");
+        sendUserTag(nationalId: agentInfo.nationId, type: "Initial Visit");
         Fluttertoast.showToast(msg: "ثبت شد");
         return true;
       } else {
@@ -606,7 +605,7 @@ class VisitService {
           body: json.encode(addPerVisitFormModel))));
 
       if (res?.statusCode == 200) {
-        _sendUserTag(
+        sendUserTag(
             nationalId: addPerVisitFormModel.nationalId ?? "",
             type: "Periodic visits");
         Fluttertoast.showToast(msg: "ثبت شد");
@@ -1133,7 +1132,7 @@ class VisitService {
                 : RequestStatus.Pending,
             body: json.encode(model))));
         if (res?.statusCode == 200) {
-          _sendUserTag(nationalId: agentInfo.nationId, type: "Vet Visit");
+          sendUserTag(nationalId: agentInfo.nationId, type: "Vet Visit");
           Fluttertoast.showToast(msg: "ثبت شد");
           return true;
         } else {
@@ -1379,7 +1378,7 @@ class VisitService {
     return [];
   }
 
-  Future<void> _sendUserTag(
+  Future<void> sendUserTag(
       {required String nationalId, required String type}) async {
     try {
       var rs = await _httpService.post(

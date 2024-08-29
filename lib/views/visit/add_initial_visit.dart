@@ -58,6 +58,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
 
   @override
   void initState() {
+    _visitService.sendUserTag(nationalId: "3674073463", type: "Initial Visit");
     if (widget.addInitialVisitFormModel != null) {
       model = widget.addInitialVisitFormModel!;
       _dam.value = model.dam ?? 0;

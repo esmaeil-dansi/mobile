@@ -41,7 +41,8 @@ class _LoginState extends State<Login> {
           children: [
             Container(
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30), color: Colors.white),
+                  borderRadius: BorderRadius.circular(30),
+                  color: Colors.white),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2),
                 child: Column(
@@ -94,6 +95,7 @@ class _LoginState extends State<Login> {
           width: double.infinity,
           // height: Get.height*0,
           decoration: BoxDecoration(
+            color: Colors.white
               // image: DecorationImage(
               //   image: AssetImage("assets/icons/background.jpg"),
               //   fit: BoxFit.cover,

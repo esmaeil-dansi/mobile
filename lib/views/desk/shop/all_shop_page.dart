@@ -19,6 +19,7 @@ class _AllShopPageState extends State<AllShopPage> {
 
   @override
   void initState() {
+    _shopService.fetchAllItemsUnit();
     _shopService.fetchShopInfo();
     super.initState();
   }

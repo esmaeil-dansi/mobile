@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/db/advertisement.dart';
 import 'package:frappe_app/db/dao/advertisement_dao.dart';
 import 'package:frappe_app/model/weather.dart';
@@ -27,7 +28,7 @@ class AutService {
   String phone = "";
   String verifyCode = "";
 
-  var remainCredit = 0.obs;
+  var remainCredit = "".obs;
 
   String _sid = "";
   String _full_name = "";
@@ -44,6 +45,8 @@ class AutService {
   bool isSarRahbar() => this._roles.contains("سر راهبر");
 
   bool isSupplier() => this._roles.contains("Supplier");
+
+  bool isStorekeeper() => this._roles.contains("انباردار");
 
   String getProvince() => _sharedPreferences.getString(PROVINCE) ?? "";
 
@@ -94,20 +97,21 @@ class AutService {
 
   Future<void> fetchRemainCredit() async {
     try {
-      remainCredit.value = _sharedPreferences.getInt(REMAIN_CREDIT_KEY) ?? 0;
-      final info = await GetIt.I
-          .get<HttpService>()
-          .get("/api/method/get_remain_credit?username=${_user_id}");
-      final r = info?.data["remain_list"];
-      _sharedPreferences.setInt(REMAIN_CREDIT_KEY, r);
-      remainCredit.value = r;
+      remainCredit.value =
+          _sharedPreferences.getString(REMAIN_CREDIT_KEY_1) ?? "";
+      var nationNumber = await fetchCurrentUserNationNumber();
+      if (nationNumber != null) {
+        final info = await GetIt.I
+            .get<HttpService>()
+            .get("/api/method/get_remain_credit?username=${nationNumber}");
+        final r = info?.data["remain_credit"] ?? "";
+        _sharedPreferences.setString(REMAIN_CREDIT_KEY_1, r);
+        remainCredit.value = r;
+      }
     } catch (_) {
       _logger.e(_);
     }
   }
-
-  double getRemainCredit() =>
-      _sharedPreferences.getDouble(REMAIN_CREDIT_KEY) ?? 0.0;
 
   bool needToFetchWeather() {
     return DateTime.now().millisecondsSinceEpoch -
@@ -234,7 +238,7 @@ class AutService {
       var s = data[j];
       var date = getDate(j);
       res.add(Weather(
-          temp: s["temp"]["eve"],
+          temp: (s["temp"]["eve"]).toString(),
           icon: s["weather"][0]["icon"],
           main: s["weather"][0]["main"],
           description: s["weather"][0]["description"],
@@ -362,6 +366,106 @@ class AutService {
       _logger.e(e);
     }
     return "خطایی رخ داده است";
+  }
+
+  Future<bool> supplierInfoSubmitted() async {
+    try {
+      if ((_sharedPreferences.getBool(SUPPLIER_INFO_KEY)) ?? false) {
+        return true;
+      }
+      var res = await GetIt.I
+          .get<HttpService>()
+          .get("/api/method/get_supplier_doc?name_user=$USER_ID");
+      if (((res?.data["res"]["name"]) ?? "").toString().isNotEmpty) {
+        _sharedPreferences.setBool(SUPPLIER_INFO_KEY, true);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _logger.e(e);
+    }
+    return false;
+  }
+
+  Future<bool> submitSupplierInfo(
+      {required String image,
+      required String cardNumber,
+      required String name}) async {
+    try {
+      Progressbar.showProgress();
+      var imageUri = await GetIt.I
+          .get<FileService>()
+          .uploadFile(image, "User", docname: "new-message-1");
+      if (imageUri != null && imageUri.isNotEmpty) {
+        var res = await GetIt.I.get<HttpService>().post(
+            "/api/method/add_supp_doc",
+            FormData.fromMap({
+              "name": getUserId(),
+              "custom_account_number": cardNumber,
+              "custom_id_card": imageUri
+            }));
+        Progressbar.dismiss();
+        if (res?.statusCode == 200) {
+          _sharedPreferences.setBool(SUPPLIER_INFO_KEY, true);
+          Fluttertoast.showToast(msg: res?.data["message"]);
+          return true;
+        }
+      }
+      Progressbar.dismiss();
+      return false;
+    } catch (e) {
+      _logger.e(e);
+    }
+    Progressbar.dismiss();
+    return false;
+  }
+
+  Future<void> sendReport(String text) async {
+    try {
+      GetIt.I.get<HttpService>().post(
+          "https://icasp.ir/api/method/add_suggestions?user_id=$_user_id&suggest_text=$text",
+          FormData());
+    } catch (_) {}
+  }
+
+  Future<String?> fetchNationNumber(String userId) async {
+    try {
+      var res = await GetIt.I
+          .get<HttpService>()
+          .get("/api/method/get_user_info?user_id=$userId");
+      return res?.data?["res"][0]["username"].toString();
+    } catch (e) {
+      _logger.e(e);
+    }
+    return null;
+  }
+
+  Future<String?> fetchCurrentUserNationNumber() async {
+    try {
+      if (_sharedPreferences.getString(CURRENT_USER_NATIONAL_ID) != null) {
+        return _sharedPreferences.getString(CURRENT_USER_NATIONAL_ID)!;
+      }
+      var id = await fetchNationNumber(getUserId());
+      if (id != null) {
+        _sharedPreferences.setString(CURRENT_USER_NATIONAL_ID, id);
+        return id;
+      }
+    } catch (e) {
+      _logger.e(e);
+    }
+    return null;
+  }
+
+  Future<String?> fetchMobile(String userId) async {
+    try {
+      var res = await GetIt.I
+          .get<HttpService>()
+          .get("/api/method/get_user_info?user_id=$userId");
+      return res?.data?["res"][0]["mobile_no"];
+    } catch (e) {
+      _logger.e(e);
+    }
+    return null;
   }
 
   Future<void> getPermission() async {

@@ -81,6 +81,21 @@ class HttpService {
         queryParameters: ma);
   }
 
+  Future<Response<dynamic>?> postFormData(String path, dynamic data,
+      {Map<String, dynamic>? map}) async {
+    return _dio.post(path,
+        data: data,
+        options: Options(
+          headers: {
+            "cookie": getCookie(),
+            'X-Frappe-Csrf-Token':
+                "80b201c014cd400bbc4c5e6b197a68e473a2a7ad56366c36d71f71c0",
+            'Origin': "https://icasp.ir",
+            'Host': "icasp.ir",
+          },
+        ));
+  }
+
   Future<Response<dynamic>?> get(String path) async {
     return await _dio.get(path,
         options: Options(

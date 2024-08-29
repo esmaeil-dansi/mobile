@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:frappe_app/db/shop_info.dart';
+import 'package:frappe_app/db/transaction_state.dart';
 import 'package:hive/hive.dart';
 
 class ShopDao {
@@ -10,6 +11,15 @@ class ShopDao {
     } catch (e) {
       await Hive.deleteBoxFromDisk(_key());
       return Hive.openBox<ShopInfo>(_key());
+    }
+  }
+
+  Future<Box<TransactionState>> _openTransaction() async {
+    try {
+      return Hive.openBox<TransactionState>(_transaction_key());
+    } catch (e) {
+      await Hive.deleteBoxFromDisk(_transaction_key());
+      return Hive.openBox<TransactionState>(_transaction_key());
     }
   }
 
@@ -26,10 +36,29 @@ class ShopDao {
     yield* box.watch().map((event) => box.values.toList());
   }
 
-  Future<ShopInfo?> get() async {
+  Future<List<ShopInfo>> getAll() async {
     try {
       var box = await _open();
-      return box.get(_my_key());
+      return box.values.toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<void> saveTransaction(String code, String verification,
+      {bool close = false}) async {
+    try {
+      TransactionState transactionState = TransactionState(
+          code: code, verificationCode: verification, closed: close);
+      var box = await _openTransaction();
+      return box.put(code, transactionState);
+    } catch (_) {}
+  }
+
+  Future<TransactionState?> getTransaction(String code) async {
+    try {
+      var box = await _openTransaction();
+      return box.get(code);
     } catch (e) {
       return null;
     }
@@ -38,6 +67,8 @@ class ShopDao {
   String _key() => "shop_infos_1";
 
   String _my_key() => "shop_info_key_1";
+
+  String _transaction_key() => "_transaction_key_1";
 
   Future<void> deleteAll() async {
     try {

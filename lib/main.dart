@@ -12,6 +12,7 @@ import 'package:frappe_app/db/price_avg.dart';
 import 'package:frappe_app/db/request.dart';
 import 'package:frappe_app/db/request_statuse.dart';
 import 'package:frappe_app/db/shop_info.dart';
+import 'package:frappe_app/db/transaction_state.dart';
 import 'package:frappe_app/repo/request_repo.dart';
 import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/repo/shop_repo.dart';
@@ -38,6 +39,7 @@ void main() async {
   Hive.registerAdapter(ShopInfoAdapter());
   Hive.registerAdapter(PriceAvgAdapter());
   Hive.registerAdapter(CartAdapter());
+  Hive.registerAdapter(TransactionStateAdapter());
   initServicesAndRepo();
 
   runApp(MyApp());
