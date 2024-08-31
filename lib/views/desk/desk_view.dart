@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/views/desk/home_view.dart';
 import 'package:frappe_app/views/desk/order_page.dart';
@@ -36,6 +37,7 @@ class _DesktopViewState extends State<DesktopView> {
   var unselectSize = 28.0;
   var selectedSize = 28.0;
   var _autService = GetIt.I.get<AutService>();
+  var _shopService = GetIt.I.get<ShopService>();
 
   @override
   void initState() {
@@ -72,7 +74,12 @@ class _DesktopViewState extends State<DesktopView> {
   Future<void> _checkSupplierInfoState() async {
     if (_autService.isSupplier()) {
       if (!await _autService.supplierInfoSubmitted()) {
-        Get.offAll(() => SupplierInfoPage());
+        await _shopService.fetchShopInfo();
+        if(_shopService.hasShop){
+          Get.offAll(() => SupplierInfoPage());
+        }
+
+
       }
     }
   }

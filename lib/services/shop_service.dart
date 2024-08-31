@@ -33,6 +33,8 @@ class ShopService {
   var _autService = GetIt.I.get<AutService>();
   var _logger = Logger();
 
+  var hasShop = false;
+
   var units = Map<String, String>();
 
   String _SHOP_IMAGE = "SHOP_IMAGE";
@@ -65,6 +67,7 @@ class ShopService {
   void _extractShopInf(List<dynamic> data) {
     try {
       var l = data.length;
+      hasShop = l > 0;
       List<List<dynamic>> sData = [];
       int j = 0;
       while (j < l) {
