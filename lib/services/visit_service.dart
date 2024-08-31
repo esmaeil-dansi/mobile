@@ -167,7 +167,7 @@ class VisitService {
         }),
       );
       var info = AgentInfo.fromJsom(result?.data["message"]);
-      return info;
+      return info..nationId = nationalCode;
     } catch (e) {
       _logger.e(e);
     }
@@ -440,7 +440,7 @@ class VisitService {
             : RequestStatus.Pending,
       )));
       if (result?.statusCode == 200) {
-        sendUserTag(nationalId: agentInfo.nationId, type: "Initial Visit");
+        sendUserTag(nationalId: model.nationalId ?? "", type: "Initial Visit");
         Fluttertoast.showToast(msg: "ثبت شد");
         return true;
       } else {

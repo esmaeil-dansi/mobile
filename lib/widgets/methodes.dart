@@ -207,6 +207,14 @@ Widget transactionBuilder(List<ShopOrderModel> items, bool isSell) {
                                 ),
                                 CustomTextFormField(
                                   readOnly: true,
+                                  label: "روش پرداخت",
+                                  value: items[i].paymentType,
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                CustomTextFormField(
+                                  readOnly: true,
                                   label: "فروشنده",
                                   value: info.seller_name,
                                 ),

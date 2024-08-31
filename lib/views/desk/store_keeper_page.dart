@@ -254,6 +254,14 @@ class _TransactionInfoPageState extends State<TransactionInfoPage> {
                       ),
                       CustomTextFormField(
                         readOnly: true,
+                        label: "روش پرداخت",
+                        value: widget.code.paymentType,
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      CustomTextFormField(
+                        readOnly: true,
                         label: "فروشنده",
                         value: widget.transactionInfo.seller_name,
                       ),

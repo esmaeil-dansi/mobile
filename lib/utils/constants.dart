@@ -1,4 +1,4 @@
-const VERSION = "4.0.3";
+const VERSION = "4.0.4";
 //shared key
 const LAST_FETCH_AVG_PRICE_TIME = "LAST_FETCH_AVG_PRICE_TIME";
 const SID = "sid";

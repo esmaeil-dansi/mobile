@@ -90,7 +90,7 @@ class _CartPageState extends State<CartPage> {
                                       backgroundColor: Colors.green),
                                   onPressed: () {
                                     Navigator.pop(c);
-                                    _buy(false);
+                                    _buy("پرداخت در محل");
                                   },
                                   child: Center(
                                       child: Text(
@@ -237,7 +237,7 @@ class _CartPageState extends State<CartPage> {
 
   Future<void> _handeBuyByCredit(BuildContext context) async {
     if (_havingEnoughCredit()) {
-      await _buy(true);
+      await _buy("پرداخت از اعتبار");
     } else {
       showDialog(
           context: context,
@@ -298,9 +298,9 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  Future<void> _buy(bool byCredit) async {
-    if (await _shopService.saveTransaction(_cart.values.toList(),
-        byCredit: byCredit)) {
+  Future<void> _buy(String paymentType) async {
+    if (await _shopService.saveTransaction(
+        items: _cart.values.toList(), paymentType: paymentType)) {
       _shopRepo.deleteAllCarts();
     }
   }

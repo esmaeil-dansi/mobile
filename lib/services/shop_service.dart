@@ -351,13 +351,15 @@ class ShopService {
     return false;
   }
 
-  Future<bool> saveTransaction(List<Cart> items, {bool byCredit = true}) async {
+  Future<bool> saveTransaction(
+      {required List<Cart> items, required String paymentType}) async {
     try {
       Progressbar.showProgress();
       var res = await _httpService.postFormData(
           "/api/method/add_market_transactions",
           jsonEncode({
             "id_store": items.first.shopId,
+            "payment_type": paymentType,
             "id_seller": items.first.shopOwner,
             "id_buyer":
                 _autService.getUserId().toString().replaceAll("%40", "@"),
@@ -374,7 +376,7 @@ class ShopService {
       Progressbar.dismiss();
       showTransactionResult(res?.data["message"]);
       if (res?.statusCode == 200) {
-        if (byCredit) {
+        if (paymentType == "پرداخت از اعتبار") {
           decreaseCredit(int.parse((res?.data["total_sum"] ?? "0").toString()));
         }
 
