@@ -3,7 +3,7 @@ import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
+import 'package:flutter/widgets.dart';
 import 'package:frappe_app/db/dao/price_dao.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
@@ -13,7 +13,6 @@ import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/views/desk/prices_view.dart';
 import 'package:frappe_app/views/desk/product_store.dart';
 import 'package:frappe_app/views/desk/profile_page.dart';
-import 'package:frappe_app/views/desk/shop/shop_item_search_page.dart';
 import 'package:frappe_app/views/desk/shop/wallet_page.dart';
 import 'package:frappe_app/views/desk/support_view.dart';
 import 'package:frappe_app/views/desk/weather_view.dart';
@@ -22,7 +21,6 @@ import 'package:frappe_app/views/visit/initial_visit.dart';
 import 'package:frappe_app/views/visit/periodic_visits.dart';
 import 'package:frappe_app/views/visit/product_visit.dart';
 import 'package:frappe_app/views/visit/vet_visit.dart';
-import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:frappe_app/widgets/shop_cart_count.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
@@ -41,7 +39,7 @@ class _HomeViewState extends State<HomeView> {
   final _priceDao = GetIt.I.get<PriceAvgDao>();
   final _shopService = GetIt.I.get<ShopService>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = GlobalKey();
-  List<String> widgets = ['آب و هوا', 'قیمت ها', 'پیام', 'بازدید اولیه', 'بازدید دوره ای', 'بازدید دامپزشک', 'پشتیبانی', 'اینستاگرام', 'آموزش مقالات'];
+  List<String> suggest = ['آب و هوا', 'قیمت ها', 'پیام', 'بازدید اولیه', 'بازدید دوره ای', 'بازدید دامپزشک', 'پشتیبانی', 'فروشگاه محصولات'];
   final List<String> imgList = ['assets/slider01.png', 'assets/slider02.png'];
 
   void _navigateToPage(String pageName) {
@@ -54,8 +52,7 @@ class _HomeViewState extends State<HomeView> {
       case 'بازدید دوره ای':page = ProductVisit();break;
       case 'بازدید دامپزشک':page = VetVisit();break;
       case 'پشتیبانی':page = SupportView();break;
-      case 'اینستاگرام':page = _buildItem(() => Get.to(() => _launchURL()), 'assets/instagram.json', "اینستاگرام");break;
-      case 'اموزش مقالات':page = _buildItem(() => Get.to(() => _launchURL()), 'assets/articles.json', "آموزش مقالات");break;
+      case 'فروشگاه محصولات' :page = ProductStore();break;
       default:page = HomeView();
     }
     Navigator.push(
@@ -118,7 +115,7 @@ class _HomeViewState extends State<HomeView> {
               children: [
                 AutoCompleteTextField<String>(
                   key: key,
-                  suggestions: widgets,
+                  suggestions: suggest,
                   decoration: InputDecoration(
                     labelText: 'جستجو',
                     prefixIcon: Icon(Icons.search),
@@ -184,9 +181,9 @@ class _HomeViewState extends State<HomeView> {
                               children: [
                                 _buildItem(() => Get.to(() => SupportView()),
                                     'assets/support.json', "پشتیبانی"),
-                                _buildItem(() => Get.to(() => _launchURL()),
+                                _buildItem(() => Get.to(() => null),
                                     'assets/instagram.json', "اینستاگرام"),
-                                _buildItem(() => Get.to(() => _launchURL()),
+                                _buildItem(() => Get.to(() => null),
                                     'assets/articles.json', "آموزش مقالات"),
                               ],
                             ),
@@ -208,19 +205,14 @@ class _HomeViewState extends State<HomeView> {
                 //   Text("شما دسترسی ندارید!")
                 CarouselSlider(
                   options: CarouselOptions(
-                    height: 400.0,
+                    height: 150.0,
                     autoPlay: true,
                     enlargeCenterPage: true,
                   ),
                   items: imgList
                       .map((item) => GestureDetector(
-                            onTap: () async {
-                              const url = 'https://Chopo.ir';
-                              if (await canLaunch(url)) {
-                                await launch(url);
-                              } else {
-                                throw 'Could not launch $url';
-                              }
+                            onTap: ()  {
+                              _launchURL();
                             },
                             child: Container(
                               child: Center(
@@ -373,7 +365,7 @@ class _HomeViewState extends State<HomeView> {
       ),
     );
   }
-
+  
   String _splitPrice(String t) {
     var s = t.split('').reversed.toList();
     List<List<String>> sf = [];
@@ -396,11 +388,11 @@ class _HomeViewState extends State<HomeView> {
   }
 
   void _launchURL() async {
-    String url = 'https://Chopoo.ir/';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
+    final Uri _url = Uri.parse('https://Chopoo.ir/');
+    // if (await canLaunchUrl(_url)) {
+      await launchUrl(_url);
+    // } else {
+    //   throw 'Could not launch $_url';
+    // }
   }
 }
