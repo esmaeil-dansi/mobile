@@ -1,29 +1,31 @@
 import 'dart:math';
+import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
+import 'package:flutter/widgets.dart';
 import 'package:frappe_app/db/dao/price_dao.dart';
-import 'package:frappe_app/methods.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
 import 'package:frappe_app/model/shop_group.dart';
 import 'package:frappe_app/model/shop_type.dart';
 import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/views/desk/prices_view.dart';
+import 'package:frappe_app/views/desk/product_store.dart';
 import 'package:frappe_app/views/desk/profile_page.dart';
-import 'package:frappe_app/views/desk/shop/cart_page.dart';
-import 'package:frappe_app/views/desk/shop/shop_group_item_ui.dart';
-import 'package:frappe_app/views/desk/shop/shop_item_search_page.dart';
 import 'package:frappe_app/views/desk/shop/wallet_page.dart';
+import 'package:frappe_app/views/desk/support_view.dart';
+import 'package:frappe_app/views/desk/weather_view.dart';
 import 'package:frappe_app/views/message/messages_view.dart';
 import 'package:frappe_app/views/visit/initial_visit.dart';
 import 'package:frappe_app/views/visit/periodic_visits.dart';
 import 'package:frappe_app/views/visit/product_visit.dart';
 import 'package:frappe_app/views/visit/vet_visit.dart';
-import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
 import 'package:frappe_app/widgets/shop_cart_count.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lottie/lottie.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/constant.dart';
 
 class HomeView extends StatefulWidget {
@@ -36,6 +38,28 @@ class _HomeViewState extends State<HomeView> {
   final _visitService = GetIt.I.get<VisitService>();
   final _priceDao = GetIt.I.get<PriceAvgDao>();
   final _shopService = GetIt.I.get<ShopService>();
+  GlobalKey<AutoCompleteTextFieldState<String>> key = GlobalKey();
+  List<String> suggest = ['آب و هوا', 'قیمت ها', 'پیام', 'بازدید اولیه', 'بازدید دوره ای', 'بازدید دامپزشک', 'پشتیبانی', 'فروشگاه محصولات'];
+  final List<String> imgList = ['assets/slider01.png', 'assets/slider02.png'];
+
+  void _navigateToPage(String pageName) {
+    Widget page;
+    switch (pageName) {
+      case 'آب و هوا':page = WeatherView();break;
+      case 'قیمت ها':page = PricesView();break;
+      case 'پیام':page = MessagesView();break;
+      case 'بازدید اولیه':page = InitialVisit();break;
+      case 'بازدید دوره ای':page = ProductVisit();break;
+      case 'بازدید دامپزشک':page = VetVisit();break;
+      case 'پشتیبانی':page = SupportView();break;
+      case 'فروشگاه محصولات' :page = ProductStore();break;
+      default:page = HomeView();
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => page),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,217 +113,36 @@ class _HomeViewState extends State<HomeView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 13, horizontal: 3),
-                  child: Obx(() => _autService.weathers.isNotEmpty
-                      ? SingleChildScrollView(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: _autService.weathers
-                                .map((element) => Container(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            getWeatherDescription(element.main,
-                                                    element.description)
-                                                .$2,
-                                            size: 30,
-                                            color: getWeatherDescription(
-                                                    element.main,
-                                                    element.description)
-                                                .$3,
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Row(
-                                            children: [
-                                              Text(
-                                                "\tC",
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 10),
-                                              ),
-                                              Stack(
-                                                alignment: Alignment.topLeft,
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            left: 30),
-                                                    child: Icon(
-                                                      Icons.circle_outlined,
-                                                      size: 7,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    element.temp.toString(),
-                                                    style: TextStyle(
-                                                        fontSize: 9.5),
-                                                  ),
-                                                  SizedBox(
-                                                    height: 1,
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                          Text(
-                                            getWeatherDescription(
-                                              element.main,
-                                              element.description,
-                                            ).$1,
-                                            style: TextStyle(fontSize: 10),
-                                          ),
-                                          Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(element.w),
-                                              SizedBox(
-                                                width: 4,
-                                              ),
-                                              Text(
-                                                element.date,
-                                                style: TextStyle(fontSize: 12),
-                                              ),
-                                            ],
-                                          )
-                                        ],
-                                      ),
-                                    ))
-                                .toList(),
-                          ),
-                        )
-                      : SizedBox(
-                          height: 90,
-                        )),
+                AutoCompleteTextField<String>(
+                  key: key,
+                  suggestions: suggest,
+                  decoration: InputDecoration(
+                    labelText: 'جستجو',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  itemFilter: (item, query) {
+                    return item.toLowerCase().startsWith(query.toLowerCase());
+                  },
+                  itemSorter: (a, b) {
+                    return a.compareTo(b);
+                  },
+                  itemSubmitted: (item) {
+                    setState(() {
+                      _navigateToPage(item);
+                    });
+                  },
+                  itemBuilder: (context, item) {
+                    return ListTile(
+                      title: Text(item),
+                    );
+                  },
                 ),
-                StreamBuilder<PriceInfo?>(
-                    stream: _priceDao.watch(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData && snapshot.data != null) {
-                        var info = snapshot.data!;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildReport(
-                                      "گوسفند داشتی(راس)",
-                                      info.gosfand.toString(),
-                                      info.dosfandD,
-                                    ),
-                                    _buildReport(
-                                      "گاو شیری(راس)",
-                                      info.gov.toString(),
-                                      info.govD,
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    _buildReport("شتر پرواری(نفر)",
-                                        info.shotor.toString(), info.shotorD),
-                                    _buildReport("قیمت جو(کیلوگرم)",
-                                        info.go.toString(), info.goD),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "*",
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                    SizedBox(
-                                      width: 3,
-                                    ),
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Text(
-                                        "منبع میانگین قیمت ها شرکت گسترش توسعه گری پردیس می باشد.",
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                        ),
-                                        maxLines: 2,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-                      return SizedBox.shrink();
-                    }),
                 SizedBox(
                   height: 10,
                 ),
-                if (_autService.isDamdar())
-                  Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Row(
-                          children: [
-                            Text(
-                              "فروشگاه محصولات",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 2, horizontal: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            for (var t in _productsGroup)
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 3),
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.translucent,
-                                  onTap: () {
-                                    showShopItems(t.type.getName());
-                                  },
-                                  child: _shopItemUi(
-                                      showEmoji: t.type != ShopType.NAHADA,
-                                      title: t.type.getName(),
-                                      width: Get.width * 0.42,
-                                      height: 250,
-                                      asset: t.asset),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                 if (_autService.isRahbar() || _autService.isSarRahbar())
                   Column(
                     children: [
@@ -307,48 +150,48 @@ class _HomeViewState extends State<HomeView> {
                         height: 10,
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Row(
-                          children: [
-                            Text(
-                              "فرم ها",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
+                                _buildItem(() => Get.to(() => WeatherView()),
+                                    'assets/weather.json', "آب و هوا"),
+                                _buildItem(() => Get.to(() => PricesView()),
+                                    'assets/price.json', "قیمت ها"),
                                 _buildItem(() => Get.to(() => MessagesView()),
                                     'assets/messages.json', "پیام"),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
                                 _buildItem(() => Get.to(() => InitialVisit()),
                                     'assets/visit.json', "بازدید اولیه"),
                                 _buildItem(() => Get.to(() => PeriodicVisits()),
                                     'assets/periodic.json', "بازدید دوره ای"),
-                              ],
-                              // scrollDirection: Axis.horizontal,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
                                 _buildItem(() => Get.to(() => VetVisit()),
                                     'assets/vetvisit.json', "بازدید دامپزشک"),
                                 // _buildItem(() => Get.to(() => ProductVisit()),
-                                //     'assets/product.json', "بهره وری"),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 4, horizontal: 2),
-                                  child: SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.24,
-                                  ),
-                                )
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _buildItem(() => Get.to(() => SupportView()),
+                                    'assets/support.json', "پشتیبانی"),
+                                _buildItem(() => Get.to(() => null),
+                                    'assets/instagram.json', "اینستاگرام"),
+                                _buildItem(() => Get.to(() => null),
+                                    'assets/articles.json', "آموزش مقالات"),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _buildItem(() => Get.to(() => ProductStore()),
+                                    'assets/productstore.json', "فروشگاه محصولات"),
                               ],
                             )
                           ],
@@ -360,6 +203,26 @@ class _HomeViewState extends State<HomeView> {
                 //     !_autService.isDamdar() &&
                 //     !_autService.isSarRahbar())
                 //   Text("شما دسترسی ندارید!")
+                CarouselSlider(
+                  options: CarouselOptions(
+                    height: 150.0,
+                    autoPlay: true,
+                    enlargeCenterPage: true,
+                  ),
+                  items: imgList
+                      .map((item) => GestureDetector(
+                            onTap: ()  {
+                              _launchURL();
+                            },
+                            child: Container(
+                              child: Center(
+                                child: Image.asset(item,
+                                    fit: BoxFit.cover, width: 1000),
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                ),
               ],
             ),
           ),
@@ -396,7 +259,8 @@ class _HomeViewState extends State<HomeView> {
             child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () {
-                  onTap();
+                  if(title== "اینستاگرام"|| title=="آموزش مقالات"){_launchURL();}
+                  else{onTap();}
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -419,94 +283,6 @@ class _HomeViewState extends State<HomeView> {
                     ),
                   ],
                 )),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _shopItemUi(
-      {required String title,
-      required String asset,
-      required double width,
-      required double height,
-      bool showEmoji = false}) {
-    width = width;
-    height = height;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.black12.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.black12),
-          boxShadow: [
-            // BoxShadow(
-            //   color: Colors.black12,
-            //   blurRadius: 4,
-            //   // offset: Offset(4, 8), // Shadow position
-            // ),
-          ],
-        ),
-        width: width,
-        height: 130,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: showEmoji
-                      ? ImageSlideshow(
-                          height: 80,
-                          indicatorRadius: 0,
-                          disableUserScrolling: true,
-                          autoPlayInterval: 3000,
-                          isLoop: true,
-                          children: ["🐂", "🐐", "🐑", "🐪", "🐔", "🦃"]
-                              .map((e) => Center(
-                                    child: Text(
-                                      e,
-                                      style: TextStyle(fontSize: 50),
-                                    ),
-                                  ))
-                              .toList(),
-                        )
-                      : ImageSlideshow(
-                          height: 80,
-                          indicatorRadius: 0,
-                          disableUserScrolling: true,
-                          autoPlayInterval: 2000,
-                          isLoop: true,
-                          children: [
-                            "assets/icons/konjala_soya.jpg",
-                            "assets/icons/kah.jpg",
-                            "assets/icons/zorrat.jpg",
-                            "assets/icons/consantara_parvari.jfif",
-                            "assets/icons/yonja.jfif",
-                            "assets/icons/sabos.jpeg",
-                          ]
-                              .map((e) => Image.asset(
-                                    e,
-                                    // width: 110,
-                                    height: 70,
-                                    fit: BoxFit.fill,
-                                  ))
-                              .toList(),
-                        ),
-                ),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text(
-                title,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              )
-            ],
           ),
         ),
       ),
@@ -589,7 +365,7 @@ class _HomeViewState extends State<HomeView> {
       ),
     );
   }
-
+  
   String _splitPrice(String t) {
     var s = t.split('').reversed.toList();
     List<List<String>> sf = [];
@@ -611,7 +387,12 @@ class _HomeViewState extends State<HomeView> {
     return sr;
   }
 
-  void showShopItems(String group) {
-    Get.bottomSheet(bottomSheetTemplate(ShopItemSearchPage(group)));
+  void _launchURL() async {
+    final Uri _url = Uri.parse('https://Chopoo.ir/');
+    // if (await canLaunchUrl(_url)) {
+      await launchUrl(_url);
+    // } else {
+    //   throw 'Could not launch $_url';
+    // }
   }
 }

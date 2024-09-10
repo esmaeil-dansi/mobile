@@ -540,12 +540,12 @@ class AutService {
       required String province,
       required String bio,
       required String firstname,
-      required bool damdar,
+      required bool tamin,
       required String lastname}) async {
     try {
-      if (damdar) {
+      if (tamin) {
         var res = await await GetIt.I.get<HttpService>().post(
-            "/api/method/create_damdar?mobile=$phone&new_password=$password&verify_code=$verifyCode&national_id=$nationalId"
+            "/api/method/create_taminuser?mobile=$phone&new_password=$password&verify_code=$verifyCode&national_id=$nationalId"
             "&province=$province&bio=$bio&first_name=$firstname&last_name=$lastname",
             FormData.fromMap({}));
         Progressbar.dismiss();
@@ -557,7 +557,7 @@ class AutService {
         }
       } else {
         var res = await await GetIt.I.get<HttpService>().post(
-            "/api/method/create_user?mobile=$phone&new_password=$password&verify_code=$verifyCode&national_id=$nationalId"
+            "/api/method/create_damdar?mobile=$phone&new_password=$password&verify_code=$verifyCode&national_id=$nationalId"
             "&province=$province&bio=$bio&first_name=$firstname&last_name=$lastname",
             FormData.fromMap({}));
         Progressbar.dismiss();

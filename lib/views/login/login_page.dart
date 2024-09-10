@@ -2,12 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/views/desk/splash_screen.dart';
 import 'package:frappe_app/views/desk/desk_view.dart';
 import 'package:frappe_app/views/login/forget_password.dart';
 import 'package:frappe_app/views/login/register.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
@@ -213,9 +215,10 @@ class _LoginState extends State<Login> {
       _loading.value = false;
       if (res.$1) {
         saveLogin();
-        Get.off(() => DesktopView(
-              needToCheckUpdate: false,
-            ));
+        Get.off(() =>SplashScreen());
+        // Get.off(() => DesktopView(
+        //       needToCheckUpdate: false,
+        //     ));
       } else {
         Fluttertoast.showToast(msg: "خطایی رخ داده است");
       }
