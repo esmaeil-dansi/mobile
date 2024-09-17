@@ -15,7 +15,6 @@ class WeatherView extends StatefulWidget {
 class _WeatherViewState extends State<WeatherView> {
   final _autService = GetIt.I.get<AutService>();
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

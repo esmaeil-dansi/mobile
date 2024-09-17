@@ -30,9 +30,7 @@ class _ProductStoreState extends State<ProductStore> {
       appBar: appSliverAppBar("فروشگاه محصولات"),
       body: Column(
         children: [
-          Visibility(
-            visible:  _autService.isDamdar(),
-            child: Padding(
+             Padding(
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -55,7 +53,6 @@ class _ProductStoreState extends State<ProductStore> {
                     ),
                 ],
               ),
-            ),
             ),
         ],
       ),

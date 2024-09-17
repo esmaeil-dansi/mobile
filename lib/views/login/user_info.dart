@@ -199,7 +199,7 @@ class _UserInfoState extends State<UserInfo> {
                                 SizedBox(
                                   height: 8,
                                 ),
-                                TitleCheckBox("تامین کننده هستم", (c) {
+                                TitleCheckBox("در صورت هماهنگی با شرکت » تامین کننده هستم»", (c) {
                                   _taminUser = c;
                                 }),
                               ],
@@ -232,6 +232,7 @@ class _UserInfoState extends State<UserInfo> {
                                   bio: _bio.text,
                                   firstname: _name.text,
                                   lastname: _lastName.text)) {
+                                Fluttertoast.showToast(msg: "ثبت نام با موفقیت انجام شد لطفا ورود کنید");
                                 Get.offAll(() => Login());
                               } else {}
                             } else {
