@@ -385,23 +385,24 @@ class _HomeViewState extends State<HomeView> {
     for (int i = 0; i < visibleMenuItems.length;i += 1) {
       _setTitleAndPath(visibleMenuItems[i]);
       rows.add(
-        _buildItem(() => Get.to(() => visibleMenuItems[i]),path,title,false)
+        _buildItem(() => Get.to(() => visibleMenuItems[i]),this.path,this.title,false)
       );
     }
     rows.add(_buildItem(() => Get.to(() => null), 'assets/instagram.json', "اینستاگرام",false));
     rows.add(_buildItem(() => Get.to(() => null), 'assets/articles.json', "آموزش مقالات",false));
     return rows;
   }
+
   void _setTitleAndPath(Widget pageName) {
-    switch (pageName.toStringShort()) {
-      case "WeatherView":title = "آب و هوا" ; path= 'assets/weather.json' ;break;
-      case "PricesView":title="قیمت ها";path='assets/price.json';break;
-      case "SupportView":title="پشتیبانی" ;path='assets/support.json'; break;
-      case "MessagesView":title= "پیام" ;path='assets/messages.json'; break;
-      case "InitialVisit":title = "بازدید اولیه" ; path= 'assets/visit.json' ;break;
-      case "PeriodicVisits":title= "بازدید دوره ای";path='assets/periodic.json';break;
-      case "VetVisit":title="بازدید دامپزشک" ;path='assets/vetvisit.json'; break;
-      default:WeatherView: title = "آب و هوا" ; path= 'assets/weather.json';
+      switch (pageName.runtimeType.toString()) {
+      case "WeatherView":this.title = "آب و هوا" ; this.path= 'assets/weather.json' ;break;
+      case "PricesView":this.title="قیمت ها";this.path='assets/price.json';break;
+      case "SupportView":this.title="پشتیبانی" ;this.path='assets/support.json'; break;
+      case "MessagesView":this.title= "پیام" ;this.path='assets/messages.json'; break;
+      case "InitialVisit":this.title = "بازدید اولیه" ; this.path= 'assets/visit.json' ;break;
+      case "PeriodicVisits":this.title= "بازدید دوره ای";this.path='assets/periodic.json';break;
+      case "VetVisit":this.title="بازدید دامپزشک" ;this.path='assets/vetvisit.json'; break;
+      default:WeatherView: this.title = "آب و هوا" ; this.path= 'assets/weather.json';
     }
   }
 
