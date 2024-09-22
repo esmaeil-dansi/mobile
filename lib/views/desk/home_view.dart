@@ -379,7 +379,7 @@ class _HomeViewState extends State<HomeView> {
   }
   List<Widget> _itemMenu(){
     String userRole = "راهبر";
-    if(_autService.isDamdar()){userRole="دامدار";}
+    if(_autService.isDamdar()&& !_autService.isDamdar()){userRole="دامدار";}
     List<Widget> visibleMenuItems = roleAccess[userRole] ?? [];
     List<Widget> rows = [];
     for (int i = 0; i < visibleMenuItems.length;i += 1) {
