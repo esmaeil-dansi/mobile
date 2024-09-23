@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -15,6 +17,7 @@ import 'package:frappe_app/widgets/constant.dart';
 
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
+import 'package:intl/intl.dart';
 
 class ShopInfoPage extends StatefulWidget {
   ShopInfo shopInfo;
@@ -189,13 +192,13 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                                 ],
                               ),
                             ),
-                            // SizedBox(
-                            //   width: Get.width * 0.15,
-                            //   child: Text(
-                            //     "ویرایش",
-                            //     style: TextStyle(fontWeight: FontWeight.bold),
-                            //   ),
-                            // ),
+                            SizedBox(
+                              width: Get.width * 0.15,
+                              child: Text(
+                                "ویرایش",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
                           ],
                         ),
                         Divider(),
@@ -244,20 +247,20 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                                         mainAxisAlignment:
                                         MainAxisAlignment.end,
                                         children: [
-                                          Text(widget.shopInfo.items_prices[i],
+                                          Text(NumberFormat.decimalPattern().format(double.parse(widget.shopInfo.items_prices[i])),
                                               style: TextStyle(fontSize: 12)),
                                         ],
                                       ),
                                     ),
-                                    // IconButton(
-                                    //     onPressed: () {
-                                    //       // showEdit(item);
-                                    //     },
-                                    //     icon: Icon(
-                                    //       Icons.edit,
-                                    //       size: 16,
-                                    //       color: Colors.black,
-                                    //     ))
+                                    IconButton(
+                                        onPressed: () {
+                                          // showEdit(item);
+                                        },
+                                        icon: Icon(
+                                          Icons.edit,
+                                          size: 16,
+                                          color: Colors.black,
+                                        ))
                                   ],
                                 ),
                               );

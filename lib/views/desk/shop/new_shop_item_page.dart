@@ -24,6 +24,15 @@ class NewShopItemPage extends StatelessWidget {
   Rxn<String> _item = Rxn();
   var _shopService = GetIt.I.get<ShopService>();
   ShopItemTaminInfo info = ShopItemTaminInfo();
+  final _descriptionError = Rxn<String>();
+
+  void _validateDescription(String value) {
+    if (value.isEmpty) {
+      _descriptionError.value = 'لطفاً این فیلد را پر کنید';
+    } else {
+      _descriptionError.value = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +45,7 @@ class NewShopItemPage extends StatelessWidget {
             FocusScope.of(context).requestFocus(new FocusNode());
             Progressbar.showProgress();
             if (info.description.isEmpty) {
-              info.description = "_";
+              _descriptionError.value = 'لطفاً این فیلد را پر کنید';
             }
             if (await _shopService.addShopItem(
                 shopInfo: shopInfo, info: info)) {
@@ -223,17 +232,20 @@ class NewShopItemPage extends StatelessWidget {
                                           ),
                                           TextField(
                                             keyboardType: TextInputType.text,
-                                            onChanged: (_) {
-                                              info.description = _;
+                                            onChanged: (value) {
+                                              info.description = value;
+                                              _validateDescription(value);
                                             },
                                             minLines: 2,
                                             maxLines: 3,
-                                            decoration: InputDecoration(
+                                            decoration:
+                                            InputDecoration(
                                               labelText: "توضیحات",
                                               border: OutlineInputBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(20.0),
                                               ),
+                                              errorText: _descriptionError.value,
                                             ),
                                           ),
                                           SizedBox(

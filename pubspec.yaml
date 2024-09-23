@@ -87,6 +87,7 @@ dependencies:
   form_builder_extra_fields: ^10.1.0
   carousel_slider: ^5.0.0
   autocomplete_textfield: ^2.0.1
+  animate_do: ^2.0.0
 
 
   intl:

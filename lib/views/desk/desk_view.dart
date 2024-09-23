@@ -42,7 +42,7 @@ class _DesktopViewState extends State<DesktopView> {
 
   @override
   void initState() {
-    _checkSupplierInfoState();
+    // _checkSupplierInfoState();
 
     _visitService.fetchPrices();
     if (widget.needToCheckUpdate) {
@@ -79,8 +79,6 @@ class _DesktopViewState extends State<DesktopView> {
         if(_shopService.hasShop){
           Get.offAll(() => SupplierInfoPage());
         }
-
-
       }
     }
   }

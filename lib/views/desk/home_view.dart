@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -21,6 +22,7 @@ import 'package:frappe_app/views/visit/initial_visit.dart';
 import 'package:frappe_app/views/visit/periodic_visits.dart';
 import 'package:frappe_app/views/visit/product_visit.dart';
 import 'package:frappe_app/views/visit/vet_visit.dart';
+import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:frappe_app/widgets/shop_cart_count.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
@@ -41,6 +43,15 @@ class _HomeViewState extends State<HomeView> {
   GlobalKey<AutoCompleteTextFieldState<String>> key = GlobalKey();
   List<String> suggest = ['آب و هوا', 'قیمت ها', 'پیام', 'بازدید اولیه', 'بازدید دوره ای', 'بازدید دامپزشک', 'پشتیبانی', 'فروشگاه محصولات'];
   final List<String> imgList = ['assets/slider01.png', 'assets/slider02.png'];
+  late String title;
+  late String path;
+  final Map<String, List<Widget>> roleAccess = {
+    'دامدار': [WeatherView(), PricesView(), SupportView()],
+    'راهبر': [WeatherView(), PricesView(), SupportView(),MessagesView(), InitialVisit(), PeriodicVisits(), VetVisit()],
+    'سر راهبر': [WeatherView(), PricesView(), SupportView(),MessagesView(), InitialVisit(), PeriodicVisits(), VetVisit()],
+    'Supplier': [WeatherView(), PricesView(), SupportView(),MessagesView(), InitialVisit(), PeriodicVisits(), VetVisit()],
+    'انباردار':[WeatherView(), PricesView(), SupportView(), MessagesView(), InitialVisit(), PeriodicVisits(), VetVisit()]
+  };
 
   void _navigateToPage(String pageName) {
     Widget page;
@@ -110,8 +121,8 @@ class _HomeViewState extends State<HomeView> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 7),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 AutoCompleteTextField<String>(
                   key: key,
@@ -141,59 +152,32 @@ class _HomeViewState extends State<HomeView> {
                   },
                 ),
                 SizedBox(
-                  height: 10,
+                  height: 5,
                 ),
-                if (_autService.isRahbar() || _autService.isSarRahbar())
                   Column(
                     children: [
                       SizedBox(
-                        height: 10,
+                        height: 5,
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(3.0),
                         child: Column(
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                _buildItem(() => Get.to(() => WeatherView()),
-                                    'assets/weather.json', "آب و هوا"),
-                                _buildItem(() => Get.to(() => PricesView()),
-                                    'assets/price.json', "قیمت ها"),
-                                _buildItem(() => Get.to(() => MessagesView()),
-                                    'assets/messages.json', "پیام"),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildItem(() => Get.to(() => InitialVisit()),
-                                    'assets/visit.json', "بازدید اولیه"),
-                                _buildItem(() => Get.to(() => PeriodicVisits()),
-                                    'assets/periodic.json', "بازدید دوره ای"),
-                                _buildItem(() => Get.to(() => VetVisit()),
-                                    'assets/vetvisit.json', "بازدید دامپزشک"),
-                                // _buildItem(() => Get.to(() => ProductVisit()),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildItem(() => Get.to(() => SupportView()),
-                                    'assets/support.json', "پشتیبانی"),
-                                _buildItem(() => Get.to(() => null),
-                                    'assets/instagram.json', "اینستاگرام"),
-                                _buildItem(() => Get.to(() => null),
-                                    'assets/articles.json', "آموزش مقالات"),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
                                 _buildItem(() => Get.to(() => ProductStore()),
-                                    'assets/productstore.json', "فروشگاه محصولات"),
+                                    'assets/productstore.json', "فروشگاه محصولات",true),
                               ],
-                            )
+                            ),
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              runAlignment: WrapAlignment.center,
+                              spacing: 3.0,
+                              runSpacing: 3.0,
+                              direction: Axis.horizontal,
+                              children: _itemMenu(),
+                            ),
                           ],
                         ),
                       ),
@@ -212,7 +196,7 @@ class _HomeViewState extends State<HomeView> {
                   items: imgList
                       .map((item) => GestureDetector(
                             onTap: ()  {
-                              _launchURL();
+                              _launchURL('https://Chopoo.ir/');
                             },
                             child: Container(
                               child: Center(
@@ -236,12 +220,14 @@ class _HomeViewState extends State<HomeView> {
     ShopGroup(ShopType.NAHADA, "assets/icons/ma_nahana.png"),
   ];
 
-  Widget _buildItem(Function onTap, String asset, String title) {
+  Widget _buildItem(Function onTap, String asset, String title,bool custom) {
+    double vertical=4 ,horizontal=2 ,width=0.24 ,height=100;
+    if (custom){vertical=6; horizontal=4 ;width=0.30 ;height=120;}
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+      padding: EdgeInsets.symmetric(vertical: vertical, horizontal: horizontal),
       child: Container(
-        width: MediaQuery.of(context).size.width * 0.24,
-        height: 100,
+        width: MediaQuery.of(context).size.width * width,
+        height: height,
         decoration: BoxDecoration(
             gradient: LinearGradient(colors: GRADIANT_COLOR),
             borderRadius: BorderRadius.circular(5)),
@@ -259,7 +245,8 @@ class _HomeViewState extends State<HomeView> {
             child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () {
-                  if(title== "اینستاگرام"|| title=="آموزش مقالات"){_launchURL();}
+                  if(title== "آموزش مقالات"){_launchURL('https://Chopoo.ir/');}
+                  else if ( title=="اینستاگرام"){_launchURL('https://www.instagram.com/chopoo.mag');}
                   else{onTap();}
                 },
                 child: Column(
@@ -365,7 +352,7 @@ class _HomeViewState extends State<HomeView> {
       ),
     );
   }
-  
+
   String _splitPrice(String t) {
     var s = t.split('').reversed.toList();
     List<List<String>> sf = [];
@@ -387,12 +374,37 @@ class _HomeViewState extends State<HomeView> {
     return sr;
   }
 
-  void _launchURL() async {
-    final Uri _url = Uri.parse('https://Chopoo.ir/');
-    // if (await canLaunchUrl(_url)) {
+  void _launchURL(String urlString) async {
+    final Uri _url = Uri.parse(urlString);
       await launchUrl(_url);
-    // } else {
-    //   throw 'Could not launch $_url';
-    // }
   }
+  List<Widget> _itemMenu(){
+    String userRole = "راهبر";
+    if(_autService.isDamdar()&& !_autService.isRahbar() && !_autService.isSarRahbar()){userRole="دامدار";}
+    List<Widget> visibleMenuItems = roleAccess[userRole] ?? [];
+    List<Widget> rows = [];
+    for (int i = 0; i < visibleMenuItems.length;i += 1) {
+      _setTitleAndPath(visibleMenuItems[i]);
+      rows.add(
+        _buildItem(() => Get.to(() => visibleMenuItems[i]),this.path,this.title,false)
+      );
+    }
+    rows.add(_buildItem(() => Get.to(() => null), 'assets/instagram.json', "اینستاگرام",false));
+    rows.add(_buildItem(() => Get.to(() => null), 'assets/articles.json', "آموزش مقالات",false));
+    return rows;
+  }
+
+  void _setTitleAndPath(Widget pageName) {
+      switch (pageName.runtimeType.toString()) {
+      case "WeatherView":this.title = "آب و هوا" ; this.path= 'assets/weather.json' ;break;
+      case "PricesView":this.title="قیمت ها";this.path='assets/price.json';break;
+      case "SupportView":this.title="پشتیبانی" ;this.path='assets/support.json'; break;
+      case "MessagesView":this.title= "پیام" ;this.path='assets/messages.json'; break;
+      case "InitialVisit":this.title = "بازدید اولیه" ; this.path= 'assets/visit.json' ;break;
+      case "PeriodicVisits":this.title= "بازدید دوره ای";this.path='assets/periodic.json';break;
+      case "VetVisit":this.title="بازدید دامپزشک" ;this.path='assets/vetvisit.json'; break;
+      default:WeatherView: this.title = "آب و هوا" ; this.path= 'assets/weather.json';
+    }
+  }
+
 }

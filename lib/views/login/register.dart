@@ -28,33 +28,12 @@ class _RegisterState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 20),
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () {
-            if (_loading.isFalse) {
-              _next();
-            }
-          },
-          child: Container(
-            width: 100,
-            height: 50,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50),
-                gradient: LinearGradient(colors: GRADIANT_COLOR)),
-            child: Obx(() => _loading.isTrue
-                ? Center(child: CircularProgressIndicator())
-                : Center(
-                    child: Text(
-                    "بعدی",
-                    style:
-                        Get.textTheme.bodyLarge?.copyWith(color: Colors.black),
-                  ))),
-          ),
-        ),
-      ),
-      body: Directionality(
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+       Directionality(
         textDirection: TextDirection.rtl,
         child: Container(
             color: Colors.white,
@@ -163,7 +142,33 @@ class _RegisterState extends State<Register> {
                                             .check_box_outline_blank_sharp)))
                               ],
                             ),
-                          )
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.translucent,
+                              onTap: () {
+                                if (_loading.isFalse) {
+                                  _next();
+                                }
+                              },
+                              child: Container(
+                                width: 100,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(50),
+                                    gradient: LinearGradient(colors: GRADIANT_COLOR)),
+                                child: Obx(() => _loading.isTrue
+                                    ? Center(child: CircularProgressIndicator())
+                                    : Center(
+                                    child: Text(
+                                      "بعدی",
+                                      style:
+                                      Get.textTheme.bodyLarge?.copyWith(color: Colors.black),
+                                    ))),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -172,6 +177,9 @@ class _RegisterState extends State<Register> {
               ],
             )),
       ),
+        ],
+        ),
+        ),
     );
   }
 

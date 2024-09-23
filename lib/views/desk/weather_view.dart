@@ -1,5 +1,7 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:get_it/get_it.dart';
 
@@ -15,15 +17,37 @@ class WeatherView extends StatefulWidget {
 class _WeatherViewState extends State<WeatherView> {
   final _autService = GetIt.I.get<AutService>();
 
-
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
         appBar: appSliverAppBar("آب و هوا"),
-      body: Padding(
-        padding:
-        const EdgeInsets.symmetric(vertical: 13, horizontal: 3),
-        child: Obx(() => _autService.weathers.isNotEmpty
+      body: SingleChildScrollView(
+        child: Column(
+        children: <Widget>[
+          SizedBox(
+            height: 50,
+          ),
+          Container(
+            height: 300,
+            child: Stack(
+              children: <Widget>[
+                Positioned(
+                  height: 300,
+                  width: width + 20,
+                  child: FadeInUp(
+                      duration: Duration(milliseconds: 1000),
+                      child: Container(
+                        child: SvgPicture.asset(
+                          'assets/icons/weather.svg', // مسیر فایل SVG شما
+                          height: 200.0,
+                        ),
+                      )),
+                )
+              ],
+            ),
+          ),
+         Obx(() => _autService.weathers.isNotEmpty
             ? SingleChildScrollView(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -109,6 +133,8 @@ class _WeatherViewState extends State<WeatherView> {
             : SizedBox(
           height: 90,
         )),
+        ],
+      )
       )
     );
   }
