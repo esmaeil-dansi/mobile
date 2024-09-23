@@ -1,7 +1,9 @@
 import 'dart:math';
 
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../db/dao/price_dao.dart';
@@ -17,11 +19,35 @@ class _PricesViewState extends State<PricesView> {
   final _priceDao = GetIt.I.get<PriceAvgDao>();
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
         appBar: appSliverAppBar("قیمت ها"),
-        body: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 3),
-            child: StreamBuilder<PriceInfo?>(
+        body:  SingleChildScrollView(
+          child: Column(
+              children: <Widget>[
+                SizedBox(
+                  height: 30,
+                ),
+                Container(
+                  height: 300,
+                  child: Stack(
+                    children: <Widget>[
+                      Positioned(
+                        height: 300,
+                        width: width + 20,
+                        child: FadeInUp(
+                            duration: Duration(milliseconds: 1000),
+                            child: Container(
+                              child: SvgPicture.asset(
+                                'assets/icons/money.svg', // مسیر فایل SVG شما
+                                height: 200.0,
+                              ),
+                            )),
+                      )
+                    ],
+                  ),
+                ),
+             StreamBuilder<PriceInfo?>(
                 stream: _priceDao.watch(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data != null) {
@@ -35,6 +61,9 @@ class _PricesViewState extends State<PricesView> {
                         ),
                         child: Column(
                           children: [
+                            SizedBox(
+                              height: 10,
+                            ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -63,7 +92,7 @@ class _PricesViewState extends State<PricesView> {
                               ],
                             ),
                             SizedBox(
-                              height: 5,
+                              height: 15,
                             ),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,7 +109,7 @@ class _PricesViewState extends State<PricesView> {
                                   child: Text(
                                     "منبع میانگین قیمت ها شرکت گسترش توسعه گری پردیس می باشد.",
                                     style: TextStyle(
-                                      fontSize: 11,
+                                      fontSize: 15,
                                     ),
                                     maxLines: 2,
                                   ),
@@ -94,6 +123,9 @@ class _PricesViewState extends State<PricesView> {
                   }
                   return SizedBox.shrink();
                 }),
+
+    ],
+    )
         )
     );
   }

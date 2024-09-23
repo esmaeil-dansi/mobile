@@ -1,5 +1,7 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -21,10 +23,35 @@ class _SupportViewState extends State<SupportView> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: appSliverAppBar("پشتیبانی"),
-      body: Center(
-        child: Padding(
+      body:  SingleChildScrollView(
+        child: Column(
+            children: <Widget>[
+              SizedBox(
+                height: 30,
+              ),
+              Container(
+                height: 250,
+                child: Stack(
+                  children: <Widget>[
+                    Positioned(
+                      height: 250,
+                      width: width + 20,
+                      child: FadeInUp(
+                          duration: Duration(milliseconds: 1000),
+                          child: Container(
+                            child: SvgPicture.asset(
+                              'assets/icons/support.svg', // مسیر فایل SVG شما
+                              height: 200.0,
+                            ),
+                          )),
+                    )
+                  ],
+                ),
+              ),
+         Padding(
           padding: const EdgeInsets.all(8.0),
           child: SingleChildScrollView(
             child: Column(
@@ -79,7 +106,9 @@ class _SupportViewState extends State<SupportView> {
             ),
           ),
         ),
-      ),
+    ]
+    ),
+      )
     );
   }
 }

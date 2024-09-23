@@ -196,7 +196,7 @@ class _HomeViewState extends State<HomeView> {
                   items: imgList
                       .map((item) => GestureDetector(
                             onTap: ()  {
-                              _launchURL();
+                              _launchURL('https://Chopoo.ir/');
                             },
                             child: Container(
                               child: Center(
@@ -245,7 +245,8 @@ class _HomeViewState extends State<HomeView> {
             child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () {
-                  if(title== "اینستاگرام"|| title=="آموزش مقالات"){_launchURL();}
+                  if(title== "آموزش مقالات"){_launchURL('https://Chopoo.ir/');}
+                  else if ( title=="اینستاگرام"){_launchURL('https://www.instagram.com/chopoo.mag');}
                   else{onTap();}
                 },
                 child: Column(
@@ -373,13 +374,13 @@ class _HomeViewState extends State<HomeView> {
     return sr;
   }
 
-  void _launchURL() async {
-    final Uri _url = Uri.parse('https://Chopoo.ir/');
+  void _launchURL(String urlString) async {
+    final Uri _url = Uri.parse(urlString);
       await launchUrl(_url);
   }
   List<Widget> _itemMenu(){
     String userRole = "راهبر";
-    if(_autService.isDamdar()&& !_autService.isDamdar()){userRole="دامدار";}
+    if(_autService.isDamdar()&& !_autService.isRahbar() && !_autService.isSarRahbar()){userRole="دامدار";}
     List<Widget> visibleMenuItems = roleAccess[userRole] ?? [];
     List<Widget> rows = [];
     for (int i = 0; i < visibleMenuItems.length;i += 1) {

@@ -1,6 +1,8 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_slideshow/flutter_image_slideshow.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:frappe_app/views/desk/shop/shop_item_search_page.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -26,9 +28,38 @@ class _ProductStoreState extends State<ProductStore> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: appSliverAppBar("فروشگاه محصولات"),
-      body: Column(
+      body: SingleChildScrollView(
+        child: Column(
+            children: <Widget>[
+              SizedBox(
+                height: 50,
+              ),
+              Container(
+                height: 200,
+                child: Stack(
+                  children: <Widget>[
+                    Positioned(
+                      height: 200,
+                      width: width + 20,
+                      child: FadeInUp(
+                          duration: Duration(milliseconds: 1000),
+                          child: Container(
+                            child: SvgPicture.asset(
+                              'assets/icons/productStore.svg', // مسیر فایل SVG شما
+                              height: 200.0,
+                            ),
+                          )),
+                    )
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+      Column(
         children: [
              Padding(
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
@@ -56,6 +87,9 @@ class _ProductStoreState extends State<ProductStore> {
             ),
         ],
       ),
+    ],
+    )
+    )
     );
   }
 

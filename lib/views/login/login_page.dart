@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/views/login/register.dart';
 import 'package:get/get.dart';
@@ -40,23 +41,26 @@ class _LoginState extends State<Login> {
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
+            SizedBox(
+              height: 50,
+            ),
             Container(
-              height: 250,
+              height: 200,
               child: Stack(
                 children: <Widget>[
                   Positioned(
-                    height: 250,
+                    height: 200,
                     width: width + 20,
                     child: FadeInUp(
                         duration: Duration(milliseconds: 1000),
-                        child: Container(
-                          decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image: AssetImage('assets/pexels3.jpg'),
-                                  fit: BoxFit.fill)),
-                        )),
+                      child: Container(
+                      child: SvgPicture.asset(
+                        'assets/icons/login.svg',
+                        height: 200.0,
+                        )
+                      )),
                   )
                 ],
               ),
@@ -71,15 +75,19 @@ class _LoginState extends State<Login> {
                 children: <Widget>[
                   FadeInUp(
                       duration: Duration(milliseconds: 1500),
-                      child: Center(
-                        child: Text(
-                          "چوپو",
-                          style: TextStyle(
-                              color: Color.fromRGBO(49, 39, 79, 1),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 30),
-                        ),
-                      )),
+                      child : Column(
+                      children:[
+                        Padding(
+                            padding: const EdgeInsets.only(top: 11),
+                            child: Image.asset(
+                              "assets/ChopoLogo.png",
+                              width: 55,
+                              height: 40,
+                            ),
+                          ),
+                          ],
+                      )
+                  ),
                   SizedBox(
                     height: 20,
                   ),
