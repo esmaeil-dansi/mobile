@@ -23,7 +23,6 @@ dependencies:
   flutter_js: 0.8.0
   device_preview:
   weather_icons: ^3.0.0
-  flutter_secure_storage: ^9.0.0
   flutter_mentions:
   draggable_home: ^1.0.5
   flutter_settings_ui:
@@ -113,6 +112,8 @@ flutter_icons:
 
 dependency_overrides:
   flutter_colorpicker: 1.1.0
+
+  flutter_plugin_android_lifecycle: 2.0.21
 
 
 

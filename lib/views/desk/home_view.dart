@@ -55,6 +55,7 @@ class _HomeViewState extends State<HomeView> {
       case 'فروشگاه محصولات' :page = ProductStore();break;
       default:page = HomeView();
     }
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => page),
@@ -365,7 +366,7 @@ class _HomeViewState extends State<HomeView> {
       ),
     );
   }
-  
+
   String _splitPrice(String t) {
     var s = t.split('').reversed.toList();
     List<List<String>> sf = [];
