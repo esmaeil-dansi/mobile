@@ -423,7 +423,7 @@ class ShopService {
   Future<void> sendSms(
       {required String text, required String phone, bool retry = true}) async {
     try {
-      String uri = "https://services.mizbansms.com/api/Customer/SendSMS?Usertype=2&Username=09384501252&Password=0371201551&Message=$text&From=5000462992&To=$phone&Api=2016"
+      String uri = "https://services.mizbansms.com/api/Customer/SendSMS?Usertype=2&Username=09384501252&Password=0371201551&Message=$text&From=5000462992&To=$phone&Api=2016";
       Dio().get(uri);
     } catch (e) {
       if (retry) {
