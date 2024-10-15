@@ -66,6 +66,7 @@ class _HomeViewState extends State<HomeView> {
       case 'فروشگاه محصولات' :page = ProductStore();break;
       default:page = HomeView();
     }
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => page),
