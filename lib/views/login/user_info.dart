@@ -74,9 +74,7 @@ class _UserInfoState extends State<UserInfo> {
                                 SizedBox(
                                   height: 8,
                                 ),
-                                SizedBox(
-                                  height: 57,
-                                  child: TextFormField(
+                                TextFormField(
                                     controller: _name,
                                     validator: (d) {
                                       if (d == null || d.isEmpty) {
@@ -91,13 +89,10 @@ class _UserInfoState extends State<UserInfo> {
                                       ),
                                     ),
                                   ),
-                                ),
                                 SizedBox(
                                   height: 8,
                                 ),
-                                SizedBox(
-                                  height: 57,
-                                  child: TextFormField(
+                                TextFormField(
                                     controller: _lastName,
                                     validator: (d) {
                                       if (d == null || d.isEmpty) {
@@ -112,13 +107,11 @@ class _UserInfoState extends State<UserInfo> {
                                       ),
                                     ),
                                   ),
-                                ),
+
                                 SizedBox(
                                   height: 8,
                                 ),
-                                SizedBox(
-                                  height: 57,
-                                  child: TextFormField(
+                                 TextFormField(
                                     controller: _nationId,
                                     validator: (d) {
                                       if (d == null || d.isEmpty) {
@@ -136,7 +129,7 @@ class _UserInfoState extends State<UserInfo> {
                                       ),
                                     ),
                                   ),
-                                ),
+
                                 SizedBox(
                                   height: 8,
                                 ),

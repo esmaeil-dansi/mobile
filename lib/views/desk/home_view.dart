@@ -42,7 +42,7 @@ class _HomeViewState extends State<HomeView> {
   final _shopService = GetIt.I.get<ShopService>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = GlobalKey();
   List<String> suggest = ['آب و هوا', 'قیمت ها', 'پیام', 'بازدید اولیه', 'بازدید دوره ای', 'بازدید دامپزشک', 'پشتیبانی', 'فروشگاه محصولات'];
-  final List<String> imgList = ['assets/slider01.png', 'assets/slider02.png'];
+  final List<String> imgList = ['assets/slider01.jpg', 'assets/slider02.jpg'];
   late String title;
   late String path;
   final Map<String, List<Widget>> roleAccess = {

@@ -86,7 +86,7 @@ class _PeriodicVisitsState extends State<PeriodicVisits> {
       child: Scaffold(
         appBar: appSliverAppBar("بازدید دوره ای"),
         floatingActionButton:
-            _athService.isRahbar() ? newFormWidget(AddPeriodicReport()) : null,
+            _athService.isRahbar() ? newFormWidget(() => Get.to(() => AddPeriodicReport()), title: "پیام جدید") : null,
         body: Container(
           margin: EdgeInsets.all(8),
           decoration: BoxDecoration(

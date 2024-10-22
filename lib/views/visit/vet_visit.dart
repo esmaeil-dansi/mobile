@@ -79,7 +79,7 @@ class _VetVisitState extends State<VetVisit> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         floatingActionButton:
-            _athService.isRahbar() ? newFormWidget(AddVetVisit()) : null,
+            _athService.isRahbar() ? newFormWidget(() => Get.to(() => AddVetVisit()), title: "فرم جدید") : null,
         appBar: appSliverAppBar("بازدید دامپزشکی"),
         body: Container(
           margin: EdgeInsets.all(8),

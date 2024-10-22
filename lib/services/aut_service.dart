@@ -48,6 +48,8 @@ class AutService {
 
   bool isStorekeeper() => this._roles.contains("انباردار");
 
+  bool isVisitingTeam()  => this._roles.contains("تیم بازدید کننده");
+
   String getProvince() => _sharedPreferences.getString(PROVINCE) ?? "";
 
   String getCity() => _sharedPreferences.getString(CITY) ?? "";

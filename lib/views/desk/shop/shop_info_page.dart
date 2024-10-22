@@ -159,7 +159,7 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                         ),
                         labelText: "محصولات",
                         labelStyle: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold)),
+                            fontSize: 15, fontWeight: FontWeight.bold)),
                     child: Column(
                       children: [
                         Row(
@@ -169,34 +169,41 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                               width: Get.width * 0.25,
                               child: Text(
                                 "کالا",
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                style: TextStyle(fontWeight: FontWeight.bold,fontSize: 12),
                               ),
                             ),
                             SizedBox(
-                              width: Get.width * 0.25,
+                              width: Get.width * 0.10,
                               child: Text(
                                 "موجودی",
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                style: TextStyle(fontWeight: FontWeight.bold,fontSize: 8),
                               ),
                             ),
                             SizedBox(
-                              width: Get.width * 0.25,
+                              width: Get.width * 0.10,
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   Text(
                                     "قیمت",
                                     style:
-                                    TextStyle(fontWeight: FontWeight.bold),
+                                    TextStyle(fontWeight: FontWeight.bold,fontSize: 12),
                                   ),
                                 ],
                               ),
                             ),
                             SizedBox(
-                              width: Get.width * 0.15,
+                              width: Get.width * 0.10,
                               child: Text(
                                 "ویرایش",
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                style: TextStyle(fontWeight: FontWeight.bold,fontSize: 8),
+                              ),
+                            ),
+                            SizedBox(
+                              width: Get.width * 0.10,
+                              child: Text(
+                                "توضیحات",
+                                style: TextStyle(fontWeight: FontWeight.bold,fontSize: 7),
                               ),
                             ),
                           ],
@@ -222,11 +229,11 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                                       width: Get.width * 0.25,
                                       child: Text(
                                         item,
-                                        style: TextStyle(fontSize: 14),
+                                        style: TextStyle(fontSize: 10),
                                       ),
                                     ),
                                     SizedBox(
-                                      width: Get.width * 0.25,
+                                      width: Get.width * 0.10,
                                       child: Center(
                                         child: Row(
                                           children: [
@@ -236,31 +243,72 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                                                     "\t" +
                                                     (_shopService.units[item] ??
                                                         ""),
-                                                style: TextStyle(fontSize: 12)),
+                                                style: TextStyle(fontSize: 10)),
                                           ],
                                         ),
                                       ),
                                     ),
                                     SizedBox(
-                                      width: Get.width * 0.25,
+                                      width: Get.width * 0.10,
                                       child: Row(
                                         mainAxisAlignment:
                                         MainAxisAlignment.end,
                                         children: [
                                           Text(NumberFormat.decimalPattern().format(double.parse(widget.shopInfo.items_prices[i])),
-                                              style: TextStyle(fontSize: 12)),
+                                              style: TextStyle(fontSize: 10)),
                                         ],
                                       ),
                                     ),
+                              SizedBox(
+                              width: Get.width * 0.10,
+                              child: Row(
+                                  children: [
                                     IconButton(
                                         onPressed: () {
-                                          // showEdit(item);
+                                          ShopItemModel shop =new ShopItemModel(name: item, id: "id", group: "group", price: widget.shopInfo.items_prices[i]);
+                                          showEdit(shop);
                                         },
                                         icon: Icon(
                                           Icons.edit,
-                                          size: 16,
+                                          size: 14,
                                           color: Colors.black,
-                                        ))
+                                        )),
+                                ],
+                              ),
+                              ),
+                              SizedBox(
+                              width: Get.width * 0.10,
+                              child: Row(
+                              children: [
+                                    IconButton(
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: Text('توضیحات آیتم'),
+                                              content: Text(widget.shopInfo.descriptions[i]),
+                                              actions: [
+                                                TextButton(
+                                                  child: Text('بستن'),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      },
+                                      icon: Icon(
+                                        Icons.info,
+                                        size: 14,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                              ],
+                              ),
+                              ),
                                   ],
                                 ),
                               );

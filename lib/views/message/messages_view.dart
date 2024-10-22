@@ -37,7 +37,7 @@ class _MessagesViewState extends State<MessagesView> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         floatingActionButton: _athService.isRahbar()
-            ? newFormWidget(NewMessagePage(), title: "پیام جدید")
+            ? newFormWidget(() => Get.to(() => NewMessagePage()), title: "پیام جدید")
             : null,
         appBar: appSliverAppBar("پیام"),
         body: Container(

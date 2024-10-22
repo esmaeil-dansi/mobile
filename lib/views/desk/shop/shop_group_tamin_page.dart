@@ -8,6 +8,7 @@ import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
+
 class ShopGroupTaminPage extends StatefulWidget {
   ShopItemBaseModel group;
 
@@ -19,6 +20,7 @@ class ShopGroupTaminPage extends StatefulWidget {
 
 class _ShopGroupTaminPageState extends State<ShopGroupTaminPage> {
   var _shopService = GetIt.I.get<ShopService>();
+
 
   RxList<ShopTamin> filteredItems = RxList();
   final _inSearch = true.obs;
