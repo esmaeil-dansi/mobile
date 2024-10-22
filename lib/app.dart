@@ -32,9 +32,9 @@ class _AppState extends State<App> {
       child: GetMaterialApp(
         textDirection: TextDirection.rtl,
         builder: EasyLoading.init(),
-        theme: ThemeData(
-          fontFamily: 'B nanzanin.ttf',
-        ),
+        // theme: ThemeData(
+        //   fontFamily: 'Iran Sans Bold',
+        // ),
         debugShowCheckedModeBanner: false,
         title: "چوپو",
         localizationsDelegates: [

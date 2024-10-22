@@ -113,6 +113,20 @@ class AutService {
     }
   }
 
+  Future<void> fetchProvince() async {
+    try {
+      var res = await GetIt.I
+          .get<HttpService>()
+          .get("/api/method/get_user_province?user=$_user_id");
+      var p = res!.data["province"];
+      _sharedPreferences.setString(USER_PROVINCE, p);
+    } catch (e) {
+      _logger.e(e);
+    }
+  }
+
+  String getUserProvince() => _sharedPreferences.getString(USER_PROVINCE) ?? "";
+
   bool needToFetchWeather() {
     return DateTime.now().millisecondsSinceEpoch -
             (_sharedPreferences.getInt(LAST_FETCH_WEATHER_TIME) ?? 0) >

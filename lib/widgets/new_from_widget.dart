@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 
-Widget newFormWidget(Widget nextPage,
+Widget newFormWidget(Function onTap,
         {String title = "فرم جدید", double width = 100}) =>
     Padding(
       padding: const EdgeInsets.only(bottom: 10, left: 10),
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
-          Get.to(() => nextPage);
+          onTap();
         },
         child: Container(
             width: width,

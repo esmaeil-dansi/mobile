@@ -155,6 +155,7 @@ class _RequestPageState extends State<RequestPage> {
                                       ),
                                       Row(
                                         children: [
+                                          sendWidget(record),
                                           if (record.status ==
                                               RequestStatus.Success)
                                             SizedBox(
@@ -165,128 +166,6 @@ class _RequestPageState extends State<RequestPage> {
                                                 color: Colors.greenAccent,
                                                 size: 35,
                                               ),
-                                            )
-                                          else if (record.status ==
-                                              RequestStatus.Pending)
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 10),
-                                              child: ElevatedButton(
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                          padding: EdgeInsets
-                                                              .symmetric(
-                                                                  horizontal:
-                                                                      15),
-                                                          backgroundColor:
-                                                              Color(
-                                                                  0xE452FF22)),
-                                                  onPressed: () async {
-                                                    // Progressbar.showProgress();
-                                                    if (record.type ==
-                                                        "Initial Visit") {
-                                                      final model =
-                                                          AddInitialVisitFormModel
-                                                              .fromJson(json
-                                                                  .decode(record
-                                                                      .body));
-                                                      Get.to(() =>
-                                                          AddInitialReport(
-                                                            addInitialVisitFormModel:
-                                                                model,
-                                                            time: record.time,
-                                                          ));
-                                                      // var agentInfo =
-                                                      //     await _visitService
-                                                      //         .getAgentInfo(model
-                                                      //             .nationalId!);
-                                                      // await _visitService
-                                                      //     .saveInitVisit(
-                                                      //         agentInfo:
-                                                      //             agentInfo ??
-                                                      //                 AgentInfo(),
-                                                      //         model: model,
-                                                      //         time:
-                                                      //             record.time);
-                                                    } else if (record.type ==
-                                                        "Periodic visits") {
-                                                      var model =
-                                                          AddPerVisitFormModel
-                                                              .fromJson(json
-                                                                  .decode(record
-                                                                      .body));
-                                                      Get.to(() =>
-                                                          AddPeriodicReport(
-                                                            addPerVisitFormModel:
-                                                                model,
-                                                            time: record.time,
-                                                          )); // if (model.fullName ==
-                                                      //         null ||
-                                                      //     model.fullName!
-                                                      //         .isEmpty) {
-                                                      //   var agentInfo =
-                                                      //       await _visitService
-                                                      //           .getAgentInfo(model
-                                                      //               .nationalId!);
-                                                      //   if (agentInfo != null) {
-                                                      //     model.department =
-                                                      //         agentInfo
-                                                      //             .department;
-                                                      //     model.province =
-                                                      //         agentInfo
-                                                      //             .province;
-                                                      //     model.city =
-                                                      //         agentInfo.city;
-                                                      //     model.rahbar =
-                                                      //         agentInfo.rahbar;
-                                                      //     model.fullName =
-                                                      //         agentInfo
-                                                      //             .full_name;
-                                                      //   }
-                                                      // }
-                                                      // await _visitService
-                                                      //     .sendPeriodicVisits(
-                                                      //         addPerVisitFormModel:
-                                                      //             model,
-                                                      //         time:
-                                                      //             record.time);
-                                                    } else if (record.type ==
-                                                        "Vet Visit") {
-                                                      var model =
-                                                          AddVetVisitFormModel
-                                                              .fromJson(json
-                                                                  .decode(record
-                                                                      .body));
-                                                      Get.to(() => AddVetVisit(
-                                                            addVetVisitFormModel:
-                                                                model,
-                                                            time: record.time,
-                                                          ));
-                                                      // final agentInfo =
-                                                      //     await _visitService
-                                                      //         .getAgentInfo(model
-                                                      //             .nationalId!);
-                                                      // await _visitService
-                                                      //     .saveVetVisit(
-                                                      //         model: model,
-                                                      //         time: record.time,
-                                                      //         agentInfo:
-                                                      //             agentInfo ??
-                                                      //                 AgentInfo());
-                                                    } else if (record.type ==
-                                                        "Product") {
-                                                      Get.to(() => ProductVisitReport(
-                                                          time: record.time,
-                                                          addProductivityFormModel:
-                                                              ProductivityFormModel
-                                                                  .fromJson(json
-                                                                      .decode(record
-                                                                          .body))));
-                                                    }
-                                                    Progressbar.dismiss();
-                                                  },
-                                                  child: Text("ارسال ")),
                                             ),
                                           if (record.status ==
                                               RequestStatus.Pending)
@@ -375,5 +254,99 @@ class _RequestPageState extends State<RequestPage> {
       return "بهره وری";
     }
     return text;
+  }
+
+  Widget sendWidget(Request record) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(horizontal: 15),
+              backgroundColor: Color(0xE452FF22)),
+          onPressed: () async {
+            // Progressbar.showProgress();
+            if (record.type == "Initial Visit") {
+              final model =
+                  AddInitialVisitFormModel.fromJson(json.decode(record.body));
+              Get.to(() => AddInitialReport(
+                    addInitialVisitFormModel: model,
+                    time: record.time,
+                  ));
+              // var agentInfo =
+              //     await _visitService
+              //         .getAgentInfo(model
+              //             .nationalId!);
+              // await _visitService
+              //     .saveInitVisit(
+              //         agentInfo:
+              //             agentInfo ??
+              //                 AgentInfo(),
+              //         model: model,
+              //         time:
+              //             record.time);
+            } else if (record.type == "Periodic visits") {
+              var model =
+                  AddPerVisitFormModel.fromJson(json.decode(record.body));
+              Get.to(() => AddPeriodicReport(
+                    addPerVisitFormModel: model,
+                    time: record.time,
+                  )); // if (model.fullName ==
+              //         null ||
+              //     model.fullName!
+              //         .isEmpty) {
+              //   var agentInfo =
+              //       await _visitService
+              //           .getAgentInfo(model
+              //               .nationalId!);
+              //   if (agentInfo != null) {
+              //     model.department =
+              //         agentInfo
+              //             .department;
+              //     model.province =
+              //         agentInfo
+              //             .province;
+              //     model.city =
+              //         agentInfo.city;
+              //     model.rahbar =
+              //         agentInfo.rahbar;
+              //     model.fullName =
+              //         agentInfo
+              //             .full_name;
+              //   }
+              // }
+              // await _visitService
+              //     .sendPeriodicVisits(
+              //         addPerVisitFormModel:
+              //             model,
+              //         time:
+              //             record.time);
+            } else if (record.type == "Vet Visit") {
+              var model =
+                  AddVetVisitFormModel.fromJson(json.decode(record.body));
+              Get.to(() => AddVetVisit(
+                    addVetVisitFormModel: model,
+                    time: record.time,
+                  ));
+              // final agentInfo =
+              //     await _visitService
+              //         .getAgentInfo(model
+              //             .nationalId!);
+              // await _visitService
+              //     .saveVetVisit(
+              //         model: model,
+              //         time: record.time,
+              //         agentInfo:
+              //             agentInfo ??
+              //                 AgentInfo());
+            } else if (record.type == "Product") {
+              Get.to(() => ProductVisitReport(
+                  time: record.time,
+                  addProductivityFormModel: ProductivityFormModel.fromJson(
+                      json.decode(record.body))));
+            }
+            Progressbar.dismiss();
+          },
+          child: Text("ارسال ")),
+    );
   }
 }

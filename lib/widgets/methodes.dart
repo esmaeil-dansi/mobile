@@ -310,7 +310,7 @@ Widget transactionBuilder(List<ShopOrderModel> items, bool isSell) {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 SizedBox(
-                                  width: Get.width*0.4,
+                                  width: Get.width * 0.4,
                                   child: Text(
                                       maxLines: 1,
                                       items[i].shopName,

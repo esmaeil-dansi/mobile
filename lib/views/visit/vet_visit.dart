@@ -78,8 +78,9 @@ class _VetVisitState extends State<VetVisit> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        floatingActionButton:
-            _athService.isRahbar() ? newFormWidget(AddVetVisit()) : null,
+        floatingActionButton: _athService.isRahbar()
+            ? newFormWidget(() => Get.to(() => AddVetVisit()))
+            : null,
         appBar: appSliverAppBar("بازدید دامپزشکی"),
         body: Container(
           margin: EdgeInsets.all(8),
@@ -93,7 +94,7 @@ class _VetVisitState extends State<VetVisit> {
                   controller: _idController,
                   keyboardType: TextInputType.number,
                   onSubmitted: (_) {
-                      getReport();
+                    getReport();
                   },
                   decoration: InputDecoration(
                     labelText: "شناسه",

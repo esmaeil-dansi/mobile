@@ -36,35 +36,100 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  @override
+  void initState() {
+    if (_autService.isDamdar()) {
+      suggest.add('فروشگاه محصولات');
+    }
+    super.initState();
+  }
+
   final _autService = GetIt.I.get<AutService>();
   final _visitService = GetIt.I.get<VisitService>();
   final _priceDao = GetIt.I.get<PriceAvgDao>();
   final _shopService = GetIt.I.get<ShopService>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = GlobalKey();
-  List<String> suggest = ['آب و هوا', 'قیمت ها', 'پیام', 'بازدید اولیه', 'بازدید دوره ای', 'بازدید دامپزشک', 'پشتیبانی', 'فروشگاه محصولات'];
+  List<String> suggest = [
+    'آب و هوا',
+    'قیمت ها',
+    'پیام',
+    'بازدید اولیه',
+    'بازدید دوره ای',
+    'بازدید دامپزشک',
+    'پشتیبانی',
+  ];
   final List<String> imgList = ['assets/slider01.png', 'assets/slider02.png'];
   late String title;
   late String path;
   final Map<String, List<Widget>> roleAccess = {
     'دامدار': [WeatherView(), PricesView(), SupportView()],
-    'راهبر': [WeatherView(), PricesView(), SupportView(),MessagesView(), InitialVisit(), PeriodicVisits(), VetVisit()],
-    'سر راهبر': [WeatherView(), PricesView(), SupportView(),MessagesView(), InitialVisit(), PeriodicVisits(), VetVisit()],
-    'Supplier': [WeatherView(), PricesView(), SupportView(),MessagesView(), InitialVisit(), PeriodicVisits(), VetVisit()],
-    'انباردار':[WeatherView(), PricesView(), SupportView(), MessagesView(), InitialVisit(), PeriodicVisits(), VetVisit()]
+    'راهبر': [
+      WeatherView(),
+      PricesView(),
+      SupportView(),
+      MessagesView(),
+      InitialVisit(),
+      PeriodicVisits(),
+      VetVisit()
+    ],
+    'سر راهبر': [
+      WeatherView(),
+      PricesView(),
+      SupportView(),
+      MessagesView(),
+      InitialVisit(),
+      PeriodicVisits(),
+      VetVisit()
+    ],
+    'Supplier': [
+      WeatherView(),
+      PricesView(),
+      SupportView(),
+      MessagesView(),
+      InitialVisit(),
+      PeriodicVisits(),
+      VetVisit()
+    ],
+    'انباردار': [
+      WeatherView(),
+      PricesView(),
+      SupportView(),
+      MessagesView(),
+      InitialVisit(),
+      PeriodicVisits(),
+      VetVisit()
+    ]
   };
 
   void _navigateToPage(String pageName) {
     Widget page;
     switch (pageName) {
-      case 'آب و هوا':page = WeatherView();break;
-      case 'قیمت ها':page = PricesView();break;
-      case 'پیام':page = MessagesView();break;
-      case 'بازدید اولیه':page = InitialVisit();break;
-      case 'بازدید دوره ای':page = ProductVisit();break;
-      case 'بازدید دامپزشک':page = VetVisit();break;
-      case 'پشتیبانی':page = SupportView();break;
-      case 'فروشگاه محصولات' :page = ProductStore();break;
-      default:page = HomeView();
+      case 'آب و هوا':
+        page = WeatherView();
+        break;
+      case 'قیمت ها':
+        page = PricesView();
+        break;
+      case 'پیام':
+        page = MessagesView();
+        break;
+      case 'بازدید اولیه':
+        page = InitialVisit();
+        break;
+      case 'بازدید دوره ای':
+        page = ProductVisit();
+        break;
+      case 'بازدید دامپزشک':
+        page = VetVisit();
+        break;
+      case 'پشتیبانی':
+        page = SupportView();
+        break;
+      case 'فروشگاه محصولات':
+        page = ProductStore();
+        break;
+      default:
+        page = HomeView();
     }
 
     Navigator.push(
@@ -155,35 +220,39 @@ class _HomeViewState extends State<HomeView> {
                 SizedBox(
                   height: 5,
                 ),
-                  Column(
-                    children: [
-                      SizedBox(
-                        height: 5,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(3.0),
-                        child: Column(
-                          children: [
+                Column(
+                  children: [
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: Column(
+                        children: [
+                          if (_autService.isDamdar())
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                _buildItem(() => Get.to(() => ProductStore()),
-                                    'assets/productstore.json', "فروشگاه محصولات",true),
+                                _buildItem(
+                                    () => Get.to(() => ProductStore()),
+                                    'assets/productstore.json',
+                                    "فروشگاه محصولات",
+                                    true),
                               ],
                             ),
-                            Wrap(
-                              alignment: WrapAlignment.center,
-                              runAlignment: WrapAlignment.center,
-                              spacing: 3.0,
-                              runSpacing: 3.0,
-                              direction: Axis.horizontal,
-                              children: _itemMenu(),
-                            ),
-                          ],
-                        ),
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            runAlignment: WrapAlignment.center,
+                            spacing: 3.0,
+                            runSpacing: 3.0,
+                            direction: Axis.horizontal,
+                            children: _itemMenu(),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
                 // if (!_autService.isRahbar() &&
                 //     !_autService.isDamdar() &&
                 //     !_autService.isSarRahbar())
@@ -196,7 +265,7 @@ class _HomeViewState extends State<HomeView> {
                   ),
                   items: imgList
                       .map((item) => GestureDetector(
-                            onTap: ()  {
+                            onTap: () {
                               _launchURL('https://Chopoo.ir/');
                             },
                             child: Container(
@@ -221,9 +290,14 @@ class _HomeViewState extends State<HomeView> {
     ShopGroup(ShopType.NAHADA, "assets/icons/ma_nahana.png"),
   ];
 
-  Widget _buildItem(Function onTap, String asset, String title,bool custom) {
-    double vertical=4 ,horizontal=2 ,width=0.24 ,height=100;
-    if (custom){vertical=6; horizontal=4 ;width=0.30 ;height=120;}
+  Widget _buildItem(Function onTap, String asset, String title, bool custom) {
+    double vertical = 4, horizontal = 2, width = 0.24, height = 100;
+    if (custom) {
+      vertical = 6;
+      horizontal = 4;
+      width = 0.30;
+      height = 120;
+    }
     return Padding(
       padding: EdgeInsets.symmetric(vertical: vertical, horizontal: horizontal),
       child: Container(
@@ -246,9 +320,13 @@ class _HomeViewState extends State<HomeView> {
             child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () {
-                  if(title== "آموزش مقالات"){_launchURL('https://Chopoo.ir/');}
-                  else if ( title=="اینستاگرام"){_launchURL('https://www.instagram.com/chopoo.mag');}
-                  else{onTap();}
+                  if (title == "آموزش مقالات") {
+                    _launchURL('https://Chopoo.ir/');
+                  } else if (title == "اینستاگرام") {
+                    _launchURL('https://www.instagram.com/chopoo.mag');
+                  } else {
+                    onTap();
+                  }
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -377,35 +455,64 @@ class _HomeViewState extends State<HomeView> {
 
   void _launchURL(String urlString) async {
     final Uri _url = Uri.parse(urlString);
-      await launchUrl(_url);
+    await launchUrl(_url);
   }
-  List<Widget> _itemMenu(){
+
+  List<Widget> _itemMenu() {
     String userRole = "راهبر";
-    if(_autService.isDamdar()&& !_autService.isRahbar() && !_autService.isSarRahbar()){userRole="دامدار";}
+    if (_autService.isDamdar() &&
+        !_autService.isRahbar() &&
+        !_autService.isSarRahbar()) {
+      userRole = "دامدار";
+    }
     List<Widget> visibleMenuItems = roleAccess[userRole] ?? [];
     List<Widget> rows = [];
-    for (int i = 0; i < visibleMenuItems.length;i += 1) {
+    for (int i = 0; i < visibleMenuItems.length; i += 1) {
       _setTitleAndPath(visibleMenuItems[i]);
-      rows.add(
-        _buildItem(() => Get.to(() => visibleMenuItems[i]),this.path,this.title,false)
-      );
+      rows.add(_buildItem(() => Get.to(() => visibleMenuItems[i]), this.path,
+          this.title, false));
     }
-    rows.add(_buildItem(() => Get.to(() => null), 'assets/instagram.json', "اینستاگرام",false));
-    rows.add(_buildItem(() => Get.to(() => null), 'assets/articles.json', "آموزش مقالات",false));
+    rows.add(_buildItem(() => Get.to(() => null), 'assets/instagram.json',
+        "اینستاگرام", false));
+    rows.add(_buildItem(() => Get.to(() => null), 'assets/articles.json',
+        "آموزش مقالات", false));
     return rows;
   }
 
   void _setTitleAndPath(Widget pageName) {
-      switch (pageName.runtimeType.toString()) {
-      case "WeatherView":this.title = "آب و هوا" ; this.path= 'assets/weather.json' ;break;
-      case "PricesView":this.title="قیمت ها";this.path='assets/price.json';break;
-      case "SupportView":this.title="پشتیبانی" ;this.path='assets/support.json'; break;
-      case "MessagesView":this.title= "پیام" ;this.path='assets/messages.json'; break;
-      case "InitialVisit":this.title = "بازدید اولیه" ; this.path= 'assets/visit.json' ;break;
-      case "PeriodicVisits":this.title= "بازدید دوره ای";this.path='assets/periodic.json';break;
-      case "VetVisit":this.title="بازدید دامپزشک" ;this.path='assets/vetvisit.json'; break;
-      default:WeatherView: this.title = "آب و هوا" ; this.path= 'assets/weather.json';
+    switch (pageName.runtimeType.toString()) {
+      case "WeatherView":
+        this.title = "آب و هوا";
+        this.path = 'assets/weather.json';
+        break;
+      case "PricesView":
+        this.title = "قیمت ها";
+        this.path = 'assets/price.json';
+        break;
+      case "SupportView":
+        this.title = "پشتیبانی";
+        this.path = 'assets/support.json';
+        break;
+      case "MessagesView":
+        this.title = "پیام";
+        this.path = 'assets/messages.json';
+        break;
+      case "InitialVisit":
+        this.title = "بازدید اولیه";
+        this.path = 'assets/visit.json';
+        break;
+      case "PeriodicVisits":
+        this.title = "بازدید دوره ای";
+        this.path = 'assets/periodic.json';
+        break;
+      case "VetVisit":
+        this.title = "بازدید دامپزشک";
+        this.path = 'assets/vetvisit.json';
+        break;
+      default:
+        WeatherView:
+        this.title = "آب و هوا";
+        this.path = 'assets/weather.json';
     }
   }
-
 }

@@ -1,4 +1,4 @@
-const VERSION = "4.0.8";
+const VERSION = "4.1.2";
 //shared key
 const LAST_FETCH_AVG_PRICE_TIME = "LAST_FETCH_AVG_PRICE_TIME";
 const SID = "sid";
@@ -15,6 +15,7 @@ const NAME = "name";
 const LAST_NAME = "last_name";
 const USER_NAME = "user_name";
 const PROVINCE = "province";
+const USER_PROVINCE = "user_province";
 const CITY = "city";
 const SELECTED_CITY = "selected_city";
 const WAETHER_KEY = "WAETHER_KEY";

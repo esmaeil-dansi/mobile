@@ -78,7 +78,7 @@ class _InitialVisitState extends State<ProductVisit> {
             "پرونده بهره وری",
           ),
           floatingActionButton: _athService.isRahbar()
-              ? newFormWidget(ProductVisitReport())
+              ? newFormWidget(()=>Get.to(()=>ProductVisitReport()))
               : null,
           body: Container(
             margin: EdgeInsets.all(8),

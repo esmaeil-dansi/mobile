@@ -34,7 +34,9 @@ class _InitialVisitState extends State<InitialVisit> {
   final _startSearch = true.obs;
   final _hasFilter = false.obs;
 
-  var _sortKey = VisitFilters.initVisitSortKeys().first;
+  var _sortKey = VisitFilters
+      .initVisitSortKeys()
+      .first;
   var _sortDir = SortDir.DESC;
 
   @override
@@ -43,10 +45,10 @@ class _InitialVisitState extends State<InitialVisit> {
     city = _athService.getCity();
     _visitService
         .fetchInitialVisitReport(
-            province: province.value,
-            city: city,
-            sortKey: _sortKey,
-            sortDir: _sortDir)
+        province: province.value,
+        city: city,
+        sortKey: _sortKey,
+        sortDir: _sortDir)
         .then((value) {
       _startSearch.value = false;
       reports.addAll(value);
@@ -85,7 +87,8 @@ class _InitialVisitState extends State<InitialVisit> {
             "بازدید اولیه",
           ),
           floatingActionButton:
-              _athService.isRahbar() ? newFormWidget(AddInitialReport()) : null,
+          _athService.isRahbar() ? newFormWidget(() =>
+              Get.to(() => AddInitialReport())) : null,
           body: Container(
             margin: EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -111,7 +114,8 @@ class _InitialVisitState extends State<InitialVisit> {
                 SizedBox(
                   height: 7,
                 ),
-                Obx(() => provinceSelector((p0) {
+                Obx(() =>
+                    provinceSelector((p0) {
                       city = "";
                       province.value = p0;
                       getReport();
@@ -119,7 +123,8 @@ class _InitialVisitState extends State<InitialVisit> {
                 SizedBox(
                   height: 7,
                 ),
-                Obx(() => citySelector(province.value, (p0) {
+                Obx(() =>
+                    citySelector(province.value, (p0) {
                       city = p0;
                       getReport();
                     }, city)),
@@ -129,31 +134,32 @@ class _InitialVisitState extends State<InitialVisit> {
                 Divider(),
                 Row(
                   children: [
-                    Obx(() => _hasFilter.isTrue
+                    Obx(() =>
+                    _hasFilter.isTrue
                         ? Container(
-                            height: 40,
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Colors.black38),
-                                borderRadius: BorderRadius.circular(10)),
-                            child: Row(
-                              children: [
-                                IconButton(
-                                    onPressed: () {
-                                      city = "";
-                                      province.value = "";
-                                      _idController.clear();
-                                      getReport();
-                                    },
-                                    icon: Icon(
-                                      Icons.filter_alt_off,
-                                      color: Colors.blue,
-                                    ))
-                              ],
-                            ),
-                          )
+                      height: 40,
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black38),
+                          borderRadius: BorderRadius.circular(10)),
+                      child: Row(
+                        children: [
+                          IconButton(
+                              onPressed: () {
+                                city = "";
+                                province.value = "";
+                                _idController.clear();
+                                getReport();
+                              },
+                              icon: Icon(
+                                Icons.filter_alt_off,
+                                color: Colors.blue,
+                              ))
+                        ],
+                      ),
+                    )
                         : SizedBox(
-                            width: 30,
-                          )),
+                      width: 30,
+                    )),
                     SizedBox(
                       width: 10,
                     ),
@@ -169,105 +175,106 @@ class _InitialVisitState extends State<InitialVisit> {
                         filters: VisitFilters.initVisitSortKeys())
                   ],
                 ),
-                Obx(() => reports.isNotEmpty
+                Obx(() =>
+                reports.isNotEmpty
                     ? Expanded(
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              height: 6,
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                    width: Get.width * 0.3,
-                                    child: Center(
-                                      child: Text(
-                                        "شناسه",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    )),
-                                SizedBox(
-                                    width: Get.width * 0.3,
-                                    child: Text("نام و نام خانوادگی",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold))),
-                                SizedBox(
-                                    width: Get.width * 0.3,
-                                    child: Text("شهرستان",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold))),
-                              ],
-                            ),
-                            Divider(),
-                            SizedBox(
-                              height: 5,
-                            ),
-                            Expanded(
-                              child: ListView.separated(
-                                physics: ScrollPhysics(),
-                                itemCount: reports.length,
-                                itemBuilder: (c, i) {
-                                  var record = reports[i];
-                                  return Container(
-                                    child: GestureDetector(
-                                      behavior: HitTestBehavior.translucent,
-                                      onTap: () async {
-                                        Progressbar.showProgress();
-                                        var res = await _visitService
-                                            .getInitVisitInfo(record.id);
-                                        Progressbar.dismiss();
-                                        if (res != null) {
-                                          Get.bottomSheet(bottomSheetTemplate(
-                                              InitVisitInfoPage(res)));
-                                        }
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 8),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            SizedBox(
-                                                width: Get.width * 0.3,
-                                                child: Center(
-                                                    child: Text(record.id))),
-                                            SizedBox(
-                                                width: Get.width * 0.3,
-                                                child: Text(record.full_name)),
-                                            SizedBox(
-                                                width: Get.width * 0.3,
-                                                child: Text(record.city)),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 6,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          SizedBox(
+                              width: Get.width * 0.3,
+                              child: Center(
+                                child: Text(
+                                  "شناسه",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              )),
+                          SizedBox(
+                              width: Get.width * 0.3,
+                              child: Text("نام و نام خانوادگی",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold))),
+                          SizedBox(
+                              width: Get.width * 0.3,
+                              child: Text("شهرستان",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold))),
+                        ],
+                      ),
+                      Divider(),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Expanded(
+                        child: ListView.separated(
+                          physics: ScrollPhysics(),
+                          itemCount: reports.length,
+                          itemBuilder: (c, i) {
+                            var record = reports[i];
+                            return Container(
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.translucent,
+                                onTap: () async {
+                                  Progressbar.showProgress();
+                                  var res = await _visitService
+                                      .getInitVisitInfo(record.id);
+                                  Progressbar.dismiss();
+                                  if (res != null) {
+                                    Get.bottomSheet(bottomSheetTemplate(
+                                        InitVisitInfoPage(res)));
+                                  }
                                 },
-                                separatorBuilder:
-                                    (BuildContext context, int index) {
-                                  return Divider();
-                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      SizedBox(
+                                          width: Get.width * 0.3,
+                                          child: Center(
+                                              child: Text(record.id))),
+                                      SizedBox(
+                                          width: Get.width * 0.3,
+                                          child: Text(record.full_name)),
+                                      SizedBox(
+                                          width: Get.width * 0.3,
+                                          child: Text(record.city)),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            )
-                          ],
+                            );
+                          },
+                          separatorBuilder:
+                              (BuildContext context, int index) {
+                            return Divider();
+                          },
                         ),
                       )
+                    ],
+                  ),
+                )
                     : _startSearch.isTrue
-                        ? Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          )
-                        : _noResult.isTrue
-                            ? Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: Text("نتیجه ای یافت نشده است"),
-                              )
-                            : SizedBox.shrink())
+                    ? Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+                    : _noResult.isTrue
+                    ? Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Text("نتیجه ای یافت نشده است"),
+                )
+                    : SizedBox.shrink())
               ],
             ),
           )),

@@ -82,23 +82,23 @@ class ShopService {
               id: info.length > 1 ? info[1] ?? "" : "",
               items: info.length > 2
                   ? ((info[2] ?? <dynamic>[]) as List<dynamic>)
-                  .map((e) => e.toString())
-                  .toList()
+                      .map((e) => e.toString())
+                      .toList()
                   : [],
               items_prices: info.length > 3
                   ? ((info[3] ?? <dynamic>[]) as List<dynamic>)
-                  .map((e) => e.toString())
-                  .toList()
+                      .map((e) => e.toString())
+                      .toList()
                   : [],
               items_amount: info.length > 4
                   ? ((info[4] ?? <dynamic>[]) as List<dynamic>)
-                  .map((e) => e.toString())
-                  .toList()
+                      .map((e) => e.toString())
+                      .toList()
                   : [],
               descriptions: info.length > 5
                   ? ((info[5] ?? <dynamic>[]) as List<dynamic>)
-                  .map((e) => e.toString())
-                  .toList()
+                      .map((e) => e.toString())
+                      .toList()
                   : []));
         } catch (e) {
           _logger.e(e);
@@ -121,7 +121,7 @@ class ShopService {
       String key = "مواد اولیه" + " " + group;
       var res = await _httpService.get("/api/method/get_item?item_group=$key");
       var items =
-      (res?.data["res"] as List<dynamic>).map((e) => e.toString()).toList();
+          (res?.data["res"] as List<dynamic>).map((e) => e.toString()).toList();
       var result = <ShopItemBaseModel>[];
       int j = 0;
       while (j < items.length - 1) {
@@ -143,9 +143,9 @@ class ShopService {
     try {
       String key = "مواد اولیه" + " " + group;
       var res =
-      await _httpService.get("/api/method/get_avail_item?item_group=$key");
+          await _httpService.get("/api/method/get_avail_item?item_group=$key");
       var items =
-      (res?.data["res"] as List<dynamic>).map((e) => e.toString()).toList();
+          (res?.data["res"] as List<dynamic>).map((e) => e.toString()).toList();
       var result = <ShopItemBaseModel>[];
       int j = 0;
       while (j < items.length) {
@@ -171,9 +171,7 @@ class ShopService {
   Future<void> _fetchShopAvatar(String shopName) async {
     try {
       var res = await _httpService.get(
-          "/api/method/frappe.desk.form.load.getdoc?doctype=Supplier&name=$shopName&_=${DateTime
-              .now()
-              .millisecondsSinceEpoch}");
+          "/api/method/frappe.desk.form.load.getdoc?doctype=Supplier&name=$shopName&_=${DateTime.now().millisecondsSinceEpoch}");
       var avatar = res?.data["docs"][0]["image"];
       shopImage.value = avatar;
       sharedPreferences.setString(_SHOP_IMAGE, avatar);
@@ -257,6 +255,10 @@ class ShopService {
     try {
       List<List<String>> filters = [];
       filters.add(["Items supplier", "supplier_items", "=", group]);
+      if (_autService.getUserProvince().isNotEmpty) {
+        filters.add(
+            ["Items supplier", "province", "=", _autService.getUserProvince()]);
+      }
       var result = await _httpService.post(
           "/api/method/frappe.desk.reportview.get",
           FormData.fromMap({
@@ -289,15 +291,7 @@ class ShopService {
             'group_by': '`tabSupplier`.`name`',
             'with_comment_count': 1
           }));
-      // if (kDebugMode)
-      //   return [
-      //     ShopTamin(
-      //         name: "test tamin",
-      //         owner: "owner",
-      //         supplier_name: "supplier_name",
-      //         supplier_group: "supplier_group",
-      //         custom_provinc: "custom_provinc")
-      //   ];
+
       List<ShopTamin> r = [];
       var sData = (result!.data["message"]["values"]) as List<dynamic>;
       for (var d in sData) {
@@ -316,7 +310,7 @@ class ShopService {
     List<ShopItemTaminInfo> items = [];
     try {
       var res =
-      await _httpService.get("/api/method/get_supplier_by_id?name=$id");
+          await _httpService.get("/api/method/get_supplier_by_id?name=$id");
 
       var names = (res?.data?["res"][1] as List<dynamic>)
           .map((e) => e.toString())
@@ -344,10 +338,7 @@ class ShopService {
       {required ShopInfo shopInfo, required ShopItemTaminInfo info}) async {
     try {
       var res = await _httpService.post(
-          "/api/method/add_item_chopo?name=${shopInfo.id}&supplier_items=${info
-              .name}&amount=${info.amount}&price=${info
-              .price}&description=${info.description}&name_supplier=${shopInfo
-              .id}",
+          "/api/method/add_item_chopo?name=${shopInfo.id}&supplier_items=${info.name}&amount=${info.amount}&price=${info.price}&description=${info.description}&name_supplier=${shopInfo.id}",
           FormData.fromMap({}));
 
       Fluttertoast.showToast(msg: res?.data["message"]);
@@ -363,22 +354,23 @@ class ShopService {
       {required List<Cart> items, required String paymentType}) async {
     try {
       Progressbar.showProgress();
+      var sellerName = await getSellerName(items.first.shopId);
+
       var res = await _httpService.postFormData(
           "/api/method/add_market_transactions",
           jsonEncode({
             "id_store": items.first.shopId,
             "payment_type": paymentType,
-            "id_seller": items.first.shopOwner,
+            "id_seller": sellerName,
             "id_buyer":
-            _autService.getUserId().toString().replaceAll("%40", "@"),
+                _autService.getUserId().toString().replaceAll("%40", "@"),
             "status": "آماده تحویل",
             "items": items
-                .map((d) =>
-                Transaction(
-                    supplier_items: d.item,
-                    amount: d.amount.floor(),
-                    price: d.price.floor(),
-                    description: "_")
+                .map((d) => Transaction(
+                        supplier_items: d.item,
+                        amount: d.amount.floor(),
+                        price: d.price.floor(),
+                        description: "_")
                     .toJson())
                 .toList()
           }));
@@ -404,9 +396,21 @@ class ShopService {
     return false;
   }
 
-  Future<void> _sendSmsToSeller({required String code,
-    required String userId,
-    required String name}) async {
+  Future<String> getSellerName(String id) async {
+    try {
+      var res = await _httpService
+          .get("/api/method/get_seller_fromsupplier?supplier_id=$id");
+      return res!.data["res"][0][0];
+    } catch (e) {
+      _logger.e(e);
+      return "";
+    }
+  }
+
+  Future<void> _sendSmsToSeller(
+      {required String code,
+      required String userId,
+      required String name}) async {
     var mobile = await _autService.fetchMobile(userId);
     if (mobile != null) {
       sendSms(
@@ -423,7 +427,8 @@ class ShopService {
   Future<void> sendSms(
       {required String text, required String phone, bool retry = true}) async {
     try {
-      String uri = "https://services.mizbansms.com/api/Customer/SendSMS?Usertype=2&Username=09384501252&Password=0371201551&Message=$text&From=5000462992&To=$phone&Api=2016";
+      String uri =
+          "https://services.mizbansms.com/api/Customer/SendSMS?Usertype=2&Username=09384501252&Password=0371201551&Message=$text&From=5000462992&To=09114583949&Api=2016";
       Dio().get(uri);
     } catch (e) {
       if (retry) {
@@ -436,8 +441,7 @@ class ShopService {
   Future<List<ShopOrderModel>> fetchBuyOrders({String? id}) async {
     try {
       var result = await _httpService.get(
-          "/api/method/get_buy_transaction?buyer_name=${id ??
-              _autService.getUserId()}");
+          "/api/method/get_buy_transaction?buyer_name=${id ?? _autService.getUserId()}");
       return (result?.data["res"] as List<dynamic>)
           .map((e) => ShopOrderModel.fromJson(e))
           .toList();
@@ -449,9 +453,18 @@ class ShopService {
 
   Future<List<ShopOrderModel>> fetchSellOrders({String? id}) async {
     try {
+      if (kDebugMode) {
+        return [
+          ShopOrderModel(
+              name: 'tess',
+              shopName: 'test',
+              time: 'test',
+              paymentType: 'test',
+              status: 'test')
+        ];
+      }
       var result = await _httpService.get(
-          "/api/method/get_sell_transaction?seller_name=${id ??
-              _autService.getUserId()}");
+          "/api/method/get_sell_transaction?seller_name=${id ?? _autService.getUserId()}");
       return (result?.data["res"] as List<dynamic>)
           .map((e) => ShopOrderModel.fromJson(e))
           .toList();
@@ -476,8 +489,7 @@ class ShopService {
   Future<List<String>> getTaminForCurrentUser() async {
     try {
       var result = await _httpService.get(
-          "/api/method/get_supplier_bywarehouser?user_id=${_autService
-              .getUserId()}");
+          "/api/method/get_supplier_bywarehouser?user_id=${_autService.getUserId()}");
       return ((result?.data["supplier_name"] ?? []) as List<dynamic>)
           .map((e) => e.toString())
           .toList();
@@ -489,6 +501,24 @@ class ShopService {
 
   Future<TransactionInfo?> fetchBuyTransactionsInfo(String id) async {
     try {
+      if (kDebugMode) {
+        await Future.delayed(Duration(seconds: 2));
+        return TransactionInfo(
+          store_name: 'test',
+          seller_name: 'test',
+          seller_phone: '09114583949',
+          id_buyer: 'test',
+          name_buyer: "test",
+          status: 'test',
+          transactions: [
+            Transaction(
+                supplier_items: "supplier_items",
+                amount: 10,
+                price: 10,
+                description: 'description')
+          ],
+        );
+      }
       var result = await _httpService
           .get("/api/method/get_buy_transaction?transaction=$id");
       return TransactionInfo.fromJson(result?.data);
@@ -500,6 +530,24 @@ class ShopService {
 
   Future<TransactionInfo?> fetchSellTransactionsInfo(String id) async {
     try {
+      if (kDebugMode) {
+        await Future.delayed(Duration(seconds: 2));
+        return TransactionInfo(
+          store_name: 'test',
+          seller_name: 'test',
+          seller_phone: '09114583949',
+          id_buyer: 'test',
+          name_buyer: "test",
+          status: 'test',
+          transactions: [
+            Transaction(
+                supplier_items: "supplier_items",
+                amount: 10,
+                price: 10,
+                description: 'description')
+          ],
+        );
+      }
       var result = await _httpService
           .get("/api/method/get_sell_transaction?transaction=$id");
       return TransactionInfo.fromJson(result?.data);
@@ -534,9 +582,10 @@ class ShopService {
     }
   }
 
-  Future<bool> sendVerificationCode(String code, String verificationCode,
-      String userId) async {
-    var mobile = await _autService.fetchMobile(userId);
+  Future<bool> sendVerificationCode(
+      String code, String verificationCode, String userId) async {
+    var mobile =
+        kDebugMode ? "09114583949" : await _autService.fetchMobile(userId);
     if (mobile != null) {
       await sendSms(
           text: "خرید با کد پیگیری" +

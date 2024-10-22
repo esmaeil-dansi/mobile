@@ -139,13 +139,13 @@ class _StoreKeeperPageState extends State<StoreKeeperPage> {
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   SizedBox(
-                                                    width: Get.width*0.4,
+                                                    width: Get.width * 0.4,
                                                     child: Text(
                                                         maxLines: 1,
                                                         transactions[i]
                                                             .shopName,
-                                                        overflow:
-                                                            TextOverflow.ellipsis,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                         style: TextStyle(
                                                             fontSize: 14,
                                                             color:
@@ -160,7 +160,8 @@ class _StoreKeeperPageState extends State<StoreKeeperPage> {
                                                 ],
                                               ),
                                               Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
                                                       maxLines: 2,
@@ -222,6 +223,7 @@ class _TransactionInfoPageState extends State<TransactionInfoPage> {
     super.initState();
   }
 
+  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -354,6 +356,7 @@ class _TransactionInfoPageState extends State<TransactionInfoPage> {
                               setState(() {});
                             },
                             child: Container(
+                              height: 50,
                               width: Get.width * 0.8,
                               child: Center(
                                   child: Text(
@@ -433,13 +436,12 @@ class _TransactionInfoPageState extends State<TransactionInfoPage> {
                                                         if (_.length == 4) {
                                                           _submit(
                                                               _textController,
-                                                              s,
                                                               c);
                                                         }
                                                       },
                                                       onSubmitted: (_) {
-                                                        _submit(_textController,
-                                                            s, c);
+                                                        _submit(
+                                                            _textController, c);
                                                       },
                                                     ),
                                                   ),
@@ -455,7 +457,7 @@ class _TransactionInfoPageState extends State<TransactionInfoPage> {
                                                                   .greenAccent),
                                                   onPressed: () async {
                                                     await _submit(
-                                                        _textController, s, c);
+                                                        _textController, c);
                                                   },
                                                   child: Text("ثبت"))
                                             ],
@@ -498,13 +500,17 @@ class _TransactionInfoPageState extends State<TransactionInfoPage> {
     );
   }
 
-  Future<void> _submit(TextEditingController _textController,
-      AsyncSnapshot<TransactionState?> s, BuildContext c) async {
-    if (_textController.text == s.data?.verificationCode) {
+  Future<void> _submit(
+      TextEditingController _textController, BuildContext c) async {
+    final transaction = await _shopRepo.getTransactionState(widget.code.name);
+    if (_textController.text.length < 4) {
+      Fluttertoast.showToast(msg: "کد تحویل اشتباه است");
+    } else if (int.parse(_textController.text) ==
+        int.parse(transaction!.verificationCode ?? '0')) {
       _shopRepo.saveTransaction(widget.code.name, "", close: true);
       Navigator.pop(c);
       await _shopService.changeTransactionState(widget.code.name);
-      await _shopService.closeTransaction(s.data!.code);
+      await _shopService.closeTransaction(transaction.code);
 
       setState(() {});
     } else {
