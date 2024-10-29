@@ -44,7 +44,6 @@ class _DesktopViewState extends State<DesktopView> {
   void initState() {
     // _checkSupplierInfoState();
     _autService.fetchRemainCredit();
-    _autService.fetchProvince();
 
     _visitService.fetchPrices();
     if (widget.needToCheckUpdate) {

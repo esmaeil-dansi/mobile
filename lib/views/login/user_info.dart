@@ -199,7 +199,9 @@ class _UserInfoState extends State<UserInfo> {
                                 SizedBox(
                                   height: 8,
                                 ),
-                                TitleCheckBox("در صورت هماهنگی با شرکت » تامین کننده هستم»", (c) {
+                                TitleCheckBox(
+                                    "در صورت هماهنگی با شرکت » تامین کننده هستم»",
+                                    (c) {
                                   _taminUser = c;
                                 }),
                               ],
@@ -224,17 +226,31 @@ class _UserInfoState extends State<UserInfo> {
                             RegExp regExp = new RegExp(pattern);
                             if (regExp.hasMatch(_pass.text)) {
                               Progressbar.showProgress();
-                              if (await _autService.sendInfo(
-                                  password: _pass.text,
-                                  tamin: _taminUser,
-                                  nationalId: _nationId.text,
-                                  province: _province.text,
-                                  bio: _bio.text,
-                                  firstname: _name.text,
-                                  lastname: _lastName.text)) {
-                                Fluttertoast.showToast(msg: "ثبت نام با موفقیت انجام شد لطفا ورود کنید");
-                                Get.offAll(() => Login());
-                              } else {}
+                              var state = await _autService
+                                  .nationalCodeIsAvailable(_nationId.text);
+                              switch (state) {
+                                case FetchNationalStatus.Failed:
+                                  Fluttertoast.showToast(
+                                      msg: "این شماره ملی از قبل ثبت شده است");
+                                case FetchNationalStatus.Success:
+                                  if (await _autService.sendInfo(
+                                      password: _pass.text,
+                                      tamin: _taminUser,
+                                      nationalId: _nationId.text,
+                                      province: _province.text,
+                                      bio: _bio.text,
+                                      firstname: _name.text,
+                                      lastname: _lastName.text)) {
+                                    Fluttertoast.showToast(
+                                        msg:
+                                            "ثبت نام با موفقیت انجام شد لطفا ورود کنید");
+                                    Get.offAll(() => Login());
+                                  }
+                                case FetchNationalStatus.Error:
+                                  Fluttertoast.showToast(
+                                      msg:
+                                          "خطایی در استعلام شماره ملی رخ داده است");
+                              }
                             } else {
                               Fluttertoast.showToast(
                                   msg:

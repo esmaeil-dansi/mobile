@@ -32,9 +32,11 @@ class _AppState extends State<App> {
       child: GetMaterialApp(
         textDirection: TextDirection.rtl,
         builder: EasyLoading.init(),
-        // theme: ThemeData(
-        //   fontFamily: 'Iran Sans Bold',
-        // ),
+        theme: ThemeData(
+          appBarTheme: const AppBarTheme(backgroundColor: Colors.white),
+          scaffoldBackgroundColor: Colors.white,
+          fontFamily: 'Estedad-VF',
+        ),
         debugShowCheckedModeBanner: false,
         title: "چوپو",
         localizationsDelegates: [

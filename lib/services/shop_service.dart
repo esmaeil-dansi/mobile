@@ -253,50 +253,19 @@ class ShopService {
 
   Future<List<ShopTamin>> fetchShopTamin(String group) async {
     try {
-      List<List<String>> filters = [];
-      filters.add(["Items supplier", "supplier_items", "=", group]);
-      if (_autService.getUserProvince().isNotEmpty) {
-        filters.add(
-            ["Items supplier", "province", "=", _autService.getUserProvince()]);
-      }
-      var result = await _httpService.post(
-          "/api/method/frappe.desk.reportview.get",
-          FormData.fromMap({
-            'doctype': 'Supplier',
-            'fields': json.encode([
-              "`tabSupplier`.`name`",
-              "`tabSupplier`.`owner`",
-              "`tabSupplier`.`creation`",
-              "`tabSupplier`.`modified`",
-              "`tabSupplier`.`modified_by`",
-              "`tabSupplier`.`_user_tags`",
-              "`tabSupplier`.`_comments`",
-              "`tabSupplier`.`_assign`",
-              "`tabSupplier`.`_liked_by`",
-              "`tabSupplier`.`docstatus`",
-              "`tabSupplier`.`idx`",
-              "`tabSupplier`.`supplier_name`",
-              "`tabSupplier`.`custom_emdad_supplier`",
-              "`tabSupplier`.`supplier_group`",
-              "`tabSupplier`.`custom_province`",
-              "`tabSupplier`.`image`",
-              "`tabSupplier`.`on_hold`",
-              "`tabSupplier`.`disabled`"
-            ]),
-            'filters': json.encode(filters),
-            'order_by': '`tabSupplier`.`creation` desc',
-            'start': 0,
-            'page_length': 100, //todo
-            'view': 'List',
-            'group_by': '`tabSupplier`.`name`',
-            'with_comment_count': 1
-          }));
+      var result = await _httpService.get(
+        "/api/method/get_supplier_byitem?item=$group",
+      );
 
       List<ShopTamin> r = [];
-      var sData = (result!.data["message"]["values"]) as List<dynamic>;
+      var sData = (result!.data["res"]) as List<dynamic>;
       for (var d in sData) {
         var ex = ShopTamin.fromJson(d);
-        if (ex != null) {
+        if (ex != null &&
+            (_autService.getProvince().isEmpty ||
+                (_autService.getProvince().contains(ex.custom_province) ||
+                    _autService.getProvince() == ex.custom_province ||
+                    ex.custom_province.contains(_autService.getProvince())))) {
           r.add(ex);
         }
       }
@@ -428,7 +397,7 @@ class ShopService {
       {required String text, required String phone, bool retry = true}) async {
     try {
       String uri =
-          "https://services.mizbansms.com/api/Customer/SendSMS?Usertype=2&Username=09384501252&Password=0371201551&Message=$text&From=5000462992&To=09114583949&Api=2016";
+          "https://services.mizbansms.com/api/Customer/SendSMS?Usertype=2&Username=09384501252&Password=0371201551&Message=$text&From=5000462992&To=$phone&Api=2016";
       Dio().get(uri);
     } catch (e) {
       if (retry) {

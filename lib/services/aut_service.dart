@@ -20,6 +20,8 @@ import 'package:logger/logger.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum FetchNationalStatus { Failed, Success, Error }
+
 class AutService {
   Rx<String> selectedCity = "".obs;
   var weathers = <Weather>[].obs;
@@ -112,20 +114,6 @@ class AutService {
       _logger.e(_);
     }
   }
-
-  Future<void> fetchProvince() async {
-    try {
-      var res = await GetIt.I
-          .get<HttpService>()
-          .get("/api/method/get_user_province?user=$_user_id");
-      var p = res!.data["province"];
-      _sharedPreferences.setString(USER_PROVINCE, p);
-    } catch (e) {
-      _logger.e(e);
-    }
-  }
-
-  String getUserProvince() => _sharedPreferences.getString(USER_PROVINCE) ?? "";
 
   bool needToFetchWeather() {
     return DateTime.now().millisecondsSinceEpoch -
@@ -545,6 +533,20 @@ class AutService {
     } catch (e) {
       _logger.e(e);
       return ("", "", "");
+    }
+  }
+
+  Future<FetchNationalStatus> nationalCodeIsAvailable(String nationCode) async {
+    try {
+      var result = await GetIt.I
+          .get<HttpService>()
+          .get("/api/method/get_app_mobile?username=$nationCode");
+      if (result?.data["res"] == 4000) {
+        return FetchNationalStatus.Success;
+      }
+      return FetchNationalStatus.Failed;
+    } catch (e) {
+      return FetchNationalStatus.Error;
     }
   }
 

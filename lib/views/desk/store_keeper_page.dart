@@ -11,7 +11,7 @@ import 'package:frappe_app/widgets/methodes.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
-import 'package:sms_autofill/sms_autofill.dart';
+
 
 import '../../model/shop_order_model.dart';
 
@@ -219,7 +219,6 @@ class _TransactionInfoPageState extends State<TransactionInfoPage> {
 
   @override
   void initState() {
-    SmsAutoFill().listenForCode;
     super.initState();
   }
 
