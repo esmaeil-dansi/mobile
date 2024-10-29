@@ -51,16 +51,16 @@ class _HomeViewState extends State<HomeView> {
   GlobalKey<AutoCompleteTextFieldState<String>> key = GlobalKey();
   List<String> suggest = ['آب و هوا', 'قیمت ها', 'پیام', 'بازدید اولیه', 'بازدید دوره ای', 'بازدید دامپزشک', 'پشتیبانی', 'فروشگاه محصولات'];
   final List<String> imgList = ['assets/slider01.jpg', 'assets/slider02.jpg'];
-  List<String> suggest = [
-    'آب و هوا',
-    'قیمت ها',
-    'پیام',
-    'بازدید اولیه',
-    'بازدید دوره ای',
-    'بازدید دامپزشک',
-    'پشتیبانی',
-  ];
-  final List<String> imgList = ['assets/slider01.png', 'assets/slider02.png'];
+  // List<String> suggest = [
+  //   'آب و هوا',
+  //   'قیمت ها',
+  //   'پیام',
+  //   'بازدید اولیه',
+  //   'بازدید دوره ای',
+  //   'بازدید دامپزشک',
+  //   'پشتیبانی',
+  // ];
+  // final List<String> imgList = ['assets/slider01.png', 'assets/slider02.png'];
   late String title;
   late String path;
   final Map<String, List<Widget>> roleAccess = {
