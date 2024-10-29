@@ -20,6 +20,8 @@ import 'package:logger/logger.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum FetchNationalStatus { Failed, Success, Error }
+
 class AutService {
   Rx<String> selectedCity = "".obs;
   var weathers = <Weather>[].obs;
@@ -533,6 +535,20 @@ class AutService {
     } catch (e) {
       _logger.e(e);
       return ("", "", "");
+    }
+  }
+
+  Future<FetchNationalStatus> nationalCodeIsAvailable(String nationCode) async {
+    try {
+      var result = await GetIt.I
+          .get<HttpService>()
+          .get("/api/method/get_app_mobile?username=$nationCode");
+      if (result?.data["res"] == 4000) {
+        return FetchNationalStatus.Success;
+      }
+      return FetchNationalStatus.Failed;
+    } catch (e) {
+      return FetchNationalStatus.Error;
     }
   }
 

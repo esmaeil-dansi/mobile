@@ -73,7 +73,7 @@ class HttpService {
           headers: {
             "cookie": getCookie(),
             'X-Frappe-Csrf-Token':
-                "80b201c014cd400bbc4c5e6b197a68e473a2a7ad56366c36d71f71c0",
+                "2690da8ad105a01afdfe5bfced0c3b6ed780811c69bf9ed6362855b4",
             'Origin': "https://icasp.ir",
             'Host': "icasp.ir",
           },

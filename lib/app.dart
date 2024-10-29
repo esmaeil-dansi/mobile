@@ -33,7 +33,9 @@ class _AppState extends State<App> {
         textDirection: TextDirection.rtl,
         builder: EasyLoading.init(),
         theme: ThemeData(
-          fontFamily: 'B nanzanin.ttf',
+          appBarTheme: const AppBarTheme(backgroundColor: Colors.white),
+          scaffoldBackgroundColor: Colors.white,
+          fontFamily: 'Estedad-VF',
         ),
         debugShowCheckedModeBanner: false,
         title: "چوپو",

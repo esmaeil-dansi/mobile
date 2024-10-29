@@ -6,7 +6,7 @@ import 'package:frappe_app/views/login/user_info.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
-import 'package:sms_autofill/sms_autofill.dart';
+import 'package:pinput/pinput.dart';
 
 class VerificationPage extends StatefulWidget {
   String phoneNumber;
@@ -21,6 +21,7 @@ class _VerificationPageState extends State<VerificationPage> {
   var time = 30.obs;
   Timer? timer;
   final _loading = false.obs;
+  TextEditingController _pinController = TextEditingController();
 
   void _cancelTimer() {
     timer?.cancel();
@@ -30,7 +31,6 @@ class _VerificationPageState extends State<VerificationPage> {
   void initState() {
     _startTimer();
 
-    SmsAutoFill().listenForCode;
     _textController.addListener(() {
       if (_textController.text.length == 4) {
         _next();
@@ -153,24 +153,43 @@ class _VerificationPageState extends State<VerificationPage> {
                                 child: Text("ویرایش"))
                           ],
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 10),
-                          child: PinFieldAutoFill(
-                              controller: _textController,
-                              autoFocus: true,
-                              decoration: UnderlineDecoration(
-                                // gapSpace: 20,
-                                textStyle: TextStyle(
-                                  fontSize: 40,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                                colorBuilder: FixedColorBuilder(Colors.black),
+                        Center(
+                          child: Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Pinput(
+                              controller: _pinController,
+                              length: 4,
+                              // focusNode: _focusNode,
+                              autofocus: true,
+
+                              // listenForMultipleSmsOnAndroid: true,
+                              // inputFormatters: [NumberInputFormatter],
+                              hapticFeedbackType:
+                                  HapticFeedbackType.lightImpact,
+                              onCompleted: (_) {},
+                              cursor: Column(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsets.only(bottom: 9),
+                                    width: 22,
+                                    height: 1,
+                                    // color: focusedBorderColor,
+                                  ),
+                                ],
                               ),
-                              onCodeSubmitted: (_) => _next(),
-                              codeLength: 4),
-                        ),
+
+                              errorPinTheme:
+                                  errorPinTheme(Get.theme, fontSize: 30),
+                              defaultPinTheme:
+                                  defaultPinTheme(Get.theme, fontSize: 30),
+                              focusedPinTheme:
+                                  focusedPinTheme(Get.theme, fontSize: 30),
+                              submittedPinTheme:
+                                  submittedPinTheme(Get.theme, fontSize: 30),
+                            ),
+                          ),
+                        )
                       ],
                     ),
                   ],
@@ -180,6 +199,54 @@ class _VerificationPageState extends State<VerificationPage> {
           )),
     );
   }
+
+  PinTheme focusedPinTheme(ThemeData theme, {double fontSize = 0}) =>
+      defaultPinTheme(theme, fontSize: fontSize).copyDecorationWith(
+        color: theme.colorScheme.primary.withOpacity(0.3),
+        border: Border.all(color: Colors.green, width: 5),
+        borderRadius: BorderRadius.circular(_PIN_CODE_WIDTH / 2),
+      );
+
+  PinTheme submittedPinTheme(ThemeData theme, {double fontSize = 0}) =>
+      defaultPinTheme(theme, fontSize: fontSize).copyWith(
+        decoration: defaultPinTheme(theme, fontSize: fontSize)
+            .decoration!
+            .copyWith(color: Colors.green),
+      );
+
+  PinTheme errorPinTheme(ThemeData theme, {double fontSize = 0}) => PinTheme(
+        width: _PIN_CODE_WIDTH,
+        height: _PIN_CODE_HEIGHT,
+        textStyle: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          height: 2,
+          color: theme.colorScheme.onError,
+        ),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.error,
+          border: Border.all(color: theme.focusColor, width: 2),
+          borderRadius: BorderRadius.circular(_PIN_CODE_WIDTH / 2),
+        ),
+      );
+  final _PIN_CODE_HEIGHT = 70.0;
+  final _PIN_CODE_WIDTH = 50.0;
+
+  PinTheme defaultPinTheme(ThemeData theme, {double fontSize = 0}) => PinTheme(
+        width: _PIN_CODE_WIDTH,
+        height: _PIN_CODE_HEIGHT,
+        textStyle: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onPrimary,
+          height: 2,
+        ),
+        decoration: BoxDecoration(
+          color: theme.hoverColor,
+          border: Border.all(color: theme.focusColor, width: 2),
+          borderRadius: BorderRadius.circular(_PIN_CODE_WIDTH / 2),
+        ),
+      );
 
   Future<void> _next() async {
     _loading.value = true;

@@ -1,28 +1,25 @@
 class ShopTamin {
-  String name;
-  String owner;
-  String supplier_name;
-  String? image;
-  String supplier_group;
-  String custom_provinc;
+  String parent;
+  double amount;
+  double price;
+  String description;
+  String custom_province;
 
   ShopTamin(
-      {required this.name,
-      required this.owner,
-      required this.supplier_name,
-      required this.supplier_group,
-      required this.custom_provinc,
-      this.image});
+      {required this.price,
+      required this.amount,
+      required this.parent,
+      required this.custom_province,
+      required this.description});
 
-  static ShopTamin? fromJson(List<dynamic> data) {
+  static ShopTamin? fromJson(Map<String, dynamic> data) {
     try {
       return ShopTamin(
-          name: data[0],
-          owner: data[4],
-          supplier_group: data[13],
-          supplier_name: data[11],
-          image: data[15] != null ? data[15] : null,
-          custom_provinc: data[14] != null ? data[14] : "");
+          price: data["price"],
+          amount: data["amount"],
+          parent: data["parent"],
+          custom_province: data["custom_province"],
+          description: data["description"]);
     } catch (e) {
       print(e);
       return null;

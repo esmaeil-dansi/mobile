@@ -15,11 +15,10 @@ class SelectLocation extends StatelessWidget {
   LatLng? latLng;
   bool readOnly;
 
-  SelectLocation(
-      {super.key,
-      required this.onSelected,
-      this.latLng,
-      this.readOnly = false});
+  SelectLocation({super.key,
+    required this.onSelected,
+    this.latLng,
+    this.readOnly = false});
 
   @override
   Widget build(BuildContext context) {
@@ -54,11 +53,10 @@ class LocationWidget extends StatefulWidget {
   LatLng? latLng;
   bool readOnly;
 
-  LocationWidget(
-      {required this.onSelected,
-      this.latLng,
-      this.readOnly = false,
-      super.key});
+  LocationWidget({required this.onSelected,
+    this.latLng,
+    this.readOnly = false,
+    super.key});
 
   @override
   State<LocationWidget> createState() => _LocationWidgetState();
@@ -79,91 +77,95 @@ class _LocationWidgetState extends State<LocationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => latLng.value.longitude != 0
+    return Obx(() =>
+    latLng.value.longitude != 0
         ? Stack(
-            fit: StackFit.passthrough,
+      fit: StackFit.passthrough,
+      children: [
+        SizedBox(
+          height: 150,
+          child: FlutterMap(
+            mapController: mapController,
+            options: MapOptions(
+              maxZoom: 17,
+              zoom: 15,
+              minZoom: 7,
+              center: latLng.value,
+              enableScrollWheel: true,
+            ),
             children: [
-              SizedBox(
-                height: 150,
-                child: FlutterMap(
-                  mapController: mapController,
-                  options: MapOptions(
-                    maxZoom: 17,
-                    zoom: 15,
-                    minZoom: 7,
-                    center: latLng.value,
-                    enableScrollWheel: true,
-                  ),
-                  children: [
-                    TileLayer(
-                      tileProvider: NetworkTileProvider(),
-                      urlTemplate:
-                          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                      subdomains: const ['a', 'b', 'c'],
-                    ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: latLng.value,
-                          builder: (_) {
-                            return GestureDetector(
-                              child: Icon(
-                                Icons.location_pin,
-                                color: Theme.of(context).colorScheme.error,
-                                size: 33,
-                              ),
-                            );
-                          },
+              TileLayer(
+                tileProvider: NetworkTileProvider(),
+                urlTemplate:
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                subdomains: const ['a', 'b', 'c'],
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: latLng.value,
+                    builder: (_) {
+                      return GestureDetector(
+                        child: Icon(
+                          Icons.location_pin,
+                          color: Theme
+                              .of(context)
+                              .colorScheme
+                              .error,
+                          size: 33,
                         ),
-                      ],
-                    ),
-                  ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        if (!widget.readOnly)
+          Positioned(
+            right: 2,
+            bottom: 2,
+            child: Container(
+              decoration: BoxDecoration(
+                  color: Colors.black38,
+                  borderRadius: BorderRadius.circular(50)),
+              child: IconButton(
+                onPressed: () {
+                  AttachLocation(
+                      onSelected: (_) {
+                        latLng.value = _;
+                        widget.onSelected(_);
+                        mapController.move(latLng.value, 14);
+                      },
+                      selectedLocation: latLng.value)
+                      .showLocation();
+                },
+                icon: const Icon(
+                  Icons.change_circle_outlined,
+                  color: Colors.yellowAccent,
+                  size: 28,
                 ),
               ),
-              if (!widget.readOnly)
-                Positioned(
-                  right: 2,
-                  bottom: 2,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: Colors.black38,
-                        borderRadius: BorderRadius.circular(50)),
-                    child: IconButton(
-                      onPressed: () {
-                        AttachLocation(
-                                onSelected: (_) {
-                                  latLng.value = _;
-                                  widget.onSelected(_);
-                                  mapController.move(latLng.value, 14);
-                                },
-                                selectedLocation: latLng.value)
-                            .showLocation();
-                      },
-                      icon: const Icon(
-                        Icons.change_circle_outlined,
-                        color: Colors.yellowAccent,
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                )
-            ],
-          )
-        : GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onTap: () {
-              AttachLocation(onSelected: (_) {
-                latLng.value = _;
-                widget.onSelected(_);
-              }).showLocation();
-            },
-            child: Column(
-              children: [
-                const Icon(Icons.location_on),
-                Text("برای مکان یابی کلیک کنید".tr)
-              ],
             ),
-          ));
+          )
+      ],
+    )
+        : GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        AttachLocation(onSelected: (_) {
+          latLng.value = _;
+          widget.onSelected(_);
+        }).showLocation();
+      },
+      child: Column(
+        children: [
+          const Icon(Icons.location_on),
+          Text("برای مکان یابی کلیک کنید".tr)
+        ],
+      ),
+    ));
   }
 }
 
@@ -173,46 +175,51 @@ class AttachLocation {
 
   AttachLocation({required this.onSelected, this.selectedLocation});
 
-  void showLocation() => Get.bottomSheet(
+  void showLocation() =>
+      Get.bottomSheet(
         selectedLocation != null
             ? location(selectedLocation!)
             : FutureBuilder<LocationPermission>(
-                future: Geolocator.requestPermission(),
-                builder: (context, havePermission) {
-                  if (havePermission.hasData && havePermission.data != null) {
-                    return FutureBuilder<Position>(
-                      future: Geolocator.getCurrentPosition(),
-                      builder: (c, position) {
-                        if (position.hasData && position.data != null) {
-                          return location(LatLng(position.data!.latitude,
-                              position.data!.longitude));
-                        } else {
-                          return Container(
-                            color: Colors.white70,
-                            child: const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        }
-                      },
-                    );
+          future: Geolocator.requestPermission(),
+          builder: (context, havePermission) {
+            if (havePermission.hasData && havePermission.data != null) {
+              return FutureBuilder<Position>(
+                future: Geolocator.getCurrentPosition(),
+                builder: (c, position) {
+                  if (position.hasData && position.data != null) {
+                    return location(LatLng(position.data!.latitude,
+                        position.data!.longitude));
                   } else {
                     return Container(
-                        color: Colors.white70,
-                        child:
-                            const Center(child: CircularProgressIndicator()));
+                      color: Colors.white70,
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
                   }
                 },
-              ),
+              );
+            } else {
+              return Container(
+                  color: Colors.white70,
+                  child:
+                  const Center(child: CircularProgressIndicator()));
+            }
+          },
+        ),
       );
 
-  Widget location(LatLng latLng) => Container(
+  Widget location(LatLng latLng) =>
+      Container(
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(5),
         ),
-        height: MediaQuery.of(Get.context!).size.height / 2,
+        height: MediaQuery
+            .of(Get.context!)
+            .size
+            .height / 2,
         child: PointToLatLngPage(
           onSelected: onSelected,
           latlng: latLng,
@@ -262,7 +269,10 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
         shrinkWrap: true,
         children: [
           LimitedBox(
-            maxHeight: MediaQuery.of(context).size.height / 2,
+            maxHeight: MediaQuery
+                .of(context)
+                .size
+                .height / 2,
             child: Stack(
               children: [
                 FlutterMap(
@@ -279,7 +289,7 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
                   children: [
                     TileLayer(
                       urlTemplate:
-                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       subdomains: const ['a', 'b', 'c'],
                     ),
                     MarkerLayer(
@@ -367,7 +377,7 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
                             } else {
                               Fluttertoast.showToast(
                                   msg:
-                                      "حداکثر فاصله مکان انتخاب شده با موقعیت فعلی شما یاید 200 متر باشد.",
+                                  "حداکثر فاصله مکان انتخاب شده با موقعیت فعلی شما یاید 400 متر باشد.",
                                   backgroundColor: Colors.red);
                             }
                           },
@@ -389,7 +399,7 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
 
     setState(() {
       final newLocation =
-          mapController.pointToLatLng(CustomPoint(pointX, pointY));
+      mapController.pointToLatLng(CustomPoint(pointX, pointY));
       pointerLocation = newLocation;
     });
   }
@@ -408,10 +418,13 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
             (1 - cos((lon2 - userCurrentLocation!.longitude) * p)) /
             2;
 
-    return (2 * r * asin(sqrt(a))) * 1000 < 200;
+    return (2 * r * asin(sqrt(a))) * 1000 < 400;
   }
 
   double _getPointX(BuildContext context) {
-    return MediaQuery.of(context).size.width / 2;
+    return MediaQuery
+        .of(context)
+        .size
+        .width / 2;
   }
 }

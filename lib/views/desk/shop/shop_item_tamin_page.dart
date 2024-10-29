@@ -25,7 +25,7 @@ class ShopItemTaminPage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ShopTaminavatar(shopTamin.image),
+                // ShopTaminavatar(shopTamin.image),
                 SizedBox(
                   height: 10,
                 ),
@@ -36,16 +36,16 @@ class ShopItemTaminPage extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          shopTamin.supplier_name,
-                          style: TextStyle(fontSize: 18),
-                        ),
-                        Text(
-                          shopTamin.name,
-                          style: TextStyle(fontSize: 17),
-                        ),
-                        Text("گروه " + shopTamin.supplier_group),
-                        Text("استان " + shopTamin.custom_provinc),
+                        // Text(
+                        //   shopTamin.supplier_name,
+                        //   style: TextStyle(fontSize: 18),
+                        // ),
+                        // Text(
+                        //   shopTamin.name,
+                        //   style: TextStyle(fontSize: 17),
+                        // ),
+                        // Text("گروه " + shopTamin.supplier_group),
+                        // Text("استان " + shopTamin.custom_provinc),
                       ],
                     ),
                     GestureDetector(

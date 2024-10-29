@@ -78,14 +78,14 @@ class _ShopItemTaminInfoPageState extends State<ShopItemTaminInfoPage> {
           },
         ),
         title: Text(
-          widget.shopTamin.supplier_name,
+          widget.shopTamin.parent,
           style: TextStyle(fontSize: 18),
         ),
       ),
       body: Container(
         child: FutureBuilder(
             future:
-                _shopService.fetchShiopItemsTaminInfo(widget.shopTamin.name),
+                _shopService.fetchShiopItemsTaminInfo(widget.shopTamin.parent),
             builder: (c, s) {
               if (s.hasData && s.data != null && s.data!.isNotEmpty) {
                 var items = s.data!;
@@ -96,7 +96,7 @@ class _ShopItemTaminInfoPageState extends State<ShopItemTaminInfoPage> {
                       return ListView.separated(
                         itemCount: items.length,
                         itemBuilder: (c, i) {
-                          String id = widget.shopTamin.name +
+                          String id = widget.shopTamin.parent +
                               items[i].name +
                               items[i].price.toString();
                           bool isInCarts = carts.keys.contains(id);
@@ -185,7 +185,7 @@ class _ShopItemTaminInfoPageState extends State<ShopItemTaminInfoPage> {
                                             onTap: () {
                                               if (_carts.isNotEmpty &&
                                                   _carts.last.shopId !=
-                                                      widget.shopTamin.name) {
+                                                      widget.shopTamin.parent) {
                                                 showDialog(
                                                     context: context,
                                                     builder: (c) {
@@ -330,13 +330,13 @@ class _ShopItemTaminInfoPageState extends State<ShopItemTaminInfoPage> {
                                                                         .name,
                                                                     shopOwner: widget
                                                                         .shopTamin
-                                                                        .owner,
+                                                                        .parent,
                                                                     time: DateTime
                                                                             .now()
                                                                         .millisecondsSinceEpoch,
                                                                     shopId: widget
                                                                         .shopTamin
-                                                                        .name,
+                                                                        .parent,
                                                                     amount: double.parse(
                                                                         _amountController
                                                                             .text),
