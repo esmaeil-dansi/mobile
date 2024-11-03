@@ -64,8 +64,8 @@ class MessageService {
       }
       return messages
           .where((element) =>
-              element.owner.contains(_autService.getFullNameChar()) ||
-              element.modified_by.contains(_autService.getFullNameChar()) ||
+              element.owner.contains(_autService.fullNameChar()) ||
+              element.modified_by.contains(_autService.fullNameChar()) ||
               element.owner.contains(_autService.mainUserId()) ||
               element.modified_by.contains(_autService.mainUserId()))
           .toList();

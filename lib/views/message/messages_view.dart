@@ -36,7 +36,7 @@ class _MessagesViewState extends State<MessagesView> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        floatingActionButton: _athService.isRahbar()
+        floatingActionButton: _athService.isVisitingTeamOrIsRahbar()
             ? newFormWidget(()=>Get.to(()=>NewMessagePage()), title: "پیام جدید")
             : null,
         appBar: appSliverAppBar("پیام"),

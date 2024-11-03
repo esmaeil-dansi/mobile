@@ -77,7 +77,7 @@ class _InitialVisitState extends State<ProductVisit> {
           appBar: appSliverAppBar(
             "پرونده بهره وری",
           ),
-          floatingActionButton: _athService.isRahbar()
+          floatingActionButton: _athService.isVisitingTeamOrIsRahbar()
               ? newFormWidget(()=>Get.to(()=>ProductVisitReport()))
               : null,
           body: Container(

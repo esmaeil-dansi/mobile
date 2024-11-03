@@ -101,7 +101,8 @@ class _DesktopViewState extends State<DesktopView> {
           showUnselectedLabels: true,
           showSelectedLabels: true,
           type: BottomNavigationBarType.fixed,
-          selectedLabelStyle: TextStyle(color: Colors.black),
+          unselectedLabelStyle: TextStyle(fontSize: 12),
+          selectedLabelStyle: TextStyle(color: Colors.black,fontSize:12),
           currentIndex: index.value,
           // selectedItemColor: const Color(0xff6200ee),
           unselectedItemColor: Colors.black,
@@ -112,7 +113,7 @@ class _DesktopViewState extends State<DesktopView> {
               activeIcon: _selectedIcon(Icons.home),
               label: 'خانه',
             ),
-            if (_autService.isRahbar())
+            if (_autService.isVisitingTeamOrIsRahbar())
               BottomNavigationBarItem(
                 icon: _unSelectedIcon(Icons.compare_arrows_outlined),
                 activeIcon: _selectedIcon(Icons.compare_arrows_outlined),
@@ -151,14 +152,14 @@ class _DesktopViewState extends State<DesktopView> {
     if (i == 0) {
       return HomeView();
     } else if (i == 1) {
-      if (_autService.isRahbar()) {
+      if (_autService.isVisitingTeamOrIsRahbar()) {
         return RequestPage();
       } else if (_autService.isSupplier()) {
         return AllShopPage();
       }
       return OrderPage();
     } else if (i == 2) {
-      if (_autService.isRahbar()) {
+      if (_autService.isVisitingTeamOrIsRahbar()) {
         if (_autService.isSupplier()) {
           return AllShopPage();
         }
@@ -172,7 +173,7 @@ class _DesktopViewState extends State<DesktopView> {
         return SizedBox();
       }
     } else if (i == 3) {
-      if (_autService.isRahbar()) {
+      if (_autService.isVisitingTeamOrIsRahbar()) {
         if (_autService.isSupplier()) {
           return OrderPage();
         }

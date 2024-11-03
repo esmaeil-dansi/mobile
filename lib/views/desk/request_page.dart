@@ -36,7 +36,10 @@ class _RequestPageState extends State<RequestPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("درخواست ها"),
+        title: Text(
+          "درخواست ها",
+          style: TextStyle(fontSize: 16),
+        ),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -62,7 +65,10 @@ class _RequestPageState extends State<RequestPage> {
                   child: Column(
                     children: [
                       Icon(CupertinoIcons.cloud_download),
-                      Text("ذخیره درخواست ها")
+                      Text(
+                        "ذخیره درخواست ها",
+                        style: TextStyle(fontSize: 13),
+                      )
                     ],
                   ),
                 ),
@@ -74,7 +80,10 @@ class _RequestPageState extends State<RequestPage> {
                   child: Column(
                     children: [
                       Icon(Icons.backup_outlined),
-                      Text("بارگذاری درخواست ها")
+                      Text(
+                        "بارگذاری درخواست ها",
+                        style: TextStyle(fontSize: 13),
+                      )
                     ],
                   ),
                 ),
@@ -103,12 +112,23 @@ class _RequestPageState extends State<RequestPage> {
                               child: Container(
                                 height: 90,
                                 decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all()),
+                                  color: Colors.white,
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black54,
+                                      spreadRadius: 0,
+                                      blurRadius: 1,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                  border: Border.all(color: Colors.blueGrey),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
@@ -120,12 +140,11 @@ class _RequestPageState extends State<RequestPage> {
                                         children: [
                                           Text(
                                             getType(record.type),
-                                            style: TextStyle(fontSize: 17),
+                                            style: TextStyle(fontSize: 14),
                                           ),
                                           if (record.nationId.isNotEmpty)
-                                            Text(
-                                              record.nationId,
-                                            ),
+                                            Text(record.nationId,
+                                                style: TextStyle(fontSize: 12)),
                                           Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
@@ -135,7 +154,7 @@ class _RequestPageState extends State<RequestPage> {
                                                     ":" +
                                                     time.minute.toString(),
                                                 style: TextStyle(
-                                                    fontSize: 12,
+                                                    fontSize: 10,
                                                     color: Colors.blueAccent),
                                               ),
                                               SizedBox(
@@ -212,7 +231,8 @@ class _RequestPageState extends State<RequestPage> {
                                                 child: Text(
                                                   "حذف",
                                                   style: TextStyle(
-                                                      color: Colors.white),
+                                                      color: Colors.white,
+                                                      fontSize: 13),
                                                 )),
                                         ],
                                       ),
@@ -233,7 +253,7 @@ class _RequestPageState extends State<RequestPage> {
 
                 return Center(
                     child: Text("درخواستی وجود ندارد.",
-                        style: TextStyle(fontSize: 23)));
+                        style: TextStyle(fontSize: 17)));
               })
         ],
       ),
@@ -346,7 +366,10 @@ class _RequestPageState extends State<RequestPage> {
             }
             Progressbar.dismiss();
           },
-          child: Text("ارسال ")),
+          child: Text(
+            "ارسال ",
+            style: TextStyle(fontSize: 13),
+          )),
     );
   }
 }

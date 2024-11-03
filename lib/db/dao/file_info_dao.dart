@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:frappe_app/db/file_info.dart';
+import 'package:frappe_app/utils/SharedPreferenceHelper.dart';
+import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 
 class FileInfoDao {
+  var _shared = GetIt.I.get<SharedPreferencesHelper>();
   Future<Box<FileInfo>> _open() async {
     try {
       return Hive.openBox<FileInfo>(_key());
@@ -27,5 +30,5 @@ class FileInfoDao {
     }
   }
 
-  String _key() => "filesInfo";
+  String _key() => "${_shared.prefix}filesInfo";
 }

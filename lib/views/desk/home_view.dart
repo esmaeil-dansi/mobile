@@ -174,6 +174,7 @@ class _HomeViewState extends State<HomeView> {
           ),
         ],
         backgroundColor: Colors.white,
+        leading: SizedBox.shrink(),
         title: Padding(
           padding: const EdgeInsets.only(top: 11),
           child: Image.asset(

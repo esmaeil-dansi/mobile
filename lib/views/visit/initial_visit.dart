@@ -87,7 +87,7 @@ class _InitialVisitState extends State<InitialVisit> {
             "بازدید اولیه",
           ),
           floatingActionButton:
-          _athService.isRahbar() ? newFormWidget(() =>
+          _athService.isVisitingTeamOrIsRahbar() ? newFormWidget(() =>
               Get.to(() => AddInitialReport())) : null,
           body: Container(
             margin: EdgeInsets.all(8),

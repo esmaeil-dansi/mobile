@@ -28,7 +28,10 @@ class _AllShopPageState extends State<AllShopPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("فروشگاه من"),
+        title: Text(
+          "فروشگاه من",
+          style: TextStyle(fontSize: 16),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -44,86 +47,89 @@ class _AllShopPageState extends State<AllShopPage> {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Container(
+                        height: 80,
                         child: Padding(
                           padding: const EdgeInsets.all(1.0),
-                          child: Container(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  // Container(
-                                  //     width: 50,
-                                  //     height: 70,
-                                  //     decoration: BoxDecoration(
-                                  //         shape: BoxShape.circle,
-                                  //         border: Border.all()),
-                                  //     child: Center(
-                                  //         child: Icon(
-                                  //             CupertinoIcons.shopping_cart))),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        info.name,
-                                        style: TextStyle(fontSize: 18),
-                                      ),
-                                      Text(
-                                        info.id,
-                                        style: TextStyle(
-                                            color: Colors.black38,
-                                            fontSize: 13),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      GestureDetector(
-                                        behavior: HitTestBehavior.translucent,
-                                        onTap: () {
-                                          Get.to(() => ShopInfoPage(info));
-                                        },
-                                        child: Container(
-                                            width: 80,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // Container(
+                                //     width: 50,
+                                //     height: 70,
+                                //     decoration: BoxDecoration(
+                                //         shape: BoxShape.circle,
+                                //         border: Border.all()),
+                                //     child: Center(
+                                //         child: Icon(
+                                //             CupertinoIcons.shopping_cart))),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      info.name,
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                    Text(
+                                      info.id,
+                                      style: TextStyle(
+                                          color: Colors.black38, fontSize: 13),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    GestureDetector(
+                                      behavior: HitTestBehavior.translucent,
+                                      onTap: () {
+                                        Get.to(() => ShopInfoPage(info));
+                                      },
+                                      child: Container(
+                                          width: 80,
+                                          height: 40,
+                                          decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              boxShadow: const [
+                                                BoxShadow(
+                                                  color: Colors.black54,
+                                                  spreadRadius: 0,
+                                                  blurRadius: 1,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                              ],
+                                              border: Border.all(
+                                                  color: Colors.blueGrey),
+                                              borderRadius:
+                                                  BorderRadius.circular(20)),
+                                          child: Container(
+                                            width: 140,
                                             height: 40,
                                             decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                boxShadow: const [
-                                                  BoxShadow(
-                                                    color: Colors.black54,
-                                                    spreadRadius: 0,
-                                                    blurRadius: 1,
-                                                    offset: Offset(0, 2),
-                                                  ),
-                                                ],
-                                                border: Border.all(
-                                                    color: Colors.blueGrey),
                                                 borderRadius:
-                                                    BorderRadius.circular(20)),
+                                                    BorderRadius.circular(50),
+                                                gradient: LinearGradient(
+                                                    colors: GRADIANT_COLOR)),
                                             child: Center(
                                                 child: Text(
                                               "مشاهده",
                                               style: Get.textTheme.bodyLarge
                                                   ?.copyWith(
-                                                      color: Colors.black,fontSize: 13),
-                                            ))),
-                                      )
-                                    ],
-                                  )
-                                ],
-                              ),
+                                                      color: Colors.white,
+                                                      fontSize: 13),
+                                            )),
+                                          )),
+                                    )
+                                  ],
+                                )
+                              ],
                             ),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.white),
                           ),
                         ),
                         decoration: BoxDecoration(
@@ -136,10 +142,8 @@ class _AllShopPageState extends State<AllShopPage> {
                                 offset: Offset(0, 2),
                               ),
                             ],
-                            border: Border.all(
-                                color: Colors.blueGrey),
-                            borderRadius:
-                            BorderRadius.circular(20)),
+                            border: Border.all(color: Colors.blueGrey),
+                            borderRadius: BorderRadius.circular(20)),
                       ),
                     );
                   });

@@ -166,6 +166,7 @@ Widget transactionBuilder(List<ShopOrderModel> items, bool isSell) {
     controller: ScrollController(),
     shrinkWrap: true,
     itemBuilder: (c, i) {
+      final item = items[i];
       return Padding(
         padding: const EdgeInsets.all(4.0),
         child: Container(
@@ -181,117 +182,120 @@ Widget transactionBuilder(List<ShopOrderModel> items, bool isSell) {
                     Progressbar.showProgress();
                     var info = isSell
                         ? await _shopService
-                            .fetchSellTransactionsInfo(items[i].name)
+                            .fetchSellTransactionsInfo(item.name)
                         : await _shopService
-                            .fetchBuyTransactionsInfo(items[i].name);
+                            .fetchBuyTransactionsInfo(item.name);
                     Progressbar.dismiss();
                     if (info != null) {
-                      Get.bottomSheet(bottomSheetTemplate(Container(
-                        width: Get.width,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  height: 20,
-                                ),
-                                CustomTextFormField(
-                                  readOnly: true,
-                                  label: "فروشگاه",
-                                  value: info.store_name,
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                CustomTextFormField(
-                                  readOnly: true,
-                                  label: "روش پرداخت",
-                                  value: items[i].paymentType,
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                CustomTextFormField(
-                                  readOnly: true,
-                                  label: "فروشنده",
-                                  value: info.seller_name,
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                CustomTextFormField(
-                                  readOnly: true,
-                                  label: "خریدار",
-                                  value: info.name_buyer,
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                CustomTextFormField(
-                                  readOnly: true,
-                                  label: "وضعیت",
-                                  value: info.status,
-                                ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                InputDecorator(
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
+                      Get.bottomSheet(
+                          isScrollControlled: true,
+                          bottomSheetTemplate(Container(
+                            width: Get.width,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    CustomTextFormField(
+                                      readOnly: true,
+                                      label: "فروشگاه",
+                                      value: info.store_name,
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    CustomTextFormField(
+                                      readOnly: true,
+                                      label: "روش پرداخت",
+                                      value: item.paymentType,
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    CustomTextFormField(
+                                      readOnly: true,
+                                      label: "فروشنده",
+                                      value: info.seller_name,
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    CustomTextFormField(
+                                      readOnly: true,
+                                      label: "خریدار",
+                                      value: info.name_buyer,
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    CustomTextFormField(
+                                      readOnly: true,
+                                      label: "وضعیت",
+                                      value: info.status,
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    InputDecorator(
+                                      decoration: InputDecoration(
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20.0),
+                                          ),
+                                          labelText: " محصولات",
+                                          labelStyle: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold)),
+                                      child: Column(
+                                        children: info.transactions
+                                            .map((t) => Column(
+                                                  children: [
+                                                    CustomTextFormField(
+                                                      readOnly: true,
+                                                      label: t.supplier_items,
+                                                      prefix: Text(_shopService
+                                                                  .units[
+                                                              t.supplier_items] ??
+                                                          ""),
+                                                      value:
+                                                          t.amount.toString(),
+                                                    ),
+                                                    SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    CustomTextFormField(
+                                                      readOnly: true,
+                                                      prefix: Text("تومان"),
+                                                      label: "قیمت",
+                                                      value: t.price.toString(),
+                                                    ),
+                                                    SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    CustomTextFormField(
+                                                      readOnly: true,
+                                                      label: "توضیحات",
+                                                      maxLine: 3,
+                                                      value: t.description,
+                                                    ),
+                                                    Divider(),
+                                                    SizedBox(
+                                                      height: 20,
+                                                    ),
+                                                  ],
+                                                ))
+                                            .toList(),
                                       ),
-                                      labelText: " محصولات",
-                                      labelStyle: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold)),
-                                  child: Column(
-                                    children: info.transactions
-                                        .map((t) => Column(
-                                              children: [
-                                                CustomTextFormField(
-                                                  readOnly: true,
-                                                  label: t.supplier_items,
-                                                  prefix: Text(_shopService
-                                                              .units[
-                                                          t.supplier_items] ??
-                                                      ""),
-                                                  value: t.amount.toString(),
-                                                ),
-                                                SizedBox(
-                                                  height: 10,
-                                                ),
-                                                CustomTextFormField(
-                                                  readOnly: true,
-                                                  prefix: Text("تومان"),
-                                                  label: "قیمت",
-                                                  value: t.price.toString(),
-                                                ),
-                                                SizedBox(
-                                                  height: 10,
-                                                ),
-                                                CustomTextFormField(
-                                                  readOnly: true,
-                                                  label: "توضیحات",
-                                                  maxLine: 3,
-                                                  value: t.description,
-                                                ),
-                                                Divider(),
-                                                SizedBox(
-                                                  height: 20,
-                                                ),
-                                              ],
-                                            ))
-                                        .toList(),
-                                  ),
-                                )
-                              ],
+                                    )
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      )));
+                          )));
                     } else {
                       Fluttertoast.showToast(
                           msg: "خطایی در دریافت اطلاعات رخ داده است");
@@ -313,14 +317,15 @@ Widget transactionBuilder(List<ShopOrderModel> items, bool isSell) {
                                   width: Get.width * 0.4,
                                   child: Text(
                                       maxLines: 1,
-                                      items[i].shopName,
+                                      item.shopName,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                          fontSize: 14, color: Colors.white)),
+                                          fontSize: 11, color: Colors.white)),
                                 ),
                                 Text(
-                                  DateMapper.convert(items[i].time),
-                                  style: TextStyle(color: Colors.black),
+                                  DateMapper.convert(item.time),
+                                  style: TextStyle(
+                                      color: Colors.black, fontSize: 12),
                                 ),
                               ],
                             ),
@@ -329,12 +334,12 @@ Widget transactionBuilder(List<ShopOrderModel> items, bool isSell) {
                               children: [
                                 Text(
                                     maxLines: 2,
-                                    items[i].status,
+                                    item.status,
                                     overflow: TextOverflow.clip,
                                     style: TextStyle(
-                                        fontSize: 14, color: Colors.white)),
+                                        fontSize: 12, color: Colors.white)),
                                 Text(
-                                  items[i].name,
+                                  item.name,
                                   style: TextStyle(
                                       fontSize: 12, color: Colors.black),
                                 ),

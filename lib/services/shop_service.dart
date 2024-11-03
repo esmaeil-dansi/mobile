@@ -9,12 +9,14 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/db/cart.dart';
 import 'package:frappe_app/db/shop_info.dart';
 import 'package:frappe_app/model/shop_item_base_model.dart';
-import 'package:frappe_app/model/shop_item_tamin_info.dart';
+import 'package:frappe_app/db/shop_item_tamin_info.dart';
 import 'package:frappe_app/model/shop_order_model.dart';
 import 'package:frappe_app/model/shop_tamin.dart';
+import 'package:frappe_app/model/store_keeper.dart';
 import 'package:frappe_app/model/transaction.dart';
 import 'package:frappe_app/repo/shop_repo.dart';
 import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/utils/SharedPreferenceHelper.dart';
 
 import 'package:frappe_app/widgets/methodes.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
@@ -25,7 +27,6 @@ import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/utils/shop_utils.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ShopService {
   var _httpService = GetIt.I.get<HttpService>();
@@ -43,17 +44,13 @@ class ShopService {
   final shopImage = "".obs;
 
   final _shopRepo = GetIt.I.get<ShopRepo>();
-  late SharedPreferences sharedPreferences;
-
-  ShopService() {
-    SharedPreferences.getInstance().then((value) => sharedPreferences = value);
-  }
+  final _shared = GetIt.I.get<SharedPreferencesHelper>();
 
   Future<void> fetchShopInfo() async {
     try {
       var res = await _httpService
           .get("/api/method/get_supplier?name_user=${_autService.getUserId()}");
-      await _shopRepo.deleteAllSShop();
+      // await _shopRepo.deleteAllSShop();
       _extractShopInf(res!.data!["res"]);
     } catch (e) {
       _logger.e(e);
@@ -61,51 +58,26 @@ class ShopService {
   }
 
   String getShopName() {
-    return sharedPreferences.getString(_SHOP_NAME) ?? "";
+    return _shared.getString(_SHOP_NAME) ?? "";
   }
 
-  void _extractShopInf(List<dynamic> data) {
+  void _extractShopInf(List<dynamic> info) {
     try {
-      var l = data.length;
-      hasShop = l > 0;
-      List<List<dynamic>> sData = [];
-      int j = 0;
-      while (j < l) {
-        List<dynamic> s = data.sublist(j, min(l, j + 6));
-        sData.add(s);
-        j = j + 6;
-      }
-      for (var info in sData) {
-        try {
+      try {
+        for (int i = 0; i < info.length; i++) {
+          var data = info[i];
           _shopRepo.save(ShopInfo(
-              name: (info[0] ?? "").toString(),
-              id: info.length > 1 ? info[1] ?? "" : "",
-              items: info.length > 2
-                  ? ((info[2] ?? <dynamic>[]) as List<dynamic>)
-                      .map((e) => e.toString())
-                      .toList()
-                  : [],
-              items_prices: info.length > 3
-                  ? ((info[3] ?? <dynamic>[]) as List<dynamic>)
-                      .map((e) => e.toString())
-                      .toList()
-                  : [],
-              items_amount: info.length > 4
-                  ? ((info[4] ?? <dynamic>[]) as List<dynamic>)
-                      .map((e) => e.toString())
-                      .toList()
-                  : [],
-              descriptions: info.length > 5
-                  ? ((info[5] ?? <dynamic>[]) as List<dynamic>)
-                      .map((e) => e.toString())
+              name: (data["supplier_info"]["supplier_name"] ?? ""),
+              id: (data["supplier_info"]["name"] ?? ""),
+              items: data["items_list"].length > 0
+                  ? (data["items_list"] as List<dynamic>)
+                      .map((item) => ShopItemTaminInfo.fromJson(item))
                       .toList()
                   : []));
-        } catch (e) {
-          _logger.e(e);
         }
+      } catch (e) {
+        _logger.e(e);
       }
-
-      // _fetchShopAvatar(shopName);
     } catch (e) {
       _logger.e(e);
     }
@@ -160,7 +132,7 @@ class ShopService {
   }
 
   Future<String> getShopAvatar(String sn) async {
-    var avatar = sharedPreferences.getString(_SHOP_IMAGE);
+    var avatar = _shared.getString(_SHOP_IMAGE);
     if (avatar == null) {
       await _fetchShopAvatar(sn);
       return shopImage.value;
@@ -174,7 +146,7 @@ class ShopService {
           "/api/method/frappe.desk.form.load.getdoc?doctype=Supplier&name=$shopName&_=${DateTime.now().millisecondsSinceEpoch}");
       var avatar = res?.data["docs"][0]["image"];
       shopImage.value = avatar;
-      sharedPreferences.setString(_SHOP_IMAGE, avatar);
+      _shared.setString(_SHOP_IMAGE, avatar);
     } catch (e) {
       _logger.e(e);
     }
@@ -182,7 +154,7 @@ class ShopService {
 
   Future<bool> changeShopAvatar(String path) async {
     try {
-      String name = sharedPreferences.getString(_SHOP_NAME) ?? "";
+      String name = _shared.getString(_SHOP_NAME) ?? "";
       var result = await _fileService.uploadFile(path, "Supplier",
           docname: name, fieldname: "image");
       if (result != null) {
@@ -273,34 +245,6 @@ class ShopService {
     } catch (e) {
       return [];
     }
-  }
-
-  Future<List<ShopItemTaminInfo>> fetchShiopItemsTaminInfo(String id) async {
-    List<ShopItemTaminInfo> items = [];
-    try {
-      var res =
-          await _httpService.get("/api/method/get_supplier_by_id?name=$id");
-
-      var names = (res?.data?["res"][1] as List<dynamic>)
-          .map((e) => e.toString())
-          .toList();
-      var amounts = (res?.data?["res"][3] as List<dynamic>)
-          .map((e) => e.toString())
-          .toList();
-      var prices = (res?.data?["res"][2] as List<dynamic>)
-          .map((e) => double.parse(e.toString()))
-          .toList();
-
-      for (var i = 0; i < names.length; i++) {
-        items.add(ShopItemTaminInfo(
-            name: names[i], amount: amounts[i], price: prices[i]));
-      }
-
-      return items;
-    } catch (e) {
-      _logger.e(e);
-    }
-    return items;
   }
 
   Future<bool> addShopItem(
@@ -422,16 +366,16 @@ class ShopService {
 
   Future<List<ShopOrderModel>> fetchSellOrders({String? id}) async {
     try {
-      if (kDebugMode) {
-        return [
-          ShopOrderModel(
-              name: 'tess',
-              shopName: 'test',
-              time: 'test',
-              paymentType: 'test',
-              status: 'test')
-        ];
-      }
+      // if (kDebugMode) {
+      //   return [
+      //     ShopOrderModel(
+      //         name: 'tess',
+      //         shopName: 'test',
+      //         time: 'test',
+      //         paymentType: 'test',
+      //         status: 'test')
+      //   ];
+      // }
       var result = await _httpService.get(
           "/api/method/get_sell_transaction?seller_name=${id ?? _autService.getUserId()}");
       return (result?.data["res"] as List<dynamic>)
@@ -455,12 +399,12 @@ class ShopService {
     }
   }
 
-  Future<List<String>> getTaminForCurrentUser() async {
+  Future<List<StoreKeeper>> getTaminForCurrentUser() async {
     try {
       var result = await _httpService.get(
           "/api/method/get_supplier_bywarehouser?user_id=${_autService.getUserId()}");
       return ((result?.data["supplier_name"] ?? []) as List<dynamic>)
-          .map((e) => e.toString())
+          .map((e) => StoreKeeper.fromJson(e))
           .toList();
     } catch (e) {
       _logger.e(e);

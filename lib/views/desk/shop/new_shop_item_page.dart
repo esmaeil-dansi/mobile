@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frappe_app/db/shop_info.dart';
 import 'package:frappe_app/model/shop_item_base_model.dart';
-import 'package:frappe_app/model/shop_item_tamin_info.dart';
+import 'package:frappe_app/db/shop_item_tamin_info.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
@@ -214,7 +214,7 @@ class NewShopItemPage extends StatelessWidget {
                                           TextField(
                                             keyboardType: TextInputType.number,
                                             onChanged: (_) {
-                                              info.amount = _;
+                                              info.amount = double.parse(_);
                                             },
                                             decoration: InputDecoration(
                                               suffix: Text(_shopService
@@ -238,14 +238,14 @@ class NewShopItemPage extends StatelessWidget {
                                             },
                                             minLines: 2,
                                             maxLines: 3,
-                                            decoration:
-                                            InputDecoration(
+                                            decoration: InputDecoration(
                                               labelText: "توضیحات",
                                               border: OutlineInputBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(20.0),
                                               ),
-                                              errorText: _descriptionError.value,
+                                              errorText:
+                                                  _descriptionError.value,
                                             ),
                                           ),
                                           SizedBox(

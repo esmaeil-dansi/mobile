@@ -1,9 +1,14 @@
 import 'dart:async';
 
 import 'package:frappe_app/db/cart.dart';
+import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 
+import '../../utils/SharedPreferenceHelper.dart';
+
 class CartDao {
+  var _shared = GetIt.I.get<SharedPreferencesHelper>();
+
   Future<Box<Cart>> _open() async {
     try {
       return Hive.openBox<Cart>(_key());
@@ -49,5 +54,5 @@ class CartDao {
 
   String _getId(Cart cart) => cart.shopId + cart.item + cart.price.toString();
 
-  String _key() => "carts_db";
+  String _key() => "${_shared.prefix}carts_db";
 }

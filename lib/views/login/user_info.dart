@@ -75,61 +75,56 @@ class _UserInfoState extends State<UserInfo> {
                                   height: 8,
                                 ),
                                 TextFormField(
-                                    controller: _name,
-                                    validator: (d) {
-                                      if (d == null || d.isEmpty) {
-                                        return "نمی تواند خالی باشد";
-                                      }
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: "نام",
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                      ),
+                                  controller: _name,
+                                  validator: (d) {
+                                    if (d == null || d.isEmpty) {
+                                      return "نمی تواند خالی باشد";
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                    labelText: "نام",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
                                   ),
+                                ),
                                 SizedBox(
                                   height: 8,
                                 ),
                                 TextFormField(
-                                    controller: _lastName,
-                                    validator: (d) {
-                                      if (d == null || d.isEmpty) {
-                                        return "نمی تواند خالی باشد";
-                                      }
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: "نام خانوادگی",
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                      ),
+                                  controller: _lastName,
+                                  validator: (d) {
+                                    if (d == null || d.isEmpty) {
+                                      return "نمی تواند خالی باشد";
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                    labelText: "نام خانوادگی",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
                                   ),
-
+                                ),
                                 SizedBox(
                                   height: 8,
                                 ),
-                                 TextFormField(
-                                    controller: _nationId,
-                                    validator: (d) {
-                                      if (d == null || d.isEmpty) {
-                                        return "نمی تواند خالی باشد";
-                                      } else if (d.length < 10) {
-                                        return "کد ملی معتبر نمی باشد";
-                                      }
-                                    },
-                                    keyboardType: TextInputType.number,
-                                    decoration: InputDecoration(
-                                      labelText: "کد ملی",
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                      ),
+                                TextFormField(
+                                  controller: _nationId,
+                                  validator: (d) {
+                                    if (d == null || d.isEmpty) {
+                                      return "نمی تواند خالی باشد";
+                                    } else if (d.length < 10) {
+                                      return "کد ملی معتبر نمی باشد";
+                                    }
+                                  },
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    labelText: "کد ملی",
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20.0),
                                     ),
                                   ),
-
+                                ),
                                 SizedBox(
                                   height: 8,
                                 ),
@@ -214,40 +209,50 @@ class _UserInfoState extends State<UserInfo> {
                             backgroundColor: MAIN_COLOR),
                         onPressed: () async {
                           if (_formKey.currentState?.validate() ?? false) {
-                            String pattern = r'(^(?=.*[a-z])(?=.*[A-Z]).{8,}$)';
+                            if (_province.text.isEmpty) {
+                              Fluttertoast.showToast(
+                                  msg: "استان مورد نظر را انتخاب کنید");
+                            } else {
+                              String pattern =
+                                  r'(^(?=.*[a-z])(?=.*[A-Z]).{8,}$)';
 
-                            RegExp regExp = new RegExp(pattern);
-                            if (regExp.hasMatch(_pass.text)) {
-                              Progressbar.showProgress();
-                              var state = await _autService
-                                  .nationalCodeIsAvailable(_nationId.text);
-                              switch (state) {
-                                case FetchNationalStatus.Failed:
-                                  Fluttertoast.showToast(
-                                      msg: "این شماره ملی از قبل ثبت شده است");
-                                case FetchNationalStatus.Success:
-                                  if (await _autService.sendInfo(
-                                      password: _pass.text,
-                                      tamin: _taminUser,
-                                      nationalId: _nationId.text,
-                                      province: _province.text,
-                                      bio: _bio.text,
-                                      firstname: _name.text,
-                                      lastname: _lastName.text)) {
+                              RegExp regExp = new RegExp(pattern);
+                              if (regExp.hasMatch(_pass.text)) {
+                                Progressbar.showProgress();
+                                var state = await _autService
+                                    .nationalCodeIsAvailable(_nationId.text);
+                                switch (state) {
+                                  case FetchNationalStatus.Failed:
                                     Fluttertoast.showToast(
                                         msg:
-                                            "ثبت نام با موفقیت انجام شد لطفا ورود کنید");
-                                    Get.offAll(() => Login());
-                                  }
-                                case FetchNationalStatus.Error:
-                                  Fluttertoast.showToast(
-                                      msg:
-                                          "خطایی در استعلام شماره ملی رخ داده است");
+                                            "این شماره ملی از قبل ثبت شده است");
+                                    break;
+                                  case FetchNationalStatus.Success:
+                                    if (await _autService.sendInfo(
+                                        password: _pass.text,
+                                        tamin: _taminUser,
+                                        nationalId: _nationId.text,
+                                        province: _province.text,
+                                        bio: _bio.text,
+                                        firstname: _name.text,
+                                        lastname: _lastName.text)) {
+                                      Fluttertoast.showToast(
+                                          msg:
+                                              "ثبت نام با موفقیت انجام شد لطفا ورود کنید");
+                                      Get.offAll(() => Login());
+                                    }
+                                    break;
+                                  case FetchNationalStatus.Error:
+                                    Fluttertoast.showToast(
+                                        msg:
+                                            "خطایی در استعلام شماره ملی رخ داده است");
+                                    break;
+                                }
+                              } else {
+                                Fluttertoast.showToast(
+                                    msg:
+                                        "اندازه کدواژه باید حداقل 8 باشد و شامل حداقل یک حرف لاتین بزرگ و یک حرف لاتین کوچک باشد");
                               }
-                            } else {
-                              Fluttertoast.showToast(
-                                  msg:
-                                      "اندازه کدواژه باید حداقل 8 باشد و شامل حداقل یک حرف لاتین بزرگ و یک حرف لاتین کوچک باشد");
                             }
                           }
                         },

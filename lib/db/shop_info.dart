@@ -1,4 +1,5 @@
-import 'package:frappe_app/db/request_statuse.dart';
+
+import 'package:frappe_app/db/shop_item_tamin_info.dart';
 import 'package:frappe_app/utils/constants.dart';
 import 'package:hive/hive.dart';
 
@@ -12,24 +13,12 @@ class ShopInfo {
   @HiveField(2)
   String id;
 
-  @HiveField(3)
-  List<String> items;
-
-  @HiveField(5)
-  List<String> items_amount;
-
   @HiveField(6)
-  List<String> items_prices;
-
-  @HiveField(7)
-  List<String> descriptions;
+  List<ShopItemTaminInfo> items;
 
   ShopInfo({
     required this.name,
     required this.id,
     required this.items,
-    required this.items_prices,
-    required this.items_amount,
-    required this.descriptions,
   });
 }

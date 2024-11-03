@@ -1,14 +1,8 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/model/shop_order_model.dart';
 import 'package:frappe_app/repo/shop_repo.dart';
 import 'package:frappe_app/services/shop_service.dart';
-import 'package:frappe_app/widgets/buttomSheetTempelate.dart';
-import 'package:frappe_app/widgets/form/CustomTextFormField.dart';
 import 'package:frappe_app/widgets/methodes.dart';
-import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
@@ -25,8 +19,7 @@ class _OrderPageState extends State<OrderPage> {
   List<ShopOrderModel> allSell = [];
   RxList<ShopOrderModel> _buyOrderList = new RxList<ShopOrderModel>();
   RxList<ShopOrderModel> _sellOrderList = new RxList<ShopOrderModel>();
-  final _buyIdController = TextEditingController();
-  final _sellIdController = TextEditingController();
+  final _idController = TextEditingController();
   var _init = false.obs;
 
   @override
@@ -50,23 +43,16 @@ class _OrderPageState extends State<OrderPage> {
         });
       }
     });
-    _buyIdController.addListener(() {
-      var text = _buyIdController.text;
+    _idController.addListener(() {
+      var text = _idController.text;
       if (text.isEmpty) {
         _buyOrderList.clear();
         _buyOrderList.addAll(allBuy);
-      } else {
-        _buyOrderList.clear();
-        _buyOrderList.addAll(allBuy.where((_) => _.name.contains(text)));
-      }
-    });
-
-    _sellIdController.addListener(() {
-      var text = _sellIdController.text;
-      if (text.isEmpty) {
         _sellOrderList.clear();
         _sellOrderList.addAll(allSell);
       } else {
+        _buyOrderList.clear();
+        _buyOrderList.addAll(allBuy.where((_) => _.name.contains(text)));
         _sellOrderList.clear();
         _sellOrderList.addAll(allSell.where((_) => _.name.contains(text)));
       }
@@ -81,13 +67,16 @@ class _OrderPageState extends State<OrderPage> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("سفارشات"),
+          title: Text(
+            "سفارشات",
+            style: TextStyle(fontSize: 17),
+          ),
         ),
         body: Column(
           children: [
             TabBar(
               dividerColor: Colors.greenAccent,
-              indicatorWeight: 5,
+              indicatorWeight: 2,
               tabs: [
                 Tab(
                   text: "\t\t\t\t\t\t\tخرید\t\t\t\t\t\t\t",
@@ -97,43 +86,45 @@ class _OrderPageState extends State<OrderPage> {
                 ),
               ],
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: SizedBox(
+                height: 50,
+                child: TextField(
+                  controller: _idController,
+                  keyboardType: TextInputType.number,
+                  onSubmitted: (_) {
+                    // getReport();
+                  },
+                  decoration: InputDecoration(
+                    labelText: "کد پیگیری",
+                    labelStyle: TextStyle(fontSize: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: TabBarView(
                 children: [
                   Container(
                     child: Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          child: SizedBox(
-                            height: 60,
-                            child: TextField(
-                              controller: _buyIdController,
-                              keyboardType: TextInputType.number,
-                              onSubmitted: (_) {
-                                // getReport();
-                              },
-                              decoration: InputDecoration(
-                                labelText: "کد پیگیری",
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
                         Obx(() => _buyOrderList.isNotEmpty
-                            ? Column(
-                                children: [
-                                  SizedBox(
-                                    height: 3,
-                                  ),
-                                  SizedBox(
-                                      height: Get.height * 0.6,
+                            ? Expanded(
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      height: 3,
+                                    ),
+                                    Expanded(
                                       child: transactionBuilder(
-                                          _buyOrderList, false)),
-                                ],
+                                          _buyOrderList, false),
+                                    ),
+                                  ],
+                                ),
                               )
                             : _init.value
                                 ? Center(
@@ -148,37 +139,19 @@ class _OrderPageState extends State<OrderPage> {
                   Container(
                     child: Column(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10),
-                          child: SizedBox(
-                            height: 60,
-                            child: TextField(
-                              controller: _sellIdController,
-                              keyboardType: TextInputType.number,
-                              onSubmitted: (_) {
-                                // getReport();
-                              },
-                              decoration: InputDecoration(
-                                labelText: "کد پیگیری",
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
                         Obx(() => _sellOrderList.isNotEmpty
-                            ? Column(
-                                children: [
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  SizedBox(
-                                      height: Get.height * 0.6,
+                            ? Expanded(
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Expanded(
                                       child: transactionBuilder(
-                                          _sellOrderList, true)),
-                                ],
+                                          _sellOrderList, true),
+                                    ),
+                                  ],
+                                ),
                               )
                             : _init.value
                                 ? Center(

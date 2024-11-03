@@ -182,6 +182,6 @@ class _ProductStoreState extends State<ProductStore> {
   }
 
   void showShopItems(String group) {
-    Get.bottomSheet(bottomSheetTemplate(ShopItemSearchPage(group)));
+    Get.bottomSheet(isScrollControlled: true,bottomSheetTemplate(ShopItemSearchPage(group)));
   }
 }

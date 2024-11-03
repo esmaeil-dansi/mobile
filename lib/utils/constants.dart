@@ -1,4 +1,4 @@
-const VERSION = "4.1.6";
+const VERSION = "4.1.8";
 //shared key
 const LAST_FETCH_AVG_PRICE_TIME = "LAST_FETCH_AVG_PRICE_TIME";
 const SID = "sid";
@@ -11,6 +11,8 @@ const FULL_NAME_CHAR = "full_name_char";
 const USER_ID = "user_id";
 const ROLES = "roles";
 const USER_IMAGE = "user_image";
+const IsLogin = "IsLogin";
+const USER_PREFIX = "user_prefix";
 const NAME = "name";
 const LAST_NAME = "last_name";
 const USER_NAME = "user_name";
@@ -23,10 +25,11 @@ const SUPPLIER_INFO_KEY = "SUPPLIER_INFO_KEY";
 const CURRENT_USER_NATIONAL_ID = "CURRENT_USER_NATIONAL_ID";
 //Hive
 const ADVERTISEMENT_HIVE_ID = 4;
-const SHOP_INFO_HIVE_ID = 2;
+const SHOP_INFO_HIVE_ID = 10;
 const FILE_INFO_HIVE_ID = 5;
 const PRICE_ADG_HIVE_ID = 6;
 const REQUEST_HIVE_ID = 1;
 const REQUEST_STATUS_HIVE_ID = 3;
 const CART_HIVE_ID = 7;
 const TRANSACTION_STATE_HIVE_ID = 8;
+const SHOP_ITEM_HIVE_ID = 11;

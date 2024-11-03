@@ -21,18 +21,20 @@ import 'package:frappe_app/repo/request_repo.dart';
 import 'package:frappe_app/repo/file_repo.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
+import 'package:frappe_app/utils/SharedPreferenceHelper.dart';
 import 'package:frappe_app/utils/city_utils.dart';
 import 'package:frappe_app/utils/constants.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import '../db/request.dart';
 import '../db/request_statuse.dart';
 import '../widgets/methodes.dart';
 import 'aut_service.dart';
 
 class VisitService {
+  var _shared = GetIt.I.get<SharedPreferencesHelper>();
   final _fileService = GetIt.I.get<FileService>();
   final _autService = GetIt.I.get<AutService>();
   final _httpService = GetIt.I.get<HttpService>();
@@ -41,18 +43,12 @@ class VisitService {
   final _fileRepo = GetIt.I.get<FileRepo>();
   var _logger = Logger();
 
-  late SharedPreferences _shared;
-
   Map<String, String> prices = {
     "SHOTOR": "شتر پرواری",
     "GOV": "گاو شیری",
     "GO": "جو دامی وارداتی",
     "GOSFAND": "گوسفند داشتی"
   };
-
-  VisitService() {
-    SharedPreferences.getInstance().then((_) => _shared = _);
-  }
 
   Future<void> fetchPrices() async {
     var time = _shared.getInt(LAST_FETCH_AVG_PRICE_TIME);
@@ -1388,9 +1384,5 @@ class VisitService {
     } catch (e) {
       _logger.e(e);
     }
-  }
-
-  void _saveFile(String path, String key, int time) {
-    _fileRepo.saveFile(time: time, key: key, path: path);
   }
 }

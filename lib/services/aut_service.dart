@@ -8,6 +8,7 @@ import 'package:frappe_app/db/dao/advertisement_dao.dart';
 import 'package:frappe_app/model/weather.dart';
 import 'package:frappe_app/services/file_service.dart';
 import 'package:frappe_app/services/http_service.dart';
+import 'package:frappe_app/utils/SharedPreferenceHelper.dart';
 import 'package:frappe_app/utils/constants.dart';
 import 'package:frappe_app/widgets/methodes.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
@@ -18,7 +19,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:shamsi_date/shamsi_date.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 enum FetchNationalStatus { Failed, Success, Error }
 
@@ -26,63 +26,62 @@ class AutService {
   Rx<String> selectedCity = "".obs;
   var weathers = <Weather>[].obs;
 
+  var _shared = GetIt.I.get<SharedPreferencesHelper>();
+
   var _logger = Logger();
   String phone = "";
   String verifyCode = "";
 
   var remainCredit = "".obs;
 
-  String _sid = "";
-  String _full_name = "";
-  String _full_name_char = "";
-  String _user_id = "";
-  final _user_image = "".obs;
+  String sid() => _shared.getString(SID) ?? "";
 
-  List<String> _roles = [];
+  String fullName() => _shared.getString(FULL_NAME) ?? "";
 
-  bool isDamdar() => this._roles.contains("دامدار");
+  String fullNameChar() => _shared.getString(FULL_NAME_CHAR) ?? "";
 
-  bool isRahbar() => this._roles.contains("راهبر");
+  String userId() => _shared.getString(USER_ID) ?? "";
 
-  bool isSarRahbar() => this._roles.contains("سر راهبر");
+  String userImage() => _shared.getString(USER_IMAGE) ?? "";
 
-  bool isSupplier() => this._roles.contains("Supplier");
+  List<String> roles() => _shared.getStringList(ROLES) ?? [];
 
-  bool isStorekeeper() => this._roles.contains("انباردار");
+  bool isDamdar() => roles().contains("دامدار");
 
-  bool isVisitingTeam()  => this._roles.contains("تیم بازدید کننده");
+  bool isRahbar() => roles().contains("راهبر");
 
-  String getProvince() => _sharedPreferences.getString(PROVINCE) ?? "";
+  bool isSarRahbar() => roles().contains("سر راهبر");
 
-  String getCity() => _sharedPreferences.getString(CITY) ?? "";
+  bool isSupplier() => roles().contains("Supplier");
+
+  bool isStorekeeper() => roles().contains("انباردار");
+
+  bool isVisitingTeam() => roles().contains("تیم بازدید کننده");
+
+  bool isVisitingTeamOrIsRahbar() => isVisitingTeam() || isRahbar();
+
+  String getProvince() => _shared.getString(PROVINCE) ?? "";
+
+  String getCity() => _shared.getString(CITY) ?? "";
 
   void saveSelectedCity(String city) {
     selectedCity.value = city;
-    _sharedPreferences.setString(SELECTED_CITY, city);
+    _shared.setString(SELECTED_CITY, city);
   }
 
-  late SharedPreferences _sharedPreferences;
-
-  getSid() => _sid;
-
-  getFullName() => _full_name;
-
-  getFullNameChar() => _full_name_char;
-
   getUserId() {
-    return _user_id;
+    return userId();
   }
 
   String mainUserId() {
-    return _user_id.replaceAll("%40", "@");
+    return userId().replaceAll("%40", "@");
   }
 
   var advDao = GetIt.I.get<AdvertisementDao>();
 
-  Rx<String> getUserImage() => _user_image;
+  Rx<String> getUserImage() => userImage().obs;
 
   AutService() {
-    init();
     try {
       Connectivity().onConnectivityChanged.listen((result) {
         if (result.contains(ConnectivityResult.mobile) ||
@@ -101,15 +100,14 @@ class AutService {
 
   Future<void> fetchRemainCredit() async {
     try {
-      remainCredit.value =
-          _sharedPreferences.getString(REMAIN_CREDIT_KEY_1) ?? "";
+      remainCredit.value = _shared.getString(REMAIN_CREDIT_KEY_1) ?? "";
       var nationNumber = await fetchCurrentUserNationNumber();
       if (nationNumber != null) {
         final info = await GetIt.I
             .get<HttpService>()
             .get("/api/method/get_remain_credit?username=${nationNumber}");
         final r = info?.data["remain_credit"] ?? "";
-        _sharedPreferences.setString(REMAIN_CREDIT_KEY_1, r);
+        _shared.setString(REMAIN_CREDIT_KEY_1, r);
         remainCredit.value = r;
       }
     } catch (_) {
@@ -119,7 +117,7 @@ class AutService {
 
   bool needToFetchWeather() {
     return DateTime.now().millisecondsSinceEpoch -
-            (_sharedPreferences.getInt(LAST_FETCH_WEATHER_TIME) ?? 0) >
+            (_shared.getInt(LAST_FETCH_WEATHER_TIME) ?? 0) >
         6 * 60 * 60 * 1000;
   }
 
@@ -146,18 +144,6 @@ class AutService {
     } catch (e) {
       _logger.e(e);
     }
-  }
-
-  Future<void> init() async {
-    _sharedPreferences = await SharedPreferences.getInstance();
-    _sid = _sharedPreferences.getString(SID) ?? "";
-    _full_name = _sharedPreferences.getString(FULL_NAME) ?? "";
-    _full_name_char = _sharedPreferences.getString(FULL_NAME_CHAR) ?? "";
-    _user_id = _sharedPreferences.getString(USER_ID) ?? "";
-    _user_image.value = _sharedPreferences.getString(USER_IMAGE) ?? "";
-    _roles = _sharedPreferences.getStringList(ROLES) ?? [];
-    selectedCity.value = _sharedPreferences.getString(SELECTED_CITY) ?? "";
-    fetchRemainCredit();
   }
 
   String _decodePercentEncodedString(String encoded) {
@@ -206,13 +192,13 @@ class AutService {
         var result = await Dio().get(
             'https://one-api.ir/weather/?action=dailybylocation&token=249726:668cbf97266ea&lat=$lat&lon=$lon');
         if (result.data["status"] == 200) {
-          _sharedPreferences.setInt(
+          _shared.setInt(
               LAST_FETCH_WEATHER_TIME, DateTime.now().millisecondsSinceEpoch);
           try {
             saveSelectedCity(result.data["result"]["city"]["name"]);
           } catch (e) {}
           _extractWeather(result.data);
-          _sharedPreferences.setString(WAETHER_KEY, json.encode(result.data));
+          _shared.setString(WAETHER_KEY, json.encode(result.data));
         } else {
           initOldWeather();
         }
@@ -227,7 +213,7 @@ class AutService {
 
   void initOldWeather() {
     try {
-      var s = _sharedPreferences.getString(WAETHER_KEY);
+      var s = _shared.getString(WAETHER_KEY);
       if (s != null) {
         _extractWeather(json.decode(s));
       }
@@ -256,16 +242,16 @@ class AutService {
 
   Future<bool> checkLoginCertificate() async {
     var res = await login(
-        username: _sharedPreferences.getString(USERNAME) ?? "",
-        password: _sharedPreferences.getString(PASSWORD) ?? "");
+        username: _shared.getString(USERNAME) ?? "",
+        password: _shared.getString(PASSWORD) ?? "");
     if (res.$1) {
       return true;
     } else {
       var r = DateTime.now().millisecondsSinceEpoch -
-              (_sharedPreferences.getInt(LAST_UPDATE_TIME) ?? 0) <
+              (_shared.getInt(LAST_UPDATE_TIME) ?? 0) <
           24 * 60 * 60 * 1000;
       if (!r && res.$2) {
-        _sharedPreferences.setBool('login', false);
+        _shared.setBool('login', false);
         return false;
       }
       return true;
@@ -280,15 +266,10 @@ class AutService {
       var res = await GetIt.I.get<HttpService>().post("/login",
           FormData.fromMap({"cmd": "login", "usr": username, "pwd": password}));
       if (res?.statusCode == 200) {
-        _sharedPreferences.setInt(
-            LAST_UPDATE_TIME, DateTime.now().millisecondsSinceEpoch);
+        _shared.setInt(LAST_UPDATE_TIME, DateTime.now().millisecondsSinceEpoch);
         String name = _decodePercentEncodedString(res!.data["full_name"]);
         _saveData(
-            res!.headers["set-cookie"]?.first
-                    .split(";")
-                    .first
-                    .split("=")
-                    .last ??
+            res.headers["set-cookie"]?.first.split(";").first.split("=").last ??
                 "",
             name,
             res.headers["set-cookie"]![2]
@@ -306,10 +287,11 @@ class AutService {
             res.headers["set-cookie"]?[4].split(";").first.split("=").last ??
                 "");
         _deleteHive(username);
-        _sharedPreferences.setString(USERNAME, username);
-        _sharedPreferences.setString(PASSWORD, password);
+        _shared.setString(USERNAME, username);
+        _shared.setString(PASSWORD, password);
         await _getUserRole();
         getPermission();
+        _shared.setBool(IsLogin, true);
         return (true, false);
       } else {
         return (false, res?.statusCode == 500);
@@ -323,14 +305,14 @@ class AutService {
   Future<void> _getUserRole() async {
     try {
       var res = await GetIt.I.get<HttpService>().post(
-            "/api/method/get_user_roles?username=$_user_id",
+            "/api/method/get_user_roles?username=${userId()}",
             FormData.fromMap({}),
           );
 
-      _roles = (res?.data["role"] as List<dynamic>)
+      final items = (res?.data["role"] as List<dynamic>)
           .map((e) => e.toString())
           .toList();
-      _sharedPreferences.setStringList(ROLES, _roles);
+      _shared.setStringList(ROLES, items);
     } catch (e) {
       _logger.e(e);
     }
@@ -344,16 +326,11 @@ class AutService {
 
   Future<void> _saveData(String sid, String full_name, String full_name_char,
       String user_id, String user_image) async {
-    _sid = sid;
-    _full_name = full_name;
-    _full_name_char = full_name_char;
-    _user_id = user_id;
-    _user_image.value = user_image;
-    _sharedPreferences.setString(SID, _sid);
-    _sharedPreferences.setString(FULL_NAME, _full_name);
-    _sharedPreferences.setString(USER_ID, _user_id);
-    _sharedPreferences.setString(USER_IMAGE, _user_image.value);
-    _sharedPreferences.setString(FULL_NAME_CHAR, full_name_char);
+    _shared.setString(SID, sid);
+    _shared.setString(FULL_NAME, full_name);
+    _shared.setString(USER_ID, user_id);
+    _shared.setString(USER_IMAGE, user_image);
+    _shared.setString(FULL_NAME_CHAR, full_name_char);
   }
 
   Future<String> sendSms(String phoneNumber) async {
@@ -374,14 +351,14 @@ class AutService {
 
   Future<bool> supplierInfoSubmitted() async {
     try {
-      if ((_sharedPreferences.getBool(SUPPLIER_INFO_KEY)) ?? false) {
+      if ((_shared.getBool(SUPPLIER_INFO_KEY)) ?? false) {
         return true;
       }
       var res = await GetIt.I
           .get<HttpService>()
           .get("/api/method/get_supplier_doc?name_user=$USER_ID");
       if (((res?.data["res"]["name"]) ?? "").toString().isNotEmpty) {
-        _sharedPreferences.setBool(SUPPLIER_INFO_KEY, true);
+        _shared.setBool(SUPPLIER_INFO_KEY, true);
         return true;
       }
       return false;
@@ -410,7 +387,7 @@ class AutService {
             }));
         Progressbar.dismiss();
         if (res?.statusCode == 200) {
-          _sharedPreferences.setBool(SUPPLIER_INFO_KEY, true);
+          _shared.setBool(SUPPLIER_INFO_KEY, true);
           Fluttertoast.showToast(msg: res?.data["message"]);
           return true;
         }
@@ -427,7 +404,7 @@ class AutService {
   Future<void> sendReport(String text) async {
     try {
       GetIt.I.get<HttpService>().post(
-          "https://icasp.ir/api/method/add_suggestions?user_id=$_user_id&suggest_text=$text",
+          "https://icasp.ir/api/method/add_suggestions?user_id=${userId()}&suggest_text=$text",
           FormData());
     } catch (_) {}
   }
@@ -446,12 +423,12 @@ class AutService {
 
   Future<String?> fetchCurrentUserNationNumber() async {
     try {
-      if (_sharedPreferences.getString(CURRENT_USER_NATIONAL_ID) != null) {
-        return _sharedPreferences.getString(CURRENT_USER_NATIONAL_ID)!;
+      if (_shared.getString(CURRENT_USER_NATIONAL_ID) != null) {
+        return _shared.getString(CURRENT_USER_NATIONAL_ID)!;
       }
       var id = await fetchNationNumber(getUserId());
       if (id != null) {
-        _sharedPreferences.setString(CURRENT_USER_NATIONAL_ID, id);
+        _shared.setString(CURRENT_USER_NATIONAL_ID, id);
         return id;
       }
     } catch (e) {
@@ -475,17 +452,17 @@ class AutService {
   Future<void> getPermission() async {
     try {
       var res = await GetIt.I.get<HttpService>().post(
-          "/api/method/get_user_permissions?username=$_user_id",
+          "/api/method/get_user_permissions?username=${userId()}",
           FormData.fromMap({}));
       var map = res?.data as Map<String, dynamic>;
       if (map.containsKey("for_value")) {
         var province = map["for_value"]?[0];
         if (province != null) {
-          _sharedPreferences.setString(PROVINCE, province);
+          _shared.setString(PROVINCE, province);
         }
         var city = map["for_value"]?[1];
         if (city != null) {
-          _sharedPreferences.setString(CITY, city);
+          _shared.setString(CITY, city);
         }
       }
     } catch (e) {
@@ -509,28 +486,28 @@ class AutService {
   }
 
   get getName {
-    return _sharedPreferences.get(NAME) ?? "";
+    return _shared.getString(NAME) ?? "";
   }
 
   get getLastName {
-    return _sharedPreferences.get(LAST_NAME) ?? "";
+    return _shared.getString(LAST_NAME) ?? "";
   }
 
   get getUsername {
-    return _sharedPreferences.get(USER_NAME) ?? "";
+    return _shared.getString(USER_NAME) ?? "";
   }
 
   Future<(String, String, String)> getFirstNameAndLastName() async {
     try {
       var res = await GetIt.I.get<HttpService>().get(
-            "/api/method/frappe.desk.form.load.getdoc?doctype=User&name=${_user_id}&_=1718056741467",
+            "/api/method/frappe.desk.form.load.getdoc?doctype=User&name=${userId()}&_=1718056741467",
           );
       var name = res?.data['docs'][0]['first_name'];
       var lastName = res?.data["docs"][0]["last_name"];
       var username = res?.data["docs"][0]["username"];
-      _sharedPreferences.setString(NAME, name);
-      _sharedPreferences.setString(LAST_NAME, lastName);
-      _sharedPreferences.setString(USER_NAME, username);
+      _shared.setString(NAME, name);
+      _shared.setString(LAST_NAME, lastName);
+      _shared.setString(USER_NAME, username);
       return (name.toString(), lastName.toString(), username.toString());
     } catch (e) {
       _logger.e(e);
@@ -603,8 +580,7 @@ class AutService {
             FormData.fromMap({
               "profile_info": json.encode({"user_image": result})
             }));
-        _user_image.value = result;
-        _sharedPreferences.setString(USER_IMAGE, result);
+        _shared.setString(USER_IMAGE, result);
         return setProfileInfo?.statusCode == 200;
       }
     } catch (e) {
@@ -614,12 +590,13 @@ class AutService {
   }
 
   Future<void> logout() async {
-    await _sharedPreferences.setBool("login", false);
+    _shared.clearAllWithPrefix();
+    _shared.setBool(IsLogin, false);
   }
 
   Future<void> _deleteHive(String username) async {
     try {
-      var u = _sharedPreferences.getString(USERNAME);
+      var u = _shared.getString(USERNAME);
       if (u != null && u.isNotEmpty && u != username) {
         Hive.deleteFromDisk();
       }

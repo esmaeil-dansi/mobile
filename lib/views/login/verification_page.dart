@@ -31,8 +31,8 @@ class _VerificationPageState extends State<VerificationPage> {
   void initState() {
     _startTimer();
 
-    _textController.addListener(() {
-      if (_textController.text.length == 4) {
+    _pinController.addListener(() {
+      if (_pinController.text.length == 4) {
         _next();
       }
     });
@@ -52,7 +52,7 @@ class _VerificationPageState extends State<VerificationPage> {
   }
 
   final _autService = GetIt.I.get<AutService>();
-  final _textController = TextEditingController();
+
 
   @override
   Widget build(BuildContext context) {
@@ -250,7 +250,7 @@ class _VerificationPageState extends State<VerificationPage> {
 
   Future<void> _next() async {
     _loading.value = true;
-    var res = await _autService.sendVerificationCode(_textController.text);
+    var res = await _autService.sendVerificationCode(_pinController.text);
     _loading.value = false;
     if (res.isEmpty) {
       Get.to(UserInfo());

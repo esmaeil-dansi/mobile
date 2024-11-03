@@ -15,14 +15,13 @@ class FileService {
 
   Future<String?> uploadFile(String path, String type,
       {String docname = "new-initial-visit-1",
-        String fieldname = "image1", bool retry = true}) async {
+      String fieldname = "image1",
+      bool retry = true}) async {
     try {
       final bytes = (await _compressFile(path)) ?? File(path).readAsBytesSync();
       var form = FormData();
       form.files.add(MapEntry('file',
-          MultipartFile.fromBytes(bytes, filename: path
-              .split("\\")
-              .last)));
+          MultipartFile.fromBytes(bytes, filename: path.split("\\").last)));
       form.fields.add(MapEntry("is_private", "0"));
       form.fields.add(MapEntry("folder", "Home"));
       form.fields.add(MapEntry("doctype", type));
@@ -38,8 +37,8 @@ class FileService {
       return res.data["message"]["file_url"];
     } catch (e) {
       if (retry) {
-        return uploadFile(
-            path, type, docname: docname, fieldname: fieldname, retry: false);
+        return uploadFile(path, type,
+            docname: docname, fieldname: fieldname, retry: false);
       }
       logger.e(e);
     }
@@ -60,9 +59,9 @@ class FileService {
   Future<String> getCookie() async {
     CookieJar cookieJar = CookieJar();
     var cookies =
-    await cookieJar.loadForRequest(Uri.parse("https://icasp.ir/"));
+        await cookieJar.loadForRequest(Uri.parse("https://icasp.ir/"));
     cookies.add(Cookie("full_name", "Administrator"));
-    cookies.add(Cookie("sid", _autService.getSid()));
+    cookies.add(Cookie("sid", _autService.sid()));
     cookies.add(Cookie("system_user", "yes"));
     cookies.add(Cookie("user_id", "Administrator"));
     return CookieManager.getCookies(cookies);

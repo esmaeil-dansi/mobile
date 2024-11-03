@@ -78,7 +78,7 @@ class _VetVisitState extends State<VetVisit> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        floatingActionButton: _athService.isRahbar()
+        floatingActionButton: _athService.isVisitingTeamOrIsRahbar()
             ? newFormWidget(() => Get.to(() => AddVetVisit()))
             : null,
         appBar: appSliverAppBar("بازدید دامپزشکی"),

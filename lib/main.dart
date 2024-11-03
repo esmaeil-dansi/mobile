@@ -12,6 +12,7 @@ import 'package:frappe_app/db/price_avg.dart';
 import 'package:frappe_app/db/request.dart';
 import 'package:frappe_app/db/request_statuse.dart';
 import 'package:frappe_app/db/shop_info.dart';
+import 'package:frappe_app/db/shop_item_tamin_info.dart';
 import 'package:frappe_app/db/transaction_state.dart';
 import 'package:frappe_app/repo/request_repo.dart';
 import 'package:frappe_app/repo/file_repo.dart';
@@ -23,6 +24,7 @@ import 'package:frappe_app/services/message_service.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/services/user_service.dart';
 import 'package:frappe_app/services/visit_service.dart';
+import 'package:frappe_app/utils/SharedPreferenceHelper.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -36,16 +38,21 @@ void main() async {
   Hive.registerAdapter(RequestStatusAdapter());
   Hive.registerAdapter(AdvertisementAdapter());
   Hive.registerAdapter(FileInfoAdapter());
-  Hive.registerAdapter(ShopInfoAdapter());
+
   Hive.registerAdapter(PriceAvgAdapter());
   Hive.registerAdapter(CartAdapter());
   Hive.registerAdapter(TransactionStateAdapter());
+  Hive.registerAdapter(ShopItemTaminInfoAdapter());
+  Hive.registerAdapter(ShopInfoAdapter());
   initServicesAndRepo();
+  await GetIt.I.get<SharedPreferencesHelper>().init();
 
   runApp(MyApp());
 }
 
 void initServicesAndRepo() {
+  GetIt.instance
+      .registerSingleton<SharedPreferencesHelper>(SharedPreferencesHelper());
   GetIt.instance.registerSingleton<AdvertisementDao>(AdvertisementDao());
   GetIt.instance.registerSingleton<PriceAvgDao>(PriceAvgDao());
   GetIt.instance.registerSingleton<CartDao>(CartDao());

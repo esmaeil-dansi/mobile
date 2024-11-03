@@ -11,8 +11,10 @@ import 'package:get_it/get_it.dart';
 class AvatarWidget extends StatelessWidget {
   final bool isCircular;
   Rx<String> avatar;
+  double radius;
 
-  AvatarWidget({this.isCircular = true, required this.avatar});
+  AvatarWidget(
+      {this.isCircular = true, required this.avatar, this.radius = 110});
 
   final _autService = GetIt.I.get<AutService>();
   final _uploading = false.obs;
@@ -42,8 +44,8 @@ class AvatarWidget extends StatelessWidget {
               Align(
                 alignment: Alignment.topCenter,
                 child: SizedBox(
-                  width: 110,
-                  height: 110,
+                  width: radius,
+                  height: radius,
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -91,10 +93,9 @@ class AvatarWidget extends StatelessWidget {
       if (_.isNotEmpty) {
         newAvatar = _.first;
         _uploading.value = true;
-        if(isCircular){
+        if (isCircular) {
           await _autService.changeProfileAvatar(newAvatar);
-
-        }else{
+        } else {
           await GetIt.I.get<ShopService>().changeShopAvatar(newAvatar);
         }
         _uploading.value = false;

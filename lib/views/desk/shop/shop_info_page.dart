@@ -43,14 +43,10 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () {
-                Get.to(() =>
-                    NewShopItemPage(
+                Get.to(() => NewShopItemPage(
                       shopInfo: widget.shopInfo,
                       onAdd: (_) {
-                        widget.shopInfo.items.add(_.name);
-                        widget.shopInfo.items_prices.add(_.price.toString());
-                        widget.shopInfo.items_amount.add(_.amount);
-                        widget.shopInfo.descriptions.add(_.description);
+                        widget.shopInfo.items.add(_);
                         setState(() {});
                       },
                     ));
@@ -63,17 +59,17 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                       gradient: LinearGradient(colors: GRADIANT_COLOR)),
                   child: Center(
                       child: Text(
-                        "محصول جدید",
-                        style:
-                        Get.textTheme.bodyLarge?.copyWith(color: Colors.black),
-                      ))),
+                    "محصول جدید",
+                    style:
+                        Get.textTheme.bodyLarge?.copyWith(color: Colors.white,fontSize: 13),
+                  ))),
             ),
           ),
         ),
         appBar: AppBar(
           title: Text(
             widget.shopInfo.name,
-            style: TextStyle(fontSize: 16),
+            style: TextStyle(fontSize: 14),
           ),
           leading: IconButton(
             icon: Icon(Icons.arrow_back_ios_sharp, color: Colors.black),
@@ -84,13 +80,12 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
           backgroundColor: Colors.white,
           actions: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               child: GestureDetector(
                   onTap: () {
                     showDialog(
                         context: context,
-                        builder: (_) =>
-                            AlertDialog(
+                        builder: (_) => AlertDialog(
                               content: Text("از حذف فروشگاه مطمنید؟"),
                               actions: [
                                 ElevatedButton(
@@ -122,7 +117,7 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                         children: [
                           Text(
                             "حذف فروشگاه",
-                            style: TextStyle(color: Colors.red),
+                            style: TextStyle(color: Colors.red,fontSize: 12),
                           ),
                           Icon(
                             Icons.delete,
@@ -145,10 +140,10 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  AvatarWidget(
-                    isCircular: false,
-                    avatar: _shopService.shopImage,
-                  ),
+                  // AvatarWidget(
+                  //   isCircular: false,
+                  //   avatar: _shopService.shopImage,
+                  // ),
                   SizedBox(
                     height: 30,
                   ),
@@ -166,150 +161,161 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             SizedBox(
-                              width: Get.width * 0.25,
+                              width: Get.width * 0.23,
                               child: Text(
                                 "کالا",
-                                style: TextStyle(fontWeight: FontWeight.bold,fontSize: 12),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 12),
                               ),
                             ),
                             SizedBox(
-                              width: Get.width * 0.10,
+                              width: Get.width * 0.17,
                               child: Text(
                                 "موجودی",
-                                style: TextStyle(fontWeight: FontWeight.bold,fontSize: 8),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 8),
                               ),
                             ),
-                            SizedBox(
-                              width: Get.width * 0.10,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Text(
+                            Center(
+                              child: SizedBox(
+                                width: Get.width * 0.19,
+                                child: Center(
+                                  child: Text(
                                     "قیمت",
-                                    style:
-                                    TextStyle(fontWeight: FontWeight.bold,fontSize: 12),
+                                    style: TextStyle(
+
+                                        fontSize: 8),
                                   ),
-                                ],
+                                ),
                               ),
                             ),
                             SizedBox(
-                              width: Get.width * 0.10,
-                              child: Text(
-                                "ویرایش",
-                                style: TextStyle(fontWeight: FontWeight.bold,fontSize: 8),
+                              width: Get.width * 0.16,
+                              child: Center(
+                                child: Text(
+                                  "ویرایش",
+                                  style: TextStyle(
+                                       fontSize: 8),
+                                ),
                               ),
                             ),
                             SizedBox(
-                              width: Get.width * 0.10,
+                              width: Get.width * 0.12,
                               child: Text(
                                 "توضیحات",
-                                style: TextStyle(fontWeight: FontWeight.bold,fontSize: 7),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 7),
                               ),
                             ),
                           ],
                         ),
                         Divider(),
                         SizedBox(
-                          height: Get.height * 0.45,
+                          height: Get.height*0.6,
                           child: ListView.separated(
                             controller: ScrollController(),
-                            shrinkWrap: true,
+                             shrinkWrap: true,
                             itemCount: widget.shopInfo.items.length,
                             itemBuilder: (c, i) {
                               var item = widget.shopInfo.items[i];
                               return Padding(
                                 padding:
-                                const EdgeInsets.symmetric(vertical: 5),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    SizedBox(
-                                      width: Get.width * 0.25,
-                                      child: Text(
-                                        item,
-                                        style: TextStyle(fontSize: 10),
+                                    const EdgeInsets.symmetric(vertical: 5),
+                                child: Container(
+                                  height: 70,
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      SizedBox(
+                                        width: Get.width * 0.23,
+                                        child: Text(
+                                          item.name,
+                                          style: TextStyle(fontSize: 9),
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(
-                                      width: Get.width * 0.10,
-                                      child: Center(
+                                      SizedBox(
+                                        width: Get.width * 0.17,
+                                        child: Center(
+                                          child: Row(
+                                            children: [
+                                              Text(item.amount.toString() + "\t",
+                                                  style: TextStyle(fontSize: 10)),
+                                              Text(
+                                                  (_shopService.units[item] ??
+                                                      ""),
+                                                  style: TextStyle(
+                                                      fontSize: 8,
+                                                      color: Colors.black87)),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: Get.width * 0.18,
                                         child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             Text(
-                                                widget.shopInfo
-                                                    .items_amount[i] +
-                                                    "\t" +
-                                                    (_shopService.units[item] ??
-                                                        ""),
+                                                NumberFormat.decimalPattern()
+                                                    .format(item.price),
                                                 style: TextStyle(fontSize: 10)),
                                           ],
                                         ),
                                       ),
-                                    ),
-                                    SizedBox(
-                                      width: Get.width * 0.10,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.end,
-                                        children: [
-                                          Text(NumberFormat.decimalPattern().format(double.parse(widget.shopInfo.items_prices[i])),
-                                              style: TextStyle(fontSize: 10)),
-                                        ],
+                                      SizedBox(
+                                        width: Get.width * 0.16,
+                                        child: GestureDetector(
+                                            onTap: () {
+                                              ShopItemModel shop =
+                                                  new ShopItemModel(
+                                                      name: item.name,
+                                                      id: "id",
+                                                      group: "group",
+                                                      price:
+                                                          item.price.toString());
+                                              showEdit(shop);
+                                            },
+                                            child: Icon(
+                                              Icons.edit,
+                                              size: 12,
+                                              color: Colors.black,
+                                            )),
                                       ),
-                                    ),
-                              SizedBox(
-                              width: Get.width * 0.10,
-                              child: Row(
-                                  children: [
-                                    IconButton(
-                                        onPressed: () {
-                                          ShopItemModel shop =new ShopItemModel(name: item, id: "id", group: "group", price: widget.shopInfo.items_prices[i]);
-                                          showEdit(shop);
-                                        },
-                                        icon: Icon(
-                                          Icons.edit,
-                                          size: 14,
-                                          color: Colors.black,
-                                        )),
-                                ],
-                              ),
-                              ),
-                              SizedBox(
-                              width: Get.width * 0.10,
-                              child: Row(
-                              children: [
-                                    IconButton(
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: Text('توضیحات آیتم'),
-                                              content: Text(widget.shopInfo.descriptions[i]),
-                                              actions: [
-                                                TextButton(
-                                                  child: Text('بستن'),
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                ),
-                                              ],
+                                      SizedBox(
+                                        width: Get.width * 0.11,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: Text('توضیحات آیتم'),
+                                                  content: Text(item.description),
+                                                  actions: [
+                                                    TextButton(
+                                                      child: Text('بستن'),
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                    ),
+                                                  ],
+                                                );
+                                              },
                                             );
                                           },
-                                        );
-                                      },
-                                      icon: Icon(
-                                        Icons.info,
-                                        size: 14,
-                                        color: Colors.blue,
+                                          child: Icon(
+                                            Icons.info,
+                                            size: 14,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                              ],
-                              ),
-                              ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               );
                             },
@@ -349,7 +355,7 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
               child: Container(
                 child: Padding(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -433,15 +439,15 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 gradient:
-                                LinearGradient(colors: GRADIANT_COLOR)),
+                                    LinearGradient(colors: GRADIANT_COLOR)),
                             width: double.infinity,
                             child: Center(
                                 child: Text(
-                                  "ثبت",
-                                  style: Get.textTheme.bodyLarge
-                                      ?.copyWith(fontSize: 23)
-                                      ?.copyWith(color: Colors.black),
-                                ))),
+                              "ثبت",
+                              style: Get.textTheme.bodyLarge
+                                  ?.copyWith(fontSize: 23)
+                                  ?.copyWith(color: Colors.black),
+                            ))),
                       ),
                     ],
                   ),

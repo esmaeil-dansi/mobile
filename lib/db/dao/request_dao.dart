@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:frappe_app/db/request.dart';
 import 'package:frappe_app/db/request_statuse.dart';
+import 'package:frappe_app/utils/SharedPreferenceHelper.dart';
+import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 
 class RequestDao {
+  var _shared = GetIt.I.get<SharedPreferencesHelper>();
+
   Future<Box<Request>> _open() async {
     try {
       return Hive.openBox<Request>(_key());
@@ -53,5 +57,5 @@ class RequestDao {
     }
   }
 
-  String _key() => "requests";
+  String _key() => "${_shared.prefix}requests";
 }

@@ -97,3 +97,20 @@ Widget buildShopAvatar(bool uploading, String newAvatar, Rx<String> avatar) {
         ),
       ));
 }
+
+Widget buildCircleAvatarUi({required String avatar, double radius = 30}) {
+  return Container(
+    width: radius,
+    height: radius,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(colors: GRADIANT_COLOR),
+      // border: Border.all(color: Color(0xFF12E312), width: 2),
+      shape: BoxShape.circle,
+      image: DecorationImage(
+          fit: BoxFit.fill,
+          image: NetworkImage("https://icasp.ir" + avatar, headers: {
+            'cookie': GetIt.I.get<HttpService>().getCookie(),
+          })),
+    ),
+  );
+}

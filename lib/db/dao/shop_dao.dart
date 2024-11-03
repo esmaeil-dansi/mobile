@@ -2,9 +2,13 @@ import 'dart:async';
 
 import 'package:frappe_app/db/shop_info.dart';
 import 'package:frappe_app/db/transaction_state.dart';
+import 'package:frappe_app/utils/SharedPreferenceHelper.dart';
+import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 
 class ShopDao {
+  var _shared = GetIt.I.get<SharedPreferencesHelper>();
+
   Future<Box<ShopInfo>> _open() async {
     try {
       return Hive.openBox<ShopInfo>(_key());
@@ -64,11 +68,9 @@ class ShopDao {
     }
   }
 
-  String _key() => "shop_infos_1";
+  String _key() => "${_shared.prefix}shop_infos";
 
-  String _my_key() => "shop_info_key_1";
-
-  String _transaction_key() => "_transaction_key_1";
+  String _transaction_key() => "${_shared.prefix}_transaction_key_1";
 
   Future<void> deleteAll() async {
     try {

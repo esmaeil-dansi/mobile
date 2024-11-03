@@ -6,8 +6,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/views/login/register.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../services/aut_service.dart';
 import '../../widgets/constant.dart';
 import '../desk/splash_screen.dart';
@@ -28,11 +26,6 @@ class _LoginState extends State<Login> {
   final _loading = false.obs;
 
   final _obscureText = true.obs;
-
-  Future<void> saveLogin() async {
-    var s = await SharedPreferences.getInstance();
-    s.setBool("login", true);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +48,11 @@ class _LoginState extends State<Login> {
                     width: width + 20,
                     child: FadeInUp(
                         duration: Duration(milliseconds: 1000),
-                      child: Container(
-                      child: SvgPicture.asset(
-                        'assets/icons/login.svg',
-                        height: 200.0,
-                        )
-                      )),
+                        child: Container(
+                            child: SvgPicture.asset(
+                          'assets/icons/login.svg',
+                          height: 200.0,
+                        ))),
                   )
                 ],
               ),
@@ -75,9 +67,9 @@ class _LoginState extends State<Login> {
                 children: <Widget>[
                   FadeInUp(
                       duration: Duration(milliseconds: 1500),
-                      child : Column(
-                      children:[
-                        Padding(
+                      child: Column(
+                        children: [
+                          Padding(
                             padding: const EdgeInsets.only(top: 11),
                             child: Image.asset(
                               "assets/ChopoLogo.png",
@@ -85,9 +77,8 @@ class _LoginState extends State<Login> {
                               height: 40,
                             ),
                           ),
-                          ],
-                      )
-                  ),
+                        ],
+                      )),
                   SizedBox(
                     height: 20,
                   ),
@@ -111,6 +102,7 @@ class _LoginState extends State<Login> {
                               ]),
                           child: TextField(
                             controller: _usernameController,
+                            textAlign: TextAlign.center,
                             decoration: InputDecoration(
                                 border: InputBorder.none,
                                 hintText: "نام کاربری",
@@ -137,13 +129,14 @@ class _LoginState extends State<Login> {
                           child: Obx(() => TextField(
                                 obscureText: _obscureText.value,
                                 controller: _passwordController,
+                                textAlign: TextAlign.center,
                                 decoration: InputDecoration(
                                   labelText: "رمزعبور",
                                   suffixIcon: IconButton(
                                     onPressed: () {
                                       _obscureText.value = !_obscureText.value;
                                     },
-                                    icon: !_obscureText.isTrue
+                                    icon: _obscureText.isTrue
                                         ? Icon(CupertinoIcons.eye)
                                         : Icon(CupertinoIcons.eye_slash),
                                   ),
@@ -207,23 +200,22 @@ class _LoginState extends State<Login> {
                       height: 50,
                     ),
                     Center(
-                      child:  Container(
-                        width: 150,
-                        height: 50,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50),
-                            gradient: LinearGradient(
-                                colors: BUTTON_GRADIANT_COLOR1)),
-                        child: OutlinedButton(
-                        onPressed: () {
-                          Get.to(() => Register());
-                        },
-                        child: const Text("ثبت نام",
-                            style: TextStyle(
-                                fontFamily: 'GeneralSans',
-                                fontWeight: FontWeight.w500)),
-                        )
-                      ),
+                      child: Container(
+                          width: 150,
+                          height: 50,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(50),
+                              gradient: LinearGradient(
+                                  colors: BUTTON_GRADIANT_COLOR1)),
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Get.to(() => Register());
+                            },
+                            child: const Text("ثبت نام",
+                                style: TextStyle(
+                                    fontFamily: 'GeneralSans',
+                                    fontWeight: FontWeight.w500)),
+                          )),
                     )
                   ]))
                 ],
@@ -245,7 +237,6 @@ class _LoginState extends State<Login> {
         .then((res) {
       _loading.value = false;
       if (res.$1) {
-        saveLogin();
         Get.off(() => SplashScreen());
         // Get.off(() => DesktopView(
         //       needToCheckUpdate: false,

@@ -4,6 +4,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../db/dao/price_dao.dart';
@@ -104,12 +105,12 @@ class _PricesViewState extends State<PricesView> {
                                 SizedBox(
                                   width: 3,
                                 ),
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
+                                SizedBox(
+                                  width: Get.width*0.9,
                                   child: Text(
                                     "منبع میانگین قیمت ها شرکت گسترش توسعه گری پردیس می باشد.",
                                     style: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: 12,
                                     ),
                                     maxLines: 2,
                                   ),

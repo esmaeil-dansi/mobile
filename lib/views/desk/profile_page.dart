@@ -1,18 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/services/aut_service.dart';
+import 'package:frappe_app/utils/SharedPreferenceHelper.dart';
 import 'package:frappe_app/utils/constants.dart';
 import 'package:frappe_app/views/desk/advertisement_page.dart';
+import 'package:frappe_app/views/desk/desk_view.dart';
 import 'package:frappe_app/views/login/login_page.dart';
-import 'package:frappe_app/widgets/attach_image.dart';
 import 'package:frappe_app/widgets/circle_avatar_widget.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:frappe_app/widgets/edit_profile_page.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../widgets/AvatarWidget.dart';
@@ -26,16 +25,14 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _autService = GetIt.I.get<AutService>();
+  final _shared = GetIt.I.get<SharedPreferencesHelper>();
   final _notification = true.obs;
-  final _isDarkMode = Get.isDarkMode.obs;
-  late SharedPreferences _sharedPreferences;
   var _obscureText = false.obs;
-  TextEditingController _controller = TextEditingController();
+  final selectUserIsOpen = false.obs;
 
   @override
   void initState() {
     GetIt.I.get<AutService>().fetchAdvertisement(DateTime.now());
-    SharedPreferences.getInstance().then((value) => _sharedPreferences = value);
     _autService.getFirstNameAndLastName();
     _autService.getPermission();
     super.initState();
@@ -105,16 +102,52 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _autService.getFullName(),
-                                style: Get.textTheme.bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                            ],
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.translucent,
+                            onTap: () {
+                              selectUserIsOpen.value = !selectUserIsOpen.value;
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _autService.fullName(),
+                                  style: Get.textTheme.bodyMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                                IconButton(
+                                    onPressed: () {
+                                      selectUserIsOpen.value =
+                                          !selectUserIsOpen.value;
+                                    },
+                                    icon: Obx(() => !selectUserIsOpen.value
+                                        ? Icon(
+                                            Icons.keyboard_arrow_down_rounded,
+                                            size: 30,
+                                          )
+                                        : Icon(
+                                            Icons.keyboard_arrow_up_rounded,
+                                            size: 30,
+                                          )))
+                              ],
+                            ),
                           ),
+                        ),
+                        Obx(
+                          () => AnimatedSwitcher(
+                              duration: Duration(milliseconds: 400),
+                              transitionBuilder:
+                                  (Widget child, Animation<double> animation) {
+                                final offsetAnimation = Tween<Offset>(
+                                  begin: Offset(0, 1), // Starts from up
+                                  end: Offset(0, 0), // Ends at the center
+                                ).animate(animation);
+                                return SlideTransition(
+                                    position: offsetAnimation, child: child);
+                              },
+                              child: selectUserIsOpen.value
+                                  ? buildSelectAccount()
+                                  : SizedBox()),
                         ),
                         Divider(
                           thickness: 4,
@@ -144,7 +177,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 value: _notification.value,
                                 onChanged: (_) {
                                   _notification.value = _;
-                                  _sharedPreferences.setBool("notification", _);
+                                  // _sharedPreferences.setBool("notification", _);
                                 }))
                           ],
                         ),
@@ -359,7 +392,17 @@ class _ProfilePageState extends State<ProfilePage> {
                                                 onPressed: () async {
                                                   Navigator.pop(_);
                                                   await _autService.logout();
-                                                  Get.offAll(() => Login());
+
+                                                  if (_shared.userIsLogin(
+                                                      _shared
+                                                          .getAnotherUser())) {
+                                                    _shared.changeUser(_shared
+                                                        .getAnotherUser());
+                                                    Get.offAll(
+                                                        () => DesktopView());
+                                                  } else {
+                                                    Get.offAll(() => Login());
+                                                  }
                                                 },
                                                 child: Text(
                                                   "بله",
@@ -398,5 +441,112 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ));
+  }
+
+  Widget buildSelectAccount() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      key: Key("value"),
+      children: [
+        _buildUserInfo(
+            name: _shared.getUserInfo(_shared.getCurrentUser()),
+            avatar: _shared.getUserImage(_shared.getCurrentUser()),
+            isCurrentUser: true,
+            current: _shared.getCurrentUser()),
+        if (_shared.userIsLogin(_shared.getAnotherUser()))
+          _buildUserInfo(
+              name: _shared.getUserInfo(_shared.getAnotherUser()),
+              avatar: _shared.getUserImage(_shared.getAnotherUser()),
+              isCurrentUser: false,
+              current: _shared.getAnotherUser())
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 5),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => onTap(_shared.getAnotherUser()),
+              child: Row(
+                children: [
+                  Icon(Icons.add),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Text("افزودن حساب")
+                ],
+              ),
+            ),
+          ),
+        SizedBox(
+          height: 20,
+        )
+      ],
+    );
+  }
+
+  Widget _buildUserInfo(
+      {required String name,
+      required bool isCurrentUser,
+      required String avatar,
+      required CurrentUser current}) {
+    return GestureDetector(
+      onTap: () => onTap(current),
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            child: Container(
+              height: 40,
+              width: Get.width * 2 / 3,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.black26)),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 120,
+                          child: Text(
+                            name,
+                            style: TextStyle(
+                                fontSize: 12, overflow: TextOverflow.ellipsis),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
+                        buildCircleAvatarUi(avatar: avatar, radius: 25),
+                      ],
+                    ),
+                    if (isCurrentUser)
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                      )
+                    else
+                      SizedBox(
+                        width: 25,
+                      )
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void onTap(CurrentUser user) {
+    _shared.changeUser(user);
+    if (_shared.userIsLogin(user)) {
+      Get.offAll(() => DesktopView());
+    } else {
+      Get.offAll(() => Login());
+    }
   }
 }

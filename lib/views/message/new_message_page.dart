@@ -1,4 +1,4 @@
-import 'package:file_picker/file_picker.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
@@ -6,7 +6,6 @@ import 'package:frappe_app/model/message_user.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/message_service.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
-import 'package:frappe_app/widgets/constant.dart';
 import 'package:frappe_app/widgets/file_picker_widget.dart';
 import 'package:frappe_app/widgets/new_from_widget.dart';
 import 'package:get/get.dart';
@@ -83,7 +82,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
                       readOnly: true,
                       focusNode: FocusNode(canRequestFocus: false),
                       controller: TextEditingController(
-                          text: _autService.getFullName()),
+                          text: _autService.fullName()),
                       decoration: InputDecoration(
                         labelText: "شناسه ارسال کننده",
                         border: OutlineInputBorder(
@@ -100,7 +99,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
                     child: TextField(
                       readOnly: true,
                       controller: TextEditingController(
-                          text: _autService.getFullName()),
+                          text: _autService.fullName()),
                       decoration: InputDecoration(
                         labelText: "نام ارسال کننده",
                         border: OutlineInputBorder(

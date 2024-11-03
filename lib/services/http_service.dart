@@ -1,13 +1,8 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cookie_jar/cookie_jar.dart';
-import 'package:logger/logger.dart';
 import 'aut_service.dart';
-import 'package:http/http.dart' as http;
 
 class HttpService {
   final _autService = GetIt.I.get<AutService>();
@@ -31,9 +26,9 @@ class HttpService {
   String getCookie() {
     cookies.clear();
     cookies.add(Cookie("system_user", "yes"));
-    cookies.add(Cookie("sid", _autService.getSid()));
+    cookies.add(Cookie("sid", _autService.sid()));
     cookies.add(Cookie("user_id", _autService.getUserId()));
-    cookies.add(Cookie("full_name", _autService.getFullNameChar()));
+    cookies.add(Cookie("full_name", _autService.fullNameChar()));
     return CookieManager.getCookies(cookies);
   }
 
