@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="io.frappe.frappe_mobile">
+          >
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -43,9 +43,9 @@
                 android:name="vn.hunghd.flutterdownloader.DownloadedFileProvider"
                 android:authorities="${applicationId}.flutter_downloader.provider"
                 android:grantUriPermissions="true">
-            <meta-data
-                    android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/provider_paths"/>
+<!--            <meta-data-->
+<!--                    android:name="android.support.FILE_PROVIDER_PATHS"-->
+<!--                    android:resource="@xml/provider_paths"/>-->
         </provider>
     </application>
 </manifest>

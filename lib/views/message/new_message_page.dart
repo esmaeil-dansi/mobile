@@ -135,36 +135,32 @@ class _NewMessagePageState extends State<NewMessagePage> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     TypeAheadField(
-                                      noItemsFoundBuilder: (c) {
+                                      emptyBuilder: (c) {
                                         return Text("موردی یافت نشد");
                                       },
-                                      textFieldConfiguration:
-                                          TextFieldConfiguration(
-                                        controller: TextEditingController(
-                                            text: messageUser?.name),
-                                        decoration: InputDecoration(
-                                          suffix: GestureDetector(
-                                            child: Icon(
-                                              Icons.delete,
-                                              color: Colors.red,
+                                      builder: (context, textController, focusNode) {
+                                        textController.text = messageUser?.name ?? "";
+                                        return TextField(
+                                          controller: textController,
+                                          focusNode: focusNode,
+                                          decoration: InputDecoration(
+                                            suffix: GestureDetector(
+                                              child: const Icon(Icons.delete, color: Colors.red),
+                                              onTap: () {
+                                                if (receiverCount > 1) {
+                                                  receiverCount = receiverCount - 1;
+                                                }
+                                                receivers.remove(i);
+                                                setState(() {});
+                                              },
                                             ),
-                                            onTap: () {
-                                              if (receiverCount > 1) {
-                                                receiverCount =
-                                                    receiverCount - 1;
-                                              }
-                                              receivers.remove(i);
-                                              setState(() {});
-                                            },
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(20.0),
+                                            ),
+                                            labelText: messageUser?.email ?? "مخاطب",
                                           ),
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(20.0),
-                                          ),
-                                          labelText:
-                                              messageUser?.email ?? "مخاطب",
-                                        ),
-                                      ),
+                                        );
+                                      },
                                       suggestionsCallback: (pattern) async {
                                         return (await _messageService
                                                 .getAgent(""))
@@ -193,7 +189,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
                                         );
                                       },
                                       // Callback when a suggestion is selected
-                                      onSuggestionSelected: (suggestion) async {
+                                      onSelected: (suggestion) async {
                                         receivers[i] = suggestion;
                                         setState(() {});
                                       },
@@ -243,36 +239,33 @@ class _NewMessagePageState extends State<NewMessagePage> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       TypeAheadField(
-                                        noItemsFoundBuilder: (c) {
+                                        emptyBuilder: (c) {
                                           return Text("موردی یافت نشد");
                                         },
-                                        textFieldConfiguration:
-                                            TextFieldConfiguration(
-                                          controller: TextEditingController(
-                                              text: messageUser?.name),
-                                          decoration: InputDecoration(
-                                            suffix: GestureDetector(
-                                              child: Icon(
-                                                Icons.delete,
-                                                color: Colors.red,
+                                        builder: (context, textController, focusNode) {
+                                          textController.text = messageUser?.name ?? "";
+
+                                          return TextField(
+                                            controller: textController,
+                                            focusNode: focusNode,
+                                            decoration: InputDecoration(
+                                              suffix: GestureDetector(
+                                                child: const Icon(Icons.delete, color: Colors.red),
+                                                onTap: () {
+                                                  if (ccrReceiverCount > 1) {
+                                                    ccrReceiverCount = ccrReceiverCount - 1;
+                                                  }
+                                                  ccrReceivers.remove(i);
+                                                  setState(() {});
+                                                },
                                               ),
-                                              onTap: () {
-                                                if (ccrReceiverCount > 1) {
-                                                  ccrReceiverCount =
-                                                      ccrReceiverCount - 1;
-                                                }
-                                                ccrReceivers.remove(i);
-                                                setState(() {});
-                                              },
+                                              border: OutlineInputBorder(
+                                                borderRadius: BorderRadius.circular(20.0),
+                                              ),
+                                              labelText: messageUser?.email ?? "مخاطب",
                                             ),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(20.0),
-                                            ),
-                                            labelText:
-                                                messageUser?.email ?? "مخاطب",
-                                          ),
-                                        ),
+                                          );
+                                        },
                                         suggestionsCallback: (pattern) async {
                                           return (await _messageService
                                                   .getAgent(""))
@@ -301,7 +294,7 @@ class _NewMessagePageState extends State<NewMessagePage> {
                                           );
                                         },
                                         // Callback when a suggestion is selected
-                                        onSuggestionSelected:
+                                        onSelected:
                                             (suggestion) async {
                                           ccrReceivers[i] = suggestion;
                                           setState(() {});

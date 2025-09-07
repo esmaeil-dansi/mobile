@@ -150,12 +150,12 @@ class NewShopItemPage extends StatelessWidget {
                                                         fit: FlexFit.tight,
                                                         // disabledItemFn: (String s) => s.startsWith('I'),
                                                       ),
-                                                      items: s.data!
+                                                      items: (_, __) => s.data!
                                                           .map((e) => e.name)
                                                           .toList(),
-                                                      dropdownDecoratorProps:
+                                                      decoratorProps:
                                                           DropDownDecoratorProps(
-                                                        dropdownSearchDecoration:
+                                                        decoration:
                                                             InputDecoration(
                                                           labelText: "محصول",
                                                           border:

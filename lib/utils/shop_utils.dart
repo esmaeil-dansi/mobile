@@ -19,22 +19,21 @@ class ShopUtils {
       Function(ShopItemServerModel) onSelect, ShopItemServerModel? model) {
     var textController = TextEditingController(text: model?.name);
     return TypeAheadField(
-      noItemsFoundBuilder: (c) {
+      emptyBuilder: (c) {
         return Text("موردی یافت نشد");
       },
-      textFieldConfiguration: TextFieldConfiguration(
-        onSubmitted: (_) {
-          if (model != null) onSelect(model);
-        },
-        controller: textController,
-        decoration: InputDecoration(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20.0),
+      builder: (c, controller, f) {
+        return TextField(
+          controller: controller,
+          focusNode: f,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            labelText: "محصول",
           ),
-          labelText: "محصول",
-        ),
-      ),
-
+        );
+      },
       suggestionsCallback: (pattern) async {
         return (await GetIt.I.get<ShopService>().searchInShopItem(pattern));
       },
@@ -45,7 +44,7 @@ class ShopUtils {
         );
       },
       // Callback when a suggestion is selected
-      onSuggestionSelected: (suggestion) {
+      onSelected: (suggestion) {
         textController.text = suggestion.name;
         onSelect(suggestion);
       },

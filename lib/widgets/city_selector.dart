@@ -7,18 +7,22 @@ import 'package:get_it/get_it.dart';
 Widget provinceSelector(Function(String) onSelect, String value) {
   var textController = TextEditingController(text: value);
   return TypeAheadField(
-    noItemsFoundBuilder: (c) {
+    emptyBuilder: (c) {
       return Text("موردی یافت نشد");
     },
-    textFieldConfiguration: TextFieldConfiguration(
-      controller: textController,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20.0),
+    builder: (context, textController, focusNode) {
+      return TextField(
+        controller: textController,
+        focusNode: focusNode,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          labelText: "استان",
         ),
-        labelText: "استان",
-      ),
-    ),
+      );
+    },
+
     suggestionsCallback: (pattern) async {
       return cities
           .where((suggestion) =>
@@ -32,7 +36,7 @@ Widget provinceSelector(Function(String) onSelect, String value) {
       );
     },
     // Callback when a suggestion is selected
-    onSuggestionSelected: (suggestion) {
+    onSelected: (suggestion) {
       textController.text = suggestion;
       onSelect(suggestion);
     },
@@ -42,22 +46,22 @@ Widget provinceSelector(Function(String) onSelect, String value) {
 Widget citySelector(String province, Function(String) onSelect, String value) {
   var textController = TextEditingController(text: value);
   return TypeAheadField(
-    noItemsFoundBuilder: (c) {
+    emptyBuilder: (c) {
       return Text("موردی یافت نشد");
     },
-    textFieldConfiguration: TextFieldConfiguration(
-      onSubmitted: (_) {
-        onSelect("");
-      },
-      controller: textController,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20.0),
+    builder: (context, textController, focusNode) {
+      return TextField(
+        controller: textController,
+        focusNode: focusNode,
+        onSubmitted: (_) => onSelect(""),
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          labelText: "شهرستان",
         ),
-        labelText: "شهرستان",
-      ),
-    ),
-
+      );
+    },
     suggestionsCallback: (pattern) async {
       return (await GetIt.I
           .get<VisitService>()
@@ -70,7 +74,7 @@ Widget citySelector(String province, Function(String) onSelect, String value) {
       );
     },
     // Callback when a suggestion is selected
-    onSuggestionSelected: (suggestion) {
+    onSelected: (suggestion) {
       textController.text = suggestion;
       onSelect(suggestion);
     },

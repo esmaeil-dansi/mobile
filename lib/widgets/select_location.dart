@@ -15,10 +15,11 @@ class SelectLocation extends StatelessWidget {
   LatLng? latLng;
   bool readOnly;
 
-  SelectLocation({super.key,
-    required this.onSelected,
-    this.latLng,
-    this.readOnly = false});
+  SelectLocation(
+      {super.key,
+      required this.onSelected,
+      this.latLng,
+      this.readOnly = false});
 
   @override
   Widget build(BuildContext context) {
@@ -53,10 +54,11 @@ class LocationWidget extends StatefulWidget {
   LatLng? latLng;
   bool readOnly;
 
-  LocationWidget({required this.onSelected,
-    this.latLng,
-    this.readOnly = false,
-    super.key});
+  LocationWidget(
+      {required this.onSelected,
+      this.latLng,
+      this.readOnly = false,
+      super.key});
 
   @override
   State<LocationWidget> createState() => _LocationWidgetState();
@@ -269,10 +271,7 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
         shrinkWrap: true,
         children: [
           LimitedBox(
-            maxHeight: MediaQuery
-                .of(context)
-                .size
-                .height / 2,
+            maxHeight: MediaQuery.of(context).size.height / 2,
             child: Stack(
               children: [
                 FlutterMap(
@@ -289,7 +288,7 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
                   children: [
                     TileLayer(
                       urlTemplate:
-                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       subdomains: const ['a', 'b', 'c'],
                     ),
                     MarkerLayer(
@@ -377,7 +376,7 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
                             } else {
                               Fluttertoast.showToast(
                                   msg:
-                                  "حداکثر فاصله مکان انتخاب شده با موقعیت فعلی شما یاید 400 متر باشد.",
+                                      "حداکثر فاصله مکان انتخاب شده با موقعیت فعلی شما یاید 400 متر باشد.",
                                   backgroundColor: Colors.red);
                             }
                           },
@@ -399,7 +398,7 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
 
     setState(() {
       final newLocation =
-      mapController.pointToLatLng(CustomPoint(pointX, pointY));
+          mapController.pointToLatLng(CustomPoint(pointX, pointY));
       pointerLocation = newLocation;
     });
   }
@@ -422,9 +421,6 @@ class PointToLatlngPage extends State<PointToLatLngPage> {
   }
 
   double _getPointX(BuildContext context) {
-    return MediaQuery
-        .of(context)
-        .size
-        .width / 2;
+    return MediaQuery.of(context).size.width / 2;
   }
 }
