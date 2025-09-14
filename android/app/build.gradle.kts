@@ -21,7 +21,7 @@ android {
     defaultConfig {
         applicationId = "chopo.icasp.ir"
         minSdk = flutter.minSdkVersion
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 103
         versionName = "4.1.9"
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
