@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="io.frappe.frappe_mobile">
+          package="chopo.icasp.ir"     >
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -39,13 +39,13 @@
         <meta-data
                 android:name="flutterEmbedding"
                 android:value="2"/>
-        <provider
-                android:name="vn.hunghd.flutterdownloader.DownloadedFileProvider"
-                android:authorities="${applicationId}.flutter_downloader.provider"
-                android:grantUriPermissions="true">
-            <meta-data
-                    android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/provider_paths"/>
-        </provider>
+<!--        <provider-->
+<!--                android:name="vn.hunghd.flutterdownloader.DownloadedFileProvider"-->
+<!--                android:authorities="${applicationId}.flutter_downloader.provider"-->
+<!--                android:grantUriPermissions="true">-->
+<!--&lt;!&ndash;            <meta-data&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:name="android.support.FILE_PROVIDER_PATHS"&ndash;&gt;-->
+<!--&lt;!&ndash;                    android:resource="@xml/provider_paths"/>&ndash;&gt;-->
+<!--        </provider>-->
     </application>
 </manifest>

@@ -10,12 +10,12 @@ void selectDate(
       initialDate: Jalali.now(),
       firstDate: Jalali(1385, 8),
       lastDate: Jalali(1450, 9),
-      initialEntryMode: PDatePickerEntryMode.calendarOnly,
-      initialDatePickerMode: PDatePickerMode.day,
+      initialEntryMode: PersianDatePickerEntryMode.calendarOnly,
+      initialDatePickerMode: PersianDatePickerMode.day,
       builder: (context, child) {
         return Theme(
           data: ThemeData(
-            dialogTheme: const DialogTheme(
+            dialogTheme: const DialogThemeData(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(0)),
               ),
@@ -29,4 +29,3 @@ void selectDate(
     set(DateFormat('yyyy-MM-dd').format(picked.toGregorian().toDateTime()));
   }
 }
-
