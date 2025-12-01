@@ -15,15 +15,15 @@ plugins {
 
 android {
     namespace = "chopo.icasp.ir"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     defaultConfig {
         applicationId = "chopo.icasp.ir"
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
-        versionCode = 103
-        versionName = "4.1.9"
+        targetSdk = 36
+        versionCode = 106
+        versionName = "4.2.2"
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 //        multiDexEnabled = true
 //        isCoreLibraryDesugaringEnabled = true

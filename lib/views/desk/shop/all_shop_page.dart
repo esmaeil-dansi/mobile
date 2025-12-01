@@ -64,15 +64,12 @@ class _AllShopPageState extends State<AllShopPage> {
                                 //     child: Center(
                                 //         child: Icon(
                                 //             CupertinoIcons.shopping_cart))),
-                                SizedBox(
-                                  height: 10,
-                                ),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       info.name,
-                                      style: TextStyle(fontSize: 15),
+                                      style: TextStyle(fontSize: 12),
                                     ),
                                     Text(
                                       info.id,
@@ -119,7 +116,7 @@ class _AllShopPageState extends State<AllShopPage> {
                                             child: Center(
                                                 child: Text(
                                               "مشاهده",
-                                              style: Get.textTheme.bodyLarge
+                                              style: Get.textTheme.bodyMedium
                                                   ?.copyWith(
                                                       color: Colors.white,
                                                       fontSize: 13),

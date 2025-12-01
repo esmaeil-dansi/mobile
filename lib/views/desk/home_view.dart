@@ -49,8 +49,16 @@ class _HomeViewState extends State<HomeView> {
   final _priceDao = GetIt.I.get<PriceAvgDao>();
   final _shopService = GetIt.I.get<ShopService>();
   GlobalKey<AutoCompleteTextFieldState<String>> key = GlobalKey();
-  List<String> suggest = ['آب و هوا', 'قیمت ها', 'پیام', 'بازدید اولیه', 'بازدید دوره ای', 'بازدید دامپزشک', 'پشتیبانی', 'فروشگاه محصولات'];
+  List<String> suggest = [
+    'آب و هوا',
+    'قیمت ها',
+    'بازدید اولیه',
+    'بازدید بهره وری',
+    'پشتیبانی',
+    'فروشگاه محصولات'
+  ];
   final List<String> imgList = ['assets/slider01.jpg', 'assets/slider02.jpg'];
+
   // List<String> suggest = [
   //   'آب و هوا',
   //   'قیمت ها',
@@ -68,77 +76,37 @@ class _HomeViewState extends State<HomeView> {
     'راهبر': [
       WeatherView(),
       PricesView(),
-      SupportView(),
-      MessagesView(),
+      // SupportView(),
+      // MessagesView(),
       InitialVisit(),
-      PeriodicVisits(),
-      VetVisit()
+      ProductVisit(),
+      // VetVisit()
     ],
     'سر راهبر': [
       WeatherView(),
       PricesView(),
-      SupportView(),
-      MessagesView(),
+      // SupportView(),
+      // MessagesView(),
       InitialVisit(),
-      PeriodicVisits(),
-      VetVisit()
+      ProductVisit(),
     ],
     'Supplier': [
       WeatherView(),
       PricesView(),
-      SupportView(),
-      MessagesView(),
+      // SupportView(),
+      // MessagesView(),
       InitialVisit(),
-      PeriodicVisits(),
-      VetVisit()
+      ProductVisit(),
     ],
     'انباردار': [
       WeatherView(),
       PricesView(),
-      SupportView(),
-      MessagesView(),
+      // SupportView(),
+      // MessagesView(),
       InitialVisit(),
-      PeriodicVisits(),
-      VetVisit()
+      ProductVisit(),
     ]
   };
-
-  void _navigateToPage(String pageName) {
-    Widget page;
-    switch (pageName) {
-      case 'آب و هوا':
-        page = WeatherView();
-        break;
-      case 'قیمت ها':
-        page = PricesView();
-        break;
-      case 'پیام':
-        page = MessagesView();
-        break;
-      case 'بازدید اولیه':
-        page = InitialVisit();
-        break;
-      case 'بازدید دوره ای':
-        page = ProductVisit();
-        break;
-      case 'بازدید دامپزشک':
-        page = VetVisit();
-        break;
-      case 'پشتیبانی':
-        page = SupportView();
-        break;
-      case 'فروشگاه محصولات':
-        page = ProductStore();
-        break;
-      default:
-        page = HomeView();
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -186,112 +154,103 @@ class _HomeViewState extends State<HomeView> {
       ),
       body: Container(
         color: Colors.white,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 7),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AutoCompleteTextField<String>(
-                  key: key,
-                  suggestions: suggest,
-                  decoration: InputDecoration(
-                    labelText: 'جستجو',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  itemFilter: (item, query) {
-                    return item.toLowerCase().startsWith(query.toLowerCase());
-                  },
-                  itemSorter: (a, b) {
-                    return a.compareTo(b);
-                  },
-                  itemSubmitted: (item) {
-                    setState(() {
-                      _navigateToPage(item);
-                    });
-                  },
-                  itemBuilder: (context, item) {
-                    return ListTile(
-                      title: Text(item),
-                    );
-                  },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 7),
+          child: Column(
+            // crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // AutoCompleteTextField<String>(
+              //   key: key,
+              //   suggestions: suggest,
+              //   decoration: InputDecoration(
+              //     labelText: 'جستجو',
+              //     prefixIcon: Icon(Icons.search),
+              //     border: OutlineInputBorder(
+              //       borderRadius: BorderRadius.circular(8.0),
+              //     ),
+              //   ),
+              //   itemFilter: (item, query) {
+              //     return item.toLowerCase().startsWith(query.toLowerCase());
+              //   },
+              //   itemSorter: (a, b) {
+              //     return a.compareTo(b);
+              //   },
+              //   itemSubmitted: (item) {
+              //     setState(() {
+              //       _navigateToPage(item);
+              //     });
+              //   },
+              //   itemBuilder: (context, item) {
+              //     return ListTile(
+              //       title: Text(item),
+              //     );
+              //   },
+              // ),
+              // SizedBox(
+              //   height: 5,
+              // ),
+
+              CarouselSlider(
+                options: CarouselOptions(
+                  height: 170.0,
+                  autoPlay: true,
+                  enlargeCenterPage: true,
                 ),
-                SizedBox(
-                  height: 5,
-                ),
-                Column(
-                  children: [
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(3.0),
-                      child: Column(
-                        children: [
-                          if (_autService.isDamdar())
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildItem(
-                                    () => Get.to(() => ProductStore()),
-                                    'assets/productstore.json',
-                                    "فروشگاه محصولات",
-                                    true),
-                              ],
+                items: imgList
+                    .map((item) => GestureDetector(
+                          onTap: () {
+                            _launchURL('https://Chopoo.ir/');
+                          },
+                          child: Container(
+                            child: Center(
+                              child: Image.asset(item,
+                                  fit: BoxFit.contain, width:double.infinity,height: 250,),
                             ),
-                          Wrap(
-                            alignment: WrapAlignment.center,
-                            runAlignment: WrapAlignment.center,
-                            spacing: 3.0,
-                            runSpacing: 3.0,
-                            direction: Axis.horizontal,
-                            children: _itemMenu(),
                           ),
+                        ))
+                    .toList(),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 100),
+                child: Column(
+                  children: [
+                    if (_autService.isDamdar())
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildItem(
+                              () => Get.to(() => ProductStore()),
+                              'assets/productstore.json',
+                              "فروشdddگاه محصولات",
+                              true),
                         ],
+
                       ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [_itemMenu()[0], _itemMenu()[1]],
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        if (_itemMenu().length > 2) _itemMenu()[2],
+                        if (_itemMenu().length > 3) _itemMenu()[3]
+                      ],
+                    )
                   ],
                 ),
-                // if (!_autService.isRahbar() &&
-                //     !_autService.isDamdar() &&
-                //     !_autService.isSarRahbar())
-                //   Text("شما دسترسی ندارید!")
-                CarouselSlider(
-                  options: CarouselOptions(
-                    height: 150.0,
-                    autoPlay: true,
-                    enlargeCenterPage: true,
-                  ),
-                  items: imgList
-                      .map((item) => GestureDetector(
-                            onTap: () {
-                              _launchURL('https://Chopoo.ir/');
-                            },
-                            child: Container(
-                              child: Center(
-                                child: Image.asset(item,
-                                    fit: BoxFit.cover, width: 1000),
-                              ),
-                            ),
-                          ))
-                      .toList(),
-                ),
-              ],
-            ),
+              ),
+              // if (!_autService.isRahbar() &&
+              //     !_autService.isDamdar() &&
+              //     !_autService.isSarRahbar())
+              //   Text("شما دسترسی ندارید!")
+            ],
           ),
         ),
       ),
     );
   }
-
-  List<ShopGroup> _productsGroup = [
-    ShopGroup(ShopType.DAM, "assets/icons/ma_dam.png"),
-    ShopGroup(ShopType.NAHADA, "assets/icons/ma_nahana.png"),
-  ];
 
   Widget _buildItem(Function onTap, String asset, String title, bool custom) {
     double vertical = 4, horizontal = 2, width = 0.24, height = 100;
@@ -306,154 +265,57 @@ class _HomeViewState extends State<HomeView> {
       child: Container(
         width: MediaQuery.of(context).size.width * width,
         height: height,
-        decoration: BoxDecoration(
-            gradient: LinearGradient(colors: GRADIANT_COLOR),
-            borderRadius: BorderRadius.circular(5)),
         child: Padding(
           padding: const EdgeInsets.all(1.0),
           child: Container(
-            width: Get.width * 0.22,
-            height: 100,
+            width: Get.width * 0.3,
+            height: 200,
             decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(
-                  color: Colors.black12,
-                ),
-                borderRadius: BorderRadius.circular(5)),
-            child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: () {
-                  if (title == "آموزش مقالات") {
-                    _launchURL('https://Chopoo.ir/');
-                  } else if (title == "اینستاگرام") {
-                    _launchURL('https://www.instagram.com/chopoo.mag');
-                  } else {
-                    onTap();
-                  }
-                },
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Lottie.asset(asset,
-                        fit: BoxFit.scaleDown,
-                        width: 40,
-                        height: 40,
-                        repeat: true),
-                    SizedBox(
-                      width: 4,
-                    ),
-                    Center(
-                      child: Text(
-                        title,
-                        style: Get.textTheme.bodyMedium?.copyWith(
-                            fontSize: 11, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                )),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReport(String s, String count, double d) {
-    return Container(
-      height: 76,
-      width: 162,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: GRADIANT_COLOR,
-        ),
-        borderRadius: BorderRadius.circular(10),
-        // border: Border.all()
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(1),
-        child: Container(
-          height: 80,
-          // width: Get.width * 0.43,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(s, style: TextStyle(fontSize: 11, color: Colors.black54)),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _splitPrice(count.toString()),
-                      style: TextStyle(fontSize: 15),
-                    ),
-                    SizedBox(
-                      width: 10,
-                    ),
-                  ],
-                ),
-                if (d != 0.0)
-                  Row(
-                    children: [
-                      Text(
-                          "%" +
-                              d
-                                  .abs()
-                                  .toString()
-                                  .substring(0, min(d.toString().length, 6)),
-                          style: TextStyle(fontSize: 8)),
-                      if (d != 0)
-                        if (d > 0)
-                          Icon(
-                            Icons.trending_up,
-                            color: Colors.blue,
-                            size: 11,
-                          )
-                        else
-                          Icon(
-                            Icons.trending_down,
-                            color: Colors.red,
-                            size: 11,
-                          ),
-                      SizedBox(
-                        width: 5,
-                      ),
-                      Text("از دیروز", style: TextStyle(fontSize: 8)),
-                    ],
-                  )
+              color: Colors.white,
+              border: Border.all(
+                color: Colors.black12,
+              ),
+              borderRadius: BorderRadius.circular(5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.green.withOpacity(0.3),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 4),
+                )
               ],
+            ),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => onTap(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Lottie.asset(
+                    asset,
+                    fit: BoxFit.scaleDown,
+                    width: 40,
+                    height: 40,
+                    repeat: true,
+                  ),
+                  const SizedBox(height: 4),
+                  Center(
+                    child: Text(
+                      title,
+                      style: Get.textTheme.bodyMedium?.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
-  }
-
-  String _splitPrice(String t) {
-    var s = t.split('').reversed.toList();
-    List<List<String>> sf = [];
-    var j = 0;
-    int start = 0;
-    while (j < s.length) {
-      sf.add(s.sublist(start, min(start + 3, t.length)).reversed.toList());
-      start = start + 3;
-      j = j + 3;
-    }
-    sf = sf.reversed.toList();
-    String sr = "";
-    for (int i = 0; i < sf.length; i++) {
-      sr = sr + sf[i].join("");
-      if (sf.length - i != 1) {
-        sr = sr + ",";
-      }
-    }
-    return sr;
   }
 
   void _launchURL(String urlString) async {
@@ -475,10 +337,6 @@ class _HomeViewState extends State<HomeView> {
       rows.add(_buildItem(() => Get.to(() => visibleMenuItems[i]), this.path,
           this.title, false));
     }
-    rows.add(_buildItem(() => Get.to(() => null), 'assets/instagram.json',
-        "اینستاگرام", false));
-    rows.add(_buildItem(() => Get.to(() => null), 'assets/articles.json',
-        "آموزش مقالات", false));
     return rows;
   }
 
@@ -496,16 +354,16 @@ class _HomeViewState extends State<HomeView> {
         this.title = "پشتیبانی";
         this.path = 'assets/support.json';
         break;
-      case "MessagesView":
-        this.title = "پیام";
-        this.path = 'assets/messages.json';
-        break;
+      // case "MessagesView":
+      //   this.title = "پیام";
+      //   this.path = 'assets/messages.json';
+      //   break;
       case "InitialVisit":
         this.title = "بازدید اولیه";
         this.path = 'assets/visit.json';
         break;
-      case "PeriodicVisits":
-        this.title = "بازدید دوره ای";
+      case "ProductVisit":
+        this.title = "بازدید بهره وری";
         this.path = 'assets/periodic.json';
         break;
       case "VetVisit":

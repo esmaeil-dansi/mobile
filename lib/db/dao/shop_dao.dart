@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:frappe_app/db/shop_info.dart';
 import 'package:frappe_app/db/transaction_state.dart';
 import 'package:frappe_app/utils/SharedPreferenceHelper.dart';
@@ -34,6 +35,9 @@ class ShopDao {
 
   Stream<List<ShopInfo>> watchAll() async* {
     var box = await _open();
+    // if(kDebugMode){
+    //   yield [ShopInfo(name: "name", id: "id", items: [])];
+    // }
 
     yield box.values.toList();
 

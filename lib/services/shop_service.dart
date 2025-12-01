@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/db/cart.dart';
 import 'package:frappe_app/db/shop_info.dart';
+import 'package:frappe_app/model/new_item.dart';
 import 'package:frappe_app/model/shop_item_base_model.dart';
 import 'package:frappe_app/db/shop_item_tamin_info.dart';
 import 'package:frappe_app/model/shop_order_model.dart';
@@ -27,6 +28,8 @@ import 'package:frappe_app/services/http_service.dart';
 import 'package:frappe_app/utils/shop_utils.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
+
+import '../model/InventoryItem.dart';
 
 class ShopService {
   var _httpService = GetIt.I.get<HttpService>();
@@ -90,20 +93,39 @@ class ShopService {
 
   Future<List<ShopItemBaseModel>> fetchShopGroupItems(String group) async {
     try {
-      String key = "مواد اولیه" + " " + group;
+      String key = "مواد اولیه" + "\t" + group;
       var res = await _httpService.get("/api/method/get_item?item_group=$key");
-      var items =
-          (res?.data["res"] as List<dynamic>).map((e) => e.toString()).toList();
+
+      var items = (res?.data["res"] as List<dynamic>).map((e) => e).toList();
       var result = <ShopItemBaseModel>[];
-      int j = 0;
-      while (j < items.length - 1) {
-        result.add(ShopItemBaseModel(name: items[j], unit: items[j + 1]));
-        j = j + 2;
-      }
-      result.forEach((element) {
-        units[element.name] = element.unit;
+      items.forEach((item) {
+        ShopItemBaseModel shopItemBaseModel = ShopItemBaseModel.fromJson(item);
+        units[shopItemBaseModel.name] = shopItemBaseModel.unit;
+        if (group == "نهاده") {
+          if (shopItemBaseModel.damType.isEmpty) {
+            result.add(shopItemBaseModel);
+          }
+        } else {
+          if (!shopItemBaseModel.damType.isEmpty) {
+            result.add(shopItemBaseModel);
+          }
+        }
       });
+
       return result;
+    } catch (e) {
+      _logger.e(e);
+    }
+    return [];
+  }
+
+  Future<List<String>> fetchBreeds(String damType) async {
+    try {
+      var res =
+          await _httpService.get("/api/method/get_breed?dam_type=$damType");
+      return (res?.data["res"] as List<dynamic>)
+          .map((e) => e.toString())
+          .toList();
     } catch (e) {
       _logger.e(e);
     }
@@ -113,17 +135,15 @@ class ShopService {
   Future<List<ShopItemBaseModel>> fetchAvailableShopGroupItems(
       String group) async {
     try {
-      String key = "مواد اولیه" + " " + group;
+      String key = "مواد اولیه" + "\t" + group;
       var res =
           await _httpService.get("/api/method/get_avail_item?item_group=$key");
-      var items =
-          (res?.data["res"] as List<dynamic>).map((e) => e.toString()).toList();
+      var items = (res?.data["res"] as List<dynamic>).map((e) => e).toList();
       var result = <ShopItemBaseModel>[];
-      int j = 0;
-      while (j < items.length) {
-        result.add(ShopItemBaseModel(name: items[j], unit: ""));
-        j = j + 1;
-      }
+      items.forEach((item) {
+        result.add(ShopItemBaseModel.fromJson(item));
+      });
+
       return result;
     } catch (e) {
       _logger.e(e);
@@ -263,6 +283,76 @@ class ShopService {
     return false;
   }
 
+  Future<Map<String, List<InventoryItem>>> getStockRemainChopooByWarehouse(String id) async {
+    try {
+      var res = await _httpService
+          .get("/api/method/get_stock_remain_chopoo?supplier=$id");
+
+      List<InventoryItem> items = (res!.data!["data"] as List<dynamic>)
+          .map((s) => InventoryItem.fromJson(s))
+          .toList();
+
+      // گروه‌بندی بر اساس warehouse
+      Map<String, List<InventoryItem>> grouped = {};
+      for (var item in items) {
+        if (!grouped.containsKey(item.warehouse)) {
+          grouped[item.warehouse] = [];
+        }
+        grouped[item.warehouse]!.add(item);
+      }
+
+      return grouped;
+    } catch (e) {
+      _logger.e(e);
+      return {};
+    }
+  }
+
+
+  Future<List<String>> getWarehouseSupplier(String id) async {
+    if (kDebugMode) return ["1", "2"];
+    try {
+      var res = await _httpService
+          .get("/api/method/get_warehouse_supplier?supplier_id=$id");
+
+      if (res?.data != null && res!.data!["code"] == 2000) {
+        return (res.data!["data"] as List<dynamic>)
+            .map((s) => s["warehouse_name"].toString())
+            .toList();
+      } else {
+        _logger.e("API Error: ${res?.data?["message"]}");
+        return <String>[];
+      }
+    } catch (e) {
+      _logger.e(e);
+      return <String>[];
+    }
+  }
+
+  Future<bool> increaseShopItem(
+      {required ShopInfo shopInfo,
+      required NewItem newItem,
+      required String warehouse}) async {
+    try {
+      SupplierRequest supplierRequest = SupplierRequest(
+          username: _autService.getUsername,
+          password: _autService.getPassword,
+          supplierId: shopInfo.id,
+          warehouse: warehouse,
+          items: [newItem]);
+      var res = await _httpService.post(
+          "/api/method/create_purchase_chopoo", FormData.fromMap({}),
+          map: supplierRequest.toJson());
+
+      Fluttertoast.showToast(msg: res?.data["message"]);
+      return res?.statusCode == 200;
+    } catch (e) {
+      Fluttertoast.showToast(msg: "خطایی رخ داده است");
+      _logger.e(e);
+    }
+    return false;
+  }
+
   Future<bool> saveTransaction(
       {required List<Cart> items, required String paymentType}) async {
     try {
@@ -273,6 +363,8 @@ class ShopService {
           "/api/method/add_market_transactions",
           jsonEncode({
             "id_store": items.first.shopId,
+            "username": _autService.getUsername,
+            "password": _autService.getPassword,
             "payment_type": paymentType,
             "id_seller": sellerName,
             "id_buyer":

@@ -10,6 +10,7 @@ import 'package:frappe_app/repo/shop_repo.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/utils/shop_utils.dart';
+import 'package:frappe_app/views/desk/shop/increase_amout_page.dart';
 import 'package:frappe_app/views/desk/shop/new_shop_item_page.dart';
 import 'package:frappe_app/widgets/AvatarWidget.dart';
 
@@ -18,6 +19,9 @@ import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
+
+import '../../../model/InventoryItem.dart';
+import '../../../widgets/buttomSheetTempelate.dart';
 
 class ShopInfoPage extends StatefulWidget {
   ShopInfo shopInfo;
@@ -36,34 +40,73 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
     return Container(
       color: Colors.white,
       child: Scaffold(
-        floatingActionButton: Container(
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 10, left: 10),
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () {
-                Get.to(() => NewShopItemPage(
-                      shopInfo: widget.shopInfo,
-                      onAdd: (_) {
-                        widget.shopInfo.items.add(_);
-                        setState(() {});
-                      },
-                    ));
-              },
-              child: Container(
-                  width: 120,
-                  height: 50,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(50),
-                      gradient: LinearGradient(colors: GRADIANT_COLOR)),
-                  child: Center(
-                      child: Text(
-                    "محصول جدید",
-                    style:
-                        Get.textTheme.bodyLarge?.copyWith(color: Colors.white,fontSize: 13),
-                  ))),
-            ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10, left: 10),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      Get.to(() => IncreaseAmountPage(
+                            shopInfo: widget.shopInfo,
+                            onAdd: (_) {
+                              widget.shopInfo.items.add(_);
+                              setState(() {});
+                            },
+                          ));
+                    },
+                    child: Container(
+                        width: 120,
+                        height: 50,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(50),
+                            gradient: LinearGradient(colors: GRADIANT_COLOR)),
+                        child: Center(
+                            child: Text(
+                          "افزایش موجودی",
+                          style: Get.textTheme.bodyLarge
+                              ?.copyWith(color: Colors.white, fontSize: 13),
+                        ))),
+                  ),
+                ),
+              ),
+              Container(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10, left: 10),
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () {
+                      Get.to(() => NewShopItemPage(
+                            shopInfo: widget.shopInfo,
+                            onAdd: (_) {
+                              widget.shopInfo.items.add(_);
+                              setState(() {});
+                            },
+                          ));
+                    },
+                    child: Container(
+                        width: 120,
+                        height: 50,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(50),
+                            gradient: LinearGradient(colors: GRADIANT_COLOR)),
+                        child: Center(
+                            child: Text(
+                          "فروش جدید",
+                          style: Get.textTheme.bodyLarge
+                              ?.copyWith(color: Colors.white, fontSize: 13),
+                        ))),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         appBar: AppBar(
@@ -117,7 +160,7 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                         children: [
                           Text(
                             "حذف فروشگاه",
-                            style: TextStyle(color: Colors.red,fontSize: 12),
+                            style: TextStyle(color: Colors.red, fontSize: 12),
                           ),
                           Icon(
                             Icons.delete,
@@ -147,186 +190,132 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                   SizedBox(
                     height: 30,
                   ),
-                  InputDecorator(
-                    decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        labelText: "محصولات",
-                        labelStyle: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.bold)),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SizedBox(
-                              width: Get.width * 0.23,
-                              child: Text(
-                                "کالا",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 12),
-                              ),
-                            ),
-                            SizedBox(
-                              width: Get.width * 0.17,
-                              child: Text(
-                                "موجودی",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 8),
-                              ),
-                            ),
-                            Center(
-                              child: SizedBox(
-                                width: Get.width * 0.19,
-                                child: Center(
-                                  child: Text(
-                                    "قیمت",
-                                    style: TextStyle(
+                  FutureBuilder<Map<String, List<InventoryItem>>>(
+                    future: _shopService
+                        .getStockRemainChopooByWarehouse(widget.shopInfo.id),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      }
 
-                                        fontSize: 8),
-                                  ),
-                                ),
-                              ),
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(child: Text("هیچ انباری موجود نیست"));
+                      }
+
+                      Map<String, List<InventoryItem>> warehouseMap =
+                          snapshot.data!;
+
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.shade300,
+                              blurRadius: 5,
+                              offset: Offset(0, 2),
                             ),
-                            SizedBox(
-                              width: Get.width * 0.16,
-                              child: Center(
-                                child: Text(
-                                  "ویرایش",
-                                  style: TextStyle(
-                                       fontSize: 8),
-                                ),
-                              ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "انبارها",
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87),
                             ),
+                            const SizedBox(height: 10),
                             SizedBox(
-                              width: Get.width * 0.12,
-                              child: Text(
-                                "توضیحات",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 7),
+                              height: Get.height * 0.7,
+                              child: ListView(
+                                shrinkWrap: true,
+                                children: warehouseMap.keys.map((warehouse) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        var items =
+                                            warehouseMap[warehouse] ?? [];
+                                        Get.bottomSheet(
+                                            isScrollControlled: true,
+                                            bottomSheetTemplate(
+                                                _showItems(items)));
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Colors.blue.shade300,
+                                              Colors.blue.shade600
+                                            ],
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                                color: Colors.grey.shade300,
+                                                blurRadius: 1,
+                                                offset: Offset(1, 2))
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.max,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                warehouse,
+                                                style: TextStyle(
+                                                    overflow: TextOverflow.clip,
+                                                    color: Colors.white,
+                                                    fontSize: 10),
+                                              ),
+                                            ),
+                                            SizedBox(width: 8),
+                                            GestureDetector(
+                                              onTap: () {
+                                                var items =
+                                                    warehouseMap[warehouse] ??
+                                                        [];
+
+                                                Get.bottomSheet(
+                                                    isScrollControlled: true,
+                                                    bottomSheetTemplate(
+                                                        _showItems(items)));
+                                              },
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(30),
+                                                ),
+                                                child: Icon(Icons.info_outline,
+                                                    size: 18,
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
                               ),
                             ),
                           ],
                         ),
-                        Divider(),
-                        SizedBox(
-                          height: Get.height*0.6,
-                          child: ListView.separated(
-                            controller: ScrollController(),
-                             shrinkWrap: true,
-                            itemCount: widget.shopInfo.items.length,
-                            itemBuilder: (c, i) {
-                              var item = widget.shopInfo.items[i];
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 5),
-                                child: Container(
-                                  height: 70,
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      SizedBox(
-                                        width: Get.width * 0.23,
-                                        child: Text(
-                                          item.name,
-                                          style: TextStyle(fontSize: 9),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: Get.width * 0.17,
-                                        child: Center(
-                                          child: Row(
-                                            children: [
-                                              Text(item.amount.toString() + "\t",
-                                                  style: TextStyle(fontSize: 10)),
-                                              Text(
-                                                  (_shopService.units[item] ??
-                                                      ""),
-                                                  style: TextStyle(
-                                                      fontSize: 8,
-                                                      color: Colors.black87)),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: Get.width * 0.18,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                                NumberFormat.decimalPattern()
-                                                    .format(item.price),
-                                                style: TextStyle(fontSize: 10)),
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: Get.width * 0.16,
-                                        child: GestureDetector(
-                                            onTap: () {
-                                              ShopItemModel shop =
-                                                  new ShopItemModel(
-                                                      name: item.name,
-                                                      id: "id",
-                                                      group: "group",
-                                                      price:
-                                                          item.price.toString());
-                                              showEdit(shop);
-                                            },
-                                            child: Icon(
-                                              Icons.edit,
-                                              size: 12,
-                                              color: Colors.black,
-                                            )),
-                                      ),
-                                      SizedBox(
-                                        width: Get.width * 0.11,
-                                        child: GestureDetector(
-                                          onTap: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return AlertDialog(
-                                                  title: Text('توضیحات آیتم'),
-                                                  content: Text(item.description),
-                                                  actions: [
-                                                    TextButton(
-                                                      child: Text('بستن'),
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          },
-                                          child: Icon(
-                                            Icons.info,
-                                            size: 14,
-                                            color: Colors.blue,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                            separatorBuilder:
-                                (BuildContext context, int index) {
-                              return Divider();
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   )
                 ],
               ),
@@ -335,6 +324,110 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _showItems(List<InventoryItem> items) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          labelText: "محصولات",
+          labelStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              child: SizedBox(
+                height: Get.height * 0.5,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Table(
+                    border: TableBorder(
+                      horizontalInside: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    columnWidths: const {
+                      0: FlexColumnWidth(2.0), // کالا
+                      1: FlexColumnWidth(1.3), // موجودی
+                      // 2: FlexColumnWidth(1.8), // انبار
+                      3: FlexColumnWidth(1.4), // استان
+                    },
+                    children: [
+                      /// ---------- HEADER ----------
+                      TableRow(
+                        decoration: BoxDecoration(color: Colors.grey.shade200),
+                        children: [
+                          _headerCell("کالا"),
+                          _headerCell("موجودی"),
+                          // _headerCell("انبار"),
+                          _headerCell("استان"),
+                        ],
+                      ),
+
+                      /// ---------- DATA ROWS ----------
+                      ...items.map((item) {
+                        return TableRow(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                          ),
+                          children: [
+                            _cell(item.itemCode),
+                            _cell(
+                              "${item.currentActualQty} ${_shopService.units[item.itemCode] ?? ''}",
+                            ),
+                            // _cell(item.warehouse, maxLines: 4),
+                            _cell(item.customProvince),
+                          ],
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  "بستن",
+                  style: TextStyle(color: Colors.red),
+                ))
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _headerCell(String text) {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+
+  Widget _cell(String text, {int maxLines = 2}) {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Text(
+        text,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 10),
       ),
     );
   }

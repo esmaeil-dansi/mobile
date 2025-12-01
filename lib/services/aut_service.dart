@@ -493,10 +493,23 @@ class AutService {
     return _shared.getString(LAST_NAME) ?? "";
   }
 
-  get getUsername {
-    return _shared.getString(USER_NAME) ?? "";
+  get getUsernameForReq {
+    return "chopoo";
+    return _shared.getString(USERNAME) ?? "";
   }
 
+  get getPasswordForReq {
+    return "AqJ_Te";
+    return _shared.getString(PASSWORD) ?? "";
+  }
+
+  get getUsername {
+    return _shared.getString(USERNAME) ?? "";
+  }
+
+  get getPassword {
+    return _shared.getString(PASSWORD) ?? "";
+  }
   Future<(String, String, String)> getFirstNameAndLastName() async {
     try {
       var res = await GetIt.I.get<HttpService>().get(

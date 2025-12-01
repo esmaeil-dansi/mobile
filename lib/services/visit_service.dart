@@ -1235,7 +1235,7 @@ class VisitService {
   }
 
   Future<Response<dynamic>?> _sendRequest(String body) {
-    return _httpService.postForm(
+    return _httpService.post(
         "/api/method/frappe.desk.form.save.savedocs",
         FormData.fromMap({
           'doc': body,
