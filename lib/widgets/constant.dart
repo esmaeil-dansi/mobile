@@ -27,3 +27,4 @@ const GRADIANT_COLOR = [
 ];
 
 
+

@@ -46,14 +46,20 @@ class FileService {
   }
 
   Future<Uint8List?> _compressFile(String path) async {
-    var result = await FlutterImageCompress.compressWithFile(
-      path,
-      format: CompressFormat.webp,
-      minWidth: 300,
-      minHeight: 400,
-      quality: 70,
-    );
-    return result;
+    try{
+      var result = await FlutterImageCompress.compressWithFile(
+        path,
+        format: CompressFormat.webp,
+        minWidth: 300,
+        minHeight: 400,
+        quality: 70,
+      );
+      return result;
+    }catch(_){
+
+    }
+    return null;
+
   }
 
   Future<String> getCookie() async {

@@ -50,3 +50,23 @@ class VetVisitReport {
     return VetVisitReport(values[0], values[11], values[13], values[12]);
   }
 }
+
+
+
+class DamVisitReport {
+  String id;
+  String? full_name;
+  String? r_full_name;
+  String? time;
+  String? province;
+  String? city;
+  String? email;
+  String? title;
+
+  DamVisitReport(this.id);
+
+  static DamVisitReport fromJson(List<dynamic> values) {
+    return DamVisitReport(values[1]);
+  }
+}
+

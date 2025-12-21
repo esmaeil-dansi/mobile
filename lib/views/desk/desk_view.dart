@@ -12,6 +12,7 @@ import 'package:frappe_app/views/desk/profile_page.dart';
 import 'package:frappe_app/views/desk/request_page.dart';
 import 'package:frappe_app/views/desk/shop/all_shop_page.dart';
 import 'package:frappe_app/views/desk/shop/shop_info_page.dart';
+import 'package:frappe_app/views/desk/shop/shop_managment_page.dart';
 import 'package:frappe_app/views/desk/store_keeper_page.dart';
 import 'package:frappe_app/views/desk/supplier_info_page.dart';
 import 'package:frappe_app/views/login/login_page.dart';
@@ -22,6 +23,8 @@ import 'package:gradient_icon/gradient_icon.dart';
 import 'package:frappe_app/widgets/constant.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
+
+import '../visit/new_form.dart';
 
 class DesktopView extends StatefulWidget {
   bool needToCheckUpdate;
@@ -97,12 +100,14 @@ class _DesktopViewState extends State<DesktopView> {
   Widget build(BuildContext context) {
     return Obx(
       () => Scaffold(
+        backgroundColor: Color(0xa3efefea),
         bottomNavigationBar: BottomNavigationBar(
           showUnselectedLabels: true,
+
           showSelectedLabels: true,
           type: BottomNavigationBarType.fixed,
           unselectedLabelStyle: TextStyle(fontSize: 12),
-          selectedLabelStyle: TextStyle(color: Colors.black,fontSize:12),
+          selectedLabelStyle: TextStyle(color: Colors.black, fontSize: 12),
           currentIndex: index.value,
           // selectedItemColor: const Color(0xff6200ee),
           unselectedItemColor: Colors.black,
@@ -113,7 +118,8 @@ class _DesktopViewState extends State<DesktopView> {
               activeIcon: _selectedIcon(Icons.home),
               label: 'خانه',
             ),
-            if (_autService.isVisitingTeamOrIsRahbar())
+            if (_autService.isVisitingTeamOrIsRahbar() ||
+                _autService.isDamyar())
               BottomNavigationBarItem(
                 icon: _unSelectedIcon(Icons.compare_arrows_outlined),
                 activeIcon: _selectedIcon(Icons.compare_arrows_outlined),
@@ -152,16 +158,16 @@ class _DesktopViewState extends State<DesktopView> {
     if (i == 0) {
       return HomeView();
     } else if (i == 1) {
-      if (_autService.isVisitingTeamOrIsRahbar()) {
+      if (_autService.isVisitingTeamOrIsRahbar() || _autService.isDamyar()) {
         return RequestPage();
       } else if (_autService.isSupplier()) {
-        return AllShopPage();
+        return ShopPage();
       }
       return OrderPage();
     } else if (i == 2) {
-      if (_autService.isVisitingTeamOrIsRahbar()) {
+      if (_autService.isVisitingTeamOrIsRahbar() || _autService.isDamyar()) {
         if (_autService.isSupplier()) {
-          return AllShopPage();
+          return ShopPage();
         }
         return OrderPage();
       } else {

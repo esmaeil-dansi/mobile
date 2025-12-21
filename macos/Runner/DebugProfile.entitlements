@@ -14,5 +14,8 @@
     <!-- (Optional) for local server/localhost requests -->
     <key>com.apple.security.network.server</key>
     <true/>
+    <key>com.apple.security.files.user-selected.read-only</key>
+    <true/>
+
 </dict>
 </plist>

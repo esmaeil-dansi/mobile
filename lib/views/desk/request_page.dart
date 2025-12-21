@@ -12,8 +12,10 @@ import 'package:frappe_app/model/add_vetvisit_form_model.dart';
 import 'package:frappe_app/model/agentInfo.dart';
 import 'package:frappe_app/repo/request_repo.dart';
 import 'package:frappe_app/services/visit_service.dart';
+import 'package:frappe_app/views/visit/add_dam_initial_visit.dart';
 import 'package:frappe_app/views/visit/add_initial_visit.dart';
 import 'package:frappe_app/views/visit/add_periodic_visit.dart';
+import 'package:frappe_app/views/visit/add_product_info.dart';
 import 'package:frappe_app/views/visit/add_productivit_visit.dart';
 import 'package:frappe_app/views/visit/add_vetvisit.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
@@ -22,6 +24,8 @@ import 'package:get_it/get_it.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
 
 import '../../db/request_statuse.dart';
+import '../../model/add_dam_initial_visit_model.dart';
+import '../../model/add_product_info_req.dart';
 
 class RequestPage extends StatefulWidget {
   @override
@@ -178,22 +182,17 @@ class _RequestPageState extends State<RequestPage> {
                                           if (record.status ==
                                               RequestStatus.Success)
                                             SizedBox(
-                                              width: 100,
+                                              width: 43,
                                               child: Icon(
                                                 CupertinoIcons
                                                     .checkmark_alt_circle_fill,
-                                                color: Colors.greenAccent,
-                                                size: 35,
+                                                color: Colors.blue,
+                                                size: 30,
                                               ),
                                             ),
                                           if (record.status ==
                                               RequestStatus.Pending)
-                                            ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                    backgroundColor: Colors.red,
-                                                    padding:
-                                                        EdgeInsets.symmetric(
-                                                            horizontal: 15)),
+                                            IconButton(
                                                 onPressed: () {
                                                   showDialog(
                                                       context: context,
@@ -228,11 +227,9 @@ class _RequestPageState extends State<RequestPage> {
                                                                 ],
                                                               ));
                                                 },
-                                                child: Text(
-                                                  "حذف",
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 13),
+                                                icon: Icon(
+                                                  Icons.delete_outline,
+                                                  color: Colors.red,
                                                 )),
                                         ],
                                       ),
@@ -273,6 +270,12 @@ class _RequestPageState extends State<RequestPage> {
     if (text == "Product") {
       return "بهره وری";
     }
+    if (text == "Dam Initial Visit") {
+      return "بازدید اولیه دام";
+    }
+    if (text == "AddProductInfoReport") {
+      return "بازدید بهره وری";
+    }
     return text;
   }
 
@@ -292,54 +295,13 @@ class _RequestPageState extends State<RequestPage> {
                     addInitialVisitFormModel: model,
                     time: record.time,
                   ));
-              // var agentInfo =
-              //     await _visitService
-              //         .getAgentInfo(model
-              //             .nationalId!);
-              // await _visitService
-              //     .saveInitVisit(
-              //         agentInfo:
-              //             agentInfo ??
-              //                 AgentInfo(),
-              //         model: model,
-              //         time:
-              //             record.time);
             } else if (record.type == "Periodic visits") {
               var model =
                   AddPerVisitFormModel.fromJson(json.decode(record.body));
               Get.to(() => AddPeriodicReport(
                     addPerVisitFormModel: model,
                     time: record.time,
-                  )); // if (model.fullName ==
-              //         null ||
-              //     model.fullName!
-              //         .isEmpty) {
-              //   var agentInfo =
-              //       await _visitService
-              //           .getAgentInfo(model
-              //               .nationalId!);
-              //   if (agentInfo != null) {
-              //     model.department =
-              //         agentInfo
-              //             .department;
-              //     model.province =
-              //         agentInfo
-              //             .province;
-              //     model.city =
-              //         agentInfo.city;
-              //     model.rahbar =
-              //         agentInfo.rahbar;
-              //     model.fullName =
-              //         agentInfo
-              //             .full_name;
-              //   }
-              // }
-              // await _visitService
-              //     .sendPeriodicVisits(
-              //         addPerVisitFormModel:
-              //             model,
-              //         time:
-              //             record.time);
+                  ));
             } else if (record.type == "Vet Visit") {
               var model =
                   AddVetVisitFormModel.fromJson(json.decode(record.body));
@@ -347,22 +309,21 @@ class _RequestPageState extends State<RequestPage> {
                     addVetVisitFormModel: model,
                     time: record.time,
                   ));
-              // final agentInfo =
-              //     await _visitService
-              //         .getAgentInfo(model
-              //             .nationalId!);
-              // await _visitService
-              //     .saveVetVisit(
-              //         model: model,
-              //         time: record.time,
-              //         agentInfo:
-              //             agentInfo ??
-              //                 AgentInfo());
             } else if (record.type == "Product") {
               Get.to(() => ProductVisitReport(
                   time: record.time,
                   addProductivityFormModel: ProductivityFormModel.fromJson(
                       json.decode(record.body))));
+            } else if (record.type == "Dam Initial Visit") {
+              Get.to(() => AddDamInitialVisit(
+                  time: record.time,
+                  addDamInitialVisitRequest: AddDamInitialVisitRequest.fromJson(
+                      json.decode(record.body))));
+            } else if (record.type == "AddProductInfoReport") {
+              Get.to(() => AddProductInfoReport(
+                  time: record.time,
+                  addProductInfoReq:
+                      AddProductInfoReq.fromJson(json.decode(record.body))));
             }
             Progressbar.dismiss();
           },

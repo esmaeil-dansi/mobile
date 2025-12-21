@@ -53,7 +53,14 @@ void showSelectImageBottomSheet(Function(List<String>) onSelected,
       ),
     ));
   } else {
-    _checkCameraPermission(onSelected);
+    if (GetPlatform.isMacOS) {
+      var res = await FilePicker.platform.pickFiles();
+      if (res!.files.isNotEmpty) {
+        onSelected([res!.files!.first!.path!]);
+      }
+    } else {
+      _checkCameraPermission(onSelected);
+    }
   }
 }
 

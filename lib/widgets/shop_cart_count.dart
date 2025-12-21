@@ -16,14 +16,14 @@ Widget shopCartCount(
       builder: (c, s) {
         var count = s.data?.length ?? 0;
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 1),
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 1),
           child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () {
                 Get.to(() => CartPage());
               },
               child: Padding(
-                padding: const EdgeInsets.only(top: 10),
+                padding: const EdgeInsets.only(),
                 child: Container(
                   width: 60,
                   height: 60,
@@ -33,7 +33,7 @@ Widget shopCartCount(
                       Icon(
                         Icons.shopping_cart,
                         size: 28,
-                        color: color,
+                        color: Colors.amber,
                       ),
                       if (count > 0)
                         Positioned(

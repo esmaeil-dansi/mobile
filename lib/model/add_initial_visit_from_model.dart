@@ -43,6 +43,9 @@ class AddInitialVisitFormModel {
   double? lon;
   String? geolocation;
 
+  String? username;
+  String? password;
+
   AddInitialVisitFormModel(
       {this.docstatus = 0,
       this.doctype = "Initial Visit",
@@ -86,9 +89,13 @@ class AddInitialVisitFormModel {
       this.vDate,
       this.lat,
       this.geolocation,
+      this.password,
+      this.username,
       this.lon});
 
   AddInitialVisitFormModel.fromJson(Map<String, dynamic> json) {
+    password = "";
+    username = "";
     docstatus = json['docstatus'] ?? 0;
     doctype = json['doctype'] ?? "Initial Visit";
     name = json['name'] ?? "new-initial-visit-1";
@@ -136,6 +143,8 @@ class AddInitialVisitFormModel {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['docstatus'] = this.docstatus;
+    data["username"] = this.username;
+    data["password"] = this.password;
     data['doctype'] = this.doctype;
     data['name'] = this.name;
     data['__islocal'] = this.iIslocal;

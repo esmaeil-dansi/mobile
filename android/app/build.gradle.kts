@@ -22,8 +22,8 @@ android {
         applicationId = "chopo.icasp.ir"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 106
-        versionName = "4.2.2"
+        versionCode = 110
+        versionName = "4.2.8"
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 //        multiDexEnabled = true
 //        isCoreLibraryDesugaringEnabled = true

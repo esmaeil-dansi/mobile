@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:frappe_app/utils/string_extension.dart';
 
 class CustomTextFormField extends StatefulWidget {
   String? label;
@@ -13,6 +15,7 @@ class CustomTextFormField extends StatefulWidget {
   bool readOnly;
   String value;
   Widget? prefix;
+  TextInputFormatter? textInputFormatter;
 
   CustomTextFormField(
       {this.label,
@@ -23,6 +26,7 @@ class CustomTextFormField extends StatefulWidget {
       this.prefix,
       this.textInputType,
       this.readOnly = false,
+      this.textInputFormatter,
       this.onChanged,
       this.textEditingController,
       this.validator = "نمی تواند خالی باشد"});
@@ -37,6 +41,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
     return SizedBox(
       height: widget.height,
       child: TextFormField(
+        inputFormatters: getInputFormatter(),
         validator: (_) {
           if (_ == null || _.isEmpty) {
             return widget.validator;
@@ -57,8 +62,12 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
           }
         },
         decoration: InputDecoration(
-          suffix: widget.prefix,
+          suffixIcon: Padding(
+            padding: const EdgeInsets.only(top: 8, left: 8),
+            child: widget.prefix,
+          ),
           labelText: widget.label,
+          labelStyle: TextStyle(color: Colors.black38, fontSize: 13),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
@@ -66,4 +75,29 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       ),
     );
   }
+
+  List<TextInputFormatter> getInputFormatter() {
+    List<TextInputFormatter> formatters = [];
+    if (widget.textInputFormatter != null) {
+      formatters.add(widget.textInputFormatter!);
+    }
+    if (widget.textInputType == TextInputType.number) {
+      formatters.add(NumberInputFormatter);
+    }
+    return formatters;
+  }
 }
+
+final _numberFormat = RegExp(r'^[\u06F0-\u06F90-9]*$');
+
+final NumberInputFormatter = TextInputFormatter.withFunction(
+  (oldValue, newValue) {
+    if (_numberFormat.hasMatch(newValue.text)) {
+      return newValue.copyWith(
+        text: newValue.text.replaceFarsiNumber(),
+      );
+    } else {
+      return oldValue;
+    }
+  },
+);

@@ -15,10 +15,10 @@ PreferredSizeWidget appSliverAppBar(String title, {PreferredSizeWidget? bottom})
     flexibleSpace: Container(
       decoration: BoxDecoration(
         // LinearGradient
-        gradient: LinearGradient(
-          // colors for gradient
-          colors: GRADIANT_COLOR,
-        ),
+        // gradient: LinearGradient(
+        //   // colors for gradient
+        //   // colors: GRADIANT_COLOR,
+        // ),
       ),
     ),
     // title of appbar

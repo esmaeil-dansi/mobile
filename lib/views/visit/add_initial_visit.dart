@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/model/agentInfo.dart';
@@ -19,13 +20,14 @@ import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../services/aut_service.dart';
 import '../../widgets/app_sliver_app_bar.dart';
 
 class AddInitialReport extends StatefulWidget {
-  AddInitialVisitFormModel? addInitialVisitFormModel;
+final  AddInitialVisitFormModel? addInitialVisitFormModel;
   int? time;
 
-  AddInitialReport({this.addInitialVisitFormModel, this.time});
+  AddInitialReport({this.addInitialVisitFormModel, this.time, super.key});
 
   @override
   State<AddInitialReport> createState() => _AddInitialReportState();
@@ -33,6 +35,7 @@ class AddInitialReport extends StatefulWidget {
 
 class _AddInitialReportState extends State<AddInitialReport> {
   final _requestRepo = GetIt.I.get<RequestRepo>();
+  final _authService = GetIt.I.get<AutService>();
   late AddInitialVisitFormModel model;
 
   Future<void> checkPendingRequest(String id) async {
@@ -61,14 +64,15 @@ class _AddInitialReportState extends State<AddInitialReport> {
     if (widget.addInitialVisitFormModel != null) {
       model = widget.addInitialVisitFormModel!;
       _dam.value = model.dam ?? 0;
-      _dateController.text = DateMapper.convert(model.vDate ?? '');
       _latLng.value = LatLng(model.lat ?? 0, model.lon ?? 0);
       _imagePath.value = model.image1 ?? "";
       _imagePath_2.value = model.image2 ?? "";
       _imagePath_3.value = model.image3 ?? "";
       _fetchAgentInfo();
     } else {
-      model = AddInitialVisitFormModel();
+      model = AddInitialVisitFormModel(
+          password: _authService.getPasswordForReq,
+          username: _authService.getUsernameForReq);
     }
 
     this.time = widget.time ?? DateTime.now().millisecondsSinceEpoch;
@@ -79,7 +83,6 @@ class _AddInitialReportState extends State<AddInitialReport> {
   var time = 0;
   Rxn<AgentInfo> agentInfo = Rxn();
   Rxn<LatLng> _latLng = Rxn();
-  final _dateController = TextEditingController();
   final _visitService = GetIt.I.get<VisitService>();
   final _imagePath = "".obs;
   final _imagePath_2 = "".obs;
@@ -115,11 +118,7 @@ class _AddInitialReportState extends State<AddInitialReport> {
                   model.image3!.isEmpty) {
                 Fluttertoast.showToast(msg: "تصویر را وارد  کنید");
               } else {
-                if (_dateController.text.isEmpty) {
-                  Fluttertoast.showToast(msg: "تاریخ را انتخاب کنید");
-                } else {
-                  await _submit(context);
-                }
+                await _submit(context);
               }
             } else {
               Fluttertoast.showToast(msg: "موقعیت مکانی را انتخاب کنید");
@@ -176,35 +175,32 @@ class _AddInitialReportState extends State<AddInitialReport> {
                               },
                               textInputType: TextInputType.number,
                             ),
-                            SizedBox(
-                              height: 10,
-                            ),
+                            // SizedBox(
+                            //   height: 10,
+                            // ),
                             Obx(() => agentInfo.value != null
                                 ? agentInfoWidget(agentInfo.value!)
                                 : SizedBox.shrink()),
                             SizedBox(
                               height: 10,
                             ),
-                            SizedBox(
-                              height: 50,
-                              child: TextField(
-                                onTap: () => selectDate((_) {
-                                  model.vDate = _;
-                                }, _dateController),
-                                readOnly: true,
-                                canRequestFocus: false,
-                                controller: _dateController,
-                                decoration: InputDecoration(
-                                  labelText: "تاریخ بازدید",
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 20,
-                            ),
+                            // SizedBox(
+                            //   height: 50,
+                            //   child: TextField(
+                            //     onTap: () => selectDate((_) {
+                            //       model.vDate = _;
+                            //     }, _dateController),
+                            //     readOnly: true,
+                            //     canRequestFocus: false,
+                            //     controller: _dateController,
+                            //     decoration: InputDecoration(
+                            //       labelText: "تاریخ بازدید",
+                            //       border: OutlineInputBorder(
+                            //         borderRadius: BorderRadius.circular(20.0),
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
                             CustomDropdownButtonFormField(
                               value: model.tarh,
                               label: "نوع طرح",
@@ -283,154 +279,156 @@ class _AddInitialReportState extends State<AddInitialReport> {
                             labelText: "اطلاعات جایگاه",
                             labelStyle: TextStyle(
                                 fontSize: 24, fontWeight: FontWeight.bold)),
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CustomDropdownButtonFormField(
-                              label: "وضعیت جایگاه نگهداری دام",
-                              items: ["مناسب", "نامناسب"],
-                              onChange: (_) {
-                                model.vaziat = _;
-                              },
-                              value: model.vaziat,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CustomDropdownButtonFormField(
-                              label: "نوع جایگاه",
-                              items: ["باز", "نیمه بسته", " بسته"],
-                              onChange: (_) {
-                                model.noeJaygah = _;
-                              },
-                              value: model.noeJaygah,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CustomDropdownButtonFormField(
-                              label: "کیفیت آب",
-                              items: ["شور", "شیرین", "لب شور"],
-                              onChange: (_) {
-                                model.qualityWater = _;
-                              },
-                              value: model.qualityWater,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CustomDropdownButtonFormField(
-                              label: "منبع تامین آب",
-                              items: [
-                                "شهری",
-                                "چاه",
-                                "روستایی",
-                                "انتقال با تانکر"
-                              ],
-                              onChange: (_) {
-                                model.taminWater = _;
-                              },
-                              value: model.taminWater,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CustomDropdownButtonFormField(
-                              label: "آجر معدنی",
-                              items: [
-                                "دارد",
-                                "ندارد",
-                              ],
-                              onChange: (_) {
-                                model.ajorMadani = _;
-                              },
-                              value: model.ajorMadani,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CustomDropdownButtonFormField(
-                              label: "سنگ نمک",
-                              items: [
-                                "دارد",
-                                "ندارد",
-                              ],
-                              onChange: (_) {
-                                model.sangNamak = _;
-                              },
-                              value: model.sangNamak,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CustomDropdownButtonFormField(
-                              label: "ادوات",
-                              items: [
-                                "هیچکدام",
-                                "آسیاب",
-                                "میکسر",
-                                "وانت",
-                                "شیردوش",
-                                "فرغون",
-                              ],
-                              onChange: (_) {
-                                model.adavat = _;
-                              },
-                              value: model.adavat,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CustomDropdownButtonFormField(
-                              label: "کف جایگاه",
-                              items: [
-                                "بتنی",
-                                "خاکی",
-                              ],
-                              onChange: (_) {
-                                model.kafJaygah = _;
-                              },
-                              value: model.kafJaygah,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            ImageView(_imagePath, "تصویر جایگاه ",
-                                defaultValue: _imagePath.value,
-                                canReplace:
-                                    widget.addInitialVisitFormModel == null),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            ImageView(_imagePath_2, "تصویر راهبر",
-                                defaultValue: _imagePath_2.value,
-                                canReplace:
-                                    widget.addInitialVisitFormModel == null),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            ImageView(_imagePath_3, "تصویر متقاضی",
-                                defaultValue: _imagePath_3.value,
-                                canReplace:
-                                    widget.addInitialVisitFormModel == null),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            CustomDropdownButtonFormField(
-                              label: "وضعیت اجرای طرح",
-                              items: [
-                                "جایگاه دام مورد تایید نیست",
-                                "صلاحیت متقاضی مورد تایید نیست",
-                                "آماده اجرای طرح می باشد",
-                              ],
-                              onChange: (_) {
-                                model.status = _;
-                              },
-                              value: model.status,
-                            ),
-                          ],
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CustomDropdownButtonFormField(
+                                label: "وضعیت جایگاه نگهداری دام",
+                                items: ["مناسب", "نامناسب"],
+                                onChange: (_) {
+                                  model.vaziat = _;
+                                },
+                                value: model.vaziat,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CustomDropdownButtonFormField(
+                                label: "نوع جایگاه",
+                                items: ["باز", "نیمه بسته", " بسته"],
+                                onChange: (_) {
+                                  model.noeJaygah = _;
+                                },
+                                value: model.noeJaygah,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CustomDropdownButtonFormField(
+                                label: "کیفیت آب",
+                                items: ["شور", "شیرین", "لب شور"],
+                                onChange: (_) {
+                                  model.qualityWater = _;
+                                },
+                                value: model.qualityWater,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CustomDropdownButtonFormField(
+                                label: "منبع تامین آب",
+                                items: [
+                                  "شهری",
+                                  "چاه",
+                                  "روستایی",
+                                  "انتقال با تانکر"
+                                ],
+                                onChange: (_) {
+                                  model.taminWater = _;
+                                },
+                                value: model.taminWater,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CustomDropdownButtonFormField(
+                                label: "آجر معدنی",
+                                items: [
+                                  "دارد",
+                                  "ندارد",
+                                ],
+                                onChange: (_) {
+                                  model.ajorMadani = _;
+                                },
+                                value: model.ajorMadani,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CustomDropdownButtonFormField(
+                                label: "سنگ نمک",
+                                items: [
+                                  "دارد",
+                                  "ندارد",
+                                ],
+                                onChange: (_) {
+                                  model.sangNamak = _;
+                                },
+                                value: model.sangNamak,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CustomDropdownButtonFormField(
+                                label: "ادوات",
+                                items: [
+                                  "هیچکدام",
+                                  "آسیاب",
+                                  "میکسر",
+                                  "وانت",
+                                  "شیردوش",
+                                  "فرغون",
+                                ],
+                                onChange: (_) {
+                                  model.adavat = _;
+                                },
+                                value: model.adavat,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CustomDropdownButtonFormField(
+                                label: "کف جایگاه",
+                                items: [
+                                  "بتنی",
+                                  "خاکی",
+                                ],
+                                onChange: (_) {
+                                  model.kafJaygah = _;
+                                },
+                                value: model.kafJaygah,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              ImageView(_imagePath, "تصویر جایگاه ",
+                                  defaultValue: _imagePath.value,
+                                  canReplace:
+                                      widget.addInitialVisitFormModel == null),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              ImageView(_imagePath_2, "تصویر راهبر",
+                                  defaultValue: _imagePath_2.value,
+                                  canReplace:
+                                      widget.addInitialVisitFormModel == null),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              ImageView(_imagePath_3, "تصویر متقاضی",
+                                  defaultValue: _imagePath_3.value,
+                                  canReplace:
+                                      widget.addInitialVisitFormModel == null),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CustomDropdownButtonFormField(
+                                label: "وضعیت اجرای طرح",
+                                items: [
+                                  "جایگاه دام مورد تایید نیست",
+                                  "صلاحیت متقاضی مورد تایید نیست",
+                                  "آماده اجرای طرح می باشد",
+                                ],
+                                onChange: (_) {
+                                  model.status = _;
+                                },
+                                value: model.status,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

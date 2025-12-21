@@ -65,6 +65,43 @@ class HttpService {
   //   );
   // }
 
+  Future<Response<dynamic>?> post2(String path, Map<String, dynamic> body) async {
+    body["username"]= _autService.getUsernameForReq;
+    body["password"]= _autService.getPasswordForReq;
+    return _dio.post(
+      path,
+      data: body,
+      options: Options(
+        headers: {
+          "cookie": getCookie(),
+          "Content-Type": "application/json",
+          "X-Frappe-Csrf-Token": "2690da8ad105a01afdfe5bfced0c3b6ed780811c69bf9ed6362855b4",
+          'Origin': "https://icasp.ir",
+          'Host': "icasp.ir",
+        },
+      ),
+    );
+  }
+
+  Future<Response<dynamic>?> post3(String path, dynamic data,
+      {Map<String, dynamic>? map}) async {
+    Map<String, dynamic> ma = {};
+
+
+    return _dio.post(path,
+        data: data,
+        options: Options(
+          headers: {
+            "cookie": getCookie(),
+            'X-Frappe-Csrf-Token':
+            "2690da8ad105a01afdfe5bfced0c3b6ed780811c69bf9ed6362855b4",
+            'Origin': "https://icasp.ir",
+            'Host': "icasp.ir",
+          },
+        ),
+       );
+  }
+
   Future<Response<dynamic>?> post(String path, FormData data,
       {Map<String, dynamic>? map}) async {
     Map<String, dynamic> ma = {};

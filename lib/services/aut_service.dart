@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/db/advertisement.dart';
 import 'package:frappe_app/db/dao/advertisement_dao.dart';
@@ -52,11 +53,12 @@ class AutService {
 
   bool isSarRahbar() => roles().contains("سر راهبر");
 
-  bool isSupplier() => roles().contains("Supplier");
+  bool isSupplier() => kDebugMode?true: roles().contains("Supplier");
 
   bool isStorekeeper() => roles().contains("انباردار");
 
   bool isVisitingTeam() => roles().contains("تیم بازدید کننده");
+  bool isDamyar() => roles().contains("دامیار");
 
   bool isVisitingTeamOrIsRahbar() => isVisitingTeam() || isRahbar();
 

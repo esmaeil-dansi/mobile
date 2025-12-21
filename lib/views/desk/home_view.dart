@@ -1,15 +1,8 @@
-import 'dart:convert';
-import 'dart:math';
-import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:frappe_app/db/dao/price_dao.dart';
-import 'package:frappe_app/services/shop_service.dart';
-import 'package:frappe_app/services/visit_service.dart';
-import 'package:frappe_app/model/shop_group.dart';
-import 'package:frappe_app/model/shop_type.dart';
+
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/views/desk/prices_view.dart';
 import 'package:frappe_app/views/desk/product_store.dart';
@@ -17,18 +10,16 @@ import 'package:frappe_app/views/desk/profile_page.dart';
 import 'package:frappe_app/views/desk/shop/wallet_page.dart';
 import 'package:frappe_app/views/desk/support_view.dart';
 import 'package:frappe_app/views/desk/weather_view.dart';
-import 'package:frappe_app/views/message/messages_view.dart';
-import 'package:frappe_app/views/visit/initial_visit.dart';
-import 'package:frappe_app/views/visit/periodic_visits.dart';
-import 'package:frappe_app/views/visit/product_visit.dart';
-import 'package:frappe_app/views/visit/vet_visit.dart';
-import 'package:frappe_app/widgets/new_from_widget.dart';
+
 import 'package:frappe_app/widgets/shop_cart_count.dart';
 import 'package:get/get.dart';
 import 'package:get_it/get_it.dart';
 import 'package:lottie/lottie.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../widgets/constant.dart';
+
+import '../visit/add_dam_initial_visit.dart';
+import '../visit/add_initial_visit.dart';
+import '../visit/add_product_info.dart';
 
 class HomeView extends StatefulWidget {
   @override
@@ -36,77 +27,54 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  final _autService = GetIt.I.get<AutService>();
+
+  final List<String> imgList = ['assets/slider01.jpg', 'assets/slider02.jpg'];
+  List<MainItem> mainItems = [];
+  List<MainItem> visitItems = [];
+
   @override
   void initState() {
-    if (_autService.isDamdar()) {
-      suggest.add('فروشگاه محصولات');
-    }
+    mainItems = _getMainItems();
+    visitItems = _getVisitItems();
     super.initState();
   }
 
-  final _autService = GetIt.I.get<AutService>();
-  final _visitService = GetIt.I.get<VisitService>();
-  final _priceDao = GetIt.I.get<PriceAvgDao>();
-  final _shopService = GetIt.I.get<ShopService>();
-  GlobalKey<AutoCompleteTextFieldState<String>> key = GlobalKey();
-  List<String> suggest = [
-    'آب و هوا',
-    'قیمت ها',
-    'بازدید اولیه',
-    'بازدید بهره وری',
-    'پشتیبانی',
-    'فروشگاه محصولات'
-  ];
-  final List<String> imgList = ['assets/slider01.jpg', 'assets/slider02.jpg'];
+  List<Widget> roleAccess() {
+    Map<String, Widget> access = {};
 
-  // List<String> suggest = [
-  //   'آب و هوا',
-  //   'قیمت ها',
-  //   'پیام',
-  //   'بازدید اولیه',
-  //   'بازدید دوره ای',
-  //   'بازدید دامپزشک',
-  //   'پشتیبانی',
-  // ];
-  // final List<String> imgList = ['assets/slider01.png', 'assets/slider02.png'];
-  late String title;
-  late String path;
-  final Map<String, List<Widget>> roleAccess = {
-    'دامدار': [WeatherView(), PricesView(), SupportView()],
-    'راهبر': [
-      WeatherView(),
-      PricesView(),
-      // SupportView(),
-      // MessagesView(),
-      InitialVisit(),
-      ProductVisit(),
-      // VetVisit()
-    ],
-    'سر راهبر': [
-      WeatherView(),
-      PricesView(),
-      // SupportView(),
-      // MessagesView(),
-      InitialVisit(),
-      ProductVisit(),
-    ],
-    'Supplier': [
-      WeatherView(),
-      PricesView(),
-      // SupportView(),
-      // MessagesView(),
-      InitialVisit(),
-      ProductVisit(),
-    ],
-    'انباردار': [
-      WeatherView(),
-      PricesView(),
-      // SupportView(),
-      // MessagesView(),
-      InitialVisit(),
-      ProductVisit(),
-    ]
-  };
+    if (_autService.isDamdar()) {
+      access["ProductStore"] = ProductStore();
+    }
+    if (_autService.isRahbar()) {
+      access["AddInitialReport"] = (AddInitialReport(
+        key: ValueKey('AddInitialReport'),
+      ));
+      access["AddProductInfoReport"] = (AddProductInfoReport(
+        key: ValueKey('AddProductInfoReport'),
+      ));
+    }
+    if (_autService.isDamyar()) {
+      access["AddDamInitialVisit"] = (AddDamInitialVisit(
+        key: ValueKey('AddDamInitialVisit'),
+      ));
+    }
+    if (_autService.isStorekeeper()) {
+      // access.add(AddProductInfoReport(
+      //   key: ValueKey('AddProductInfoReport'),
+      // ));
+    }
+    if (_autService.isSarRahbar()) {
+      access["AddInitialReport "] = (AddInitialReport(
+        key: ValueKey('AddInitialReport'),
+      ));
+      access["AddProductInfoReport"] = (AddProductInfoReport(
+        key: ValueKey('AddProductInfoReport'),
+      ));
+    }
+    if (_autService.isSupplier()) {}
+    return access.values.toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +83,7 @@ class _HomeViewState extends State<HomeView> {
         actions: [
           shopCartCount(),
           Padding(
-            padding: const EdgeInsets.only(top: 15, left: 20, right: 20),
+            padding: const EdgeInsets.only( left: 15, right: 20),
             child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () {
@@ -128,69 +96,41 @@ class _HomeViewState extends State<HomeView> {
                 )),
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 15, left: 20, right: 20),
+            padding: const EdgeInsets.only(right: 5,left: 5),
             child: GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: () {
                   Get.to(() => ProfilePage());
                 },
                 child: Icon(
-                  Icons.person,
+                  CupertinoIcons.person_alt_circle,
                   size: 30,
                   color: Colors.black,
                 )),
           ),
         ],
         backgroundColor: Colors.white,
-        leading: SizedBox.shrink(),
-        title: Padding(
-          padding: const EdgeInsets.only(top: 11),
+
+        leading : Padding(
+          padding: const EdgeInsets.only(top: 4,right: 4),
           child: Image.asset(
             "assets/ChopoLogo.png",
-            width: 55,
+            width: 50,
             height: 40,
           ),
         ),
       ),
       body: Container(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 7),
+        height: double.infinity,
+        color: Color(0xa3efefea),
+        child: SingleChildScrollView(
           child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              // AutoCompleteTextField<String>(
-              //   key: key,
-              //   suggestions: suggest,
-              //   decoration: InputDecoration(
-              //     labelText: 'جستجو',
-              //     prefixIcon: Icon(Icons.search),
-              //     border: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(8.0),
-              //     ),
-              //   ),
-              //   itemFilter: (item, query) {
-              //     return item.toLowerCase().startsWith(query.toLowerCase());
-              //   },
-              //   itemSorter: (a, b) {
-              //     return a.compareTo(b);
-              //   },
-              //   itemSubmitted: (item) {
-              //     setState(() {
-              //       _navigateToPage(item);
-              //     });
-              //   },
-              //   itemBuilder: (context, item) {
-              //     return ListTile(
-              //       title: Text(item),
-              //     );
-              //   },
-              // ),
-              // SizedBox(
-              //   height: 5,
-              // ),
-
+              SizedBox(
+                height: 10,
+              ),
               CarouselSlider(
                 options: CarouselOptions(
                   height: 170.0,
@@ -203,48 +143,56 @@ class _HomeViewState extends State<HomeView> {
                             _launchURL('https://Chopoo.ir/');
                           },
                           child: Container(
-                            child: Center(
-                              child: Image.asset(item,
-                                  fit: BoxFit.contain, width:double.infinity,height: 250,),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(25),
+                              child: Center(
+                                child: Image.asset(
+                                  item,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: 170,
+                                ),
+                              ),
                             ),
                           ),
                         ))
                     .toList(),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 100),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 40),
                 child: Column(
                   children: [
-                    if (_autService.isDamdar())
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildItem(
-                              () => Get.to(() => ProductStore()),
-                              'assets/productstore.json',
-                              "فروشdddگاه محصولات",
-                              true),
-                        ],
-
-                      ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [_itemMenu()[0], _itemMenu()[1]],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    Wrap(
+                      spacing: 8.0, // space between items horizontally
+                      runSpacing: 4.0,
                       children: [
-                        if (_itemMenu().length > 2) _itemMenu()[2],
-                        if (_itemMenu().length > 3) _itemMenu()[3]
+                        _buildItem1(mainItems[0]),
+                        _buildItem1(mainItems[1]),
+                        if (mainItems.length > 2) _buildItem1(mainItems[2])
                       ],
-                    )
+                    ),
+                    SizedBox(
+                      height: 2,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Divider(
+                        thickness: 3,
+                        color: Colors.black12,
+                        radius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 8.0, // space between items horizontally
+                      runSpacing: 4.0,
+                      children: visitItems
+                          .map((e) => _buildItem1(e, isSquare: false))
+                          .toList(),
+                    ),
                   ],
                 ),
               ),
-              // if (!_autService.isRahbar() &&
-              //     !_autService.isDamdar() &&
-              //     !_autService.isSarRahbar())
-              //   Text("شما دسترسی ندارید!")
             ],
           ),
         ),
@@ -252,48 +200,29 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  Widget _buildItem(Function onTap, String asset, String title, bool custom) {
-    double vertical = 4, horizontal = 2, width = 0.24, height = 100;
-    if (custom) {
-      vertical = 6;
-      horizontal = 4;
-      width = 0.30;
-      height = 120;
-    }
+  Widget _buildItem1(MainItem item, {bool isSquare = true}) {
+    if (item.title.isEmpty) return item.targetClass;
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: vertical, horizontal: horizontal),
+      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
       child: Container(
-        width: MediaQuery.of(context).size.width * width,
-        height: height,
+        width: isSquare ? 90 : 140,
+        height: isSquare ? 90 : 100,
         child: Padding(
           padding: const EdgeInsets.all(1.0),
           child: Container(
-            width: Get.width * 0.3,
-            height: 200,
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(
-                color: Colors.black12,
-              ),
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.green.withOpacity(0.3),
-                  blurRadius: 8,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 4),
-                )
-              ],
+              color: Colors.green.shade100.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(15),
             ),
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
-              onTap: () => onTap(),
+              onTap: () => Get.to(() => item.targetClass),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Lottie.asset(
-                    asset,
+                    item.assets,
                     fit: BoxFit.scaleDown,
                     width: 40,
                     height: 40,
@@ -302,9 +231,9 @@ class _HomeViewState extends State<HomeView> {
                   const SizedBox(height: 4),
                   Center(
                     child: Text(
-                      title,
+                      item.title,
                       style: Get.textTheme.bodyMedium?.copyWith(
-                        fontSize: 11,
+                        fontSize: 13,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -323,57 +252,96 @@ class _HomeViewState extends State<HomeView> {
     await launchUrl(_url);
   }
 
-  List<Widget> _itemMenu() {
-    String userRole = "راهبر";
-    if (_autService.isDamdar() &&
-        !_autService.isRahbar() &&
-        !_autService.isSarRahbar()) {
-      userRole = "دامدار";
-    }
-    List<Widget> visibleMenuItems = roleAccess[userRole] ?? [];
-    List<Widget> rows = [];
+  List<MainItem> _getMainItems() {
+    List<Widget> visibleMenuItems = [
+      WeatherView(),
+      PricesView(),
+      SupportView()
+    ];
+
+    List<MainItem> rows = [];
     for (int i = 0; i < visibleMenuItems.length; i += 1) {
-      _setTitleAndPath(visibleMenuItems[i]);
-      rows.add(_buildItem(() => Get.to(() => visibleMenuItems[i]), this.path,
-          this.title, false));
+      rows.add(_setTitleAndPath(visibleMenuItems[i]));
     }
     return rows;
   }
 
-  void _setTitleAndPath(Widget pageName) {
+  List<MainItem> _getVisitItems() {
+    List<Widget> visibleMenuItems = roleAccess();
+    List<MainItem> rows = [];
+    for (int i = 0; i < visibleMenuItems.length; i += 1) {
+      rows.add(_setTitleAndPath(visibleMenuItems.elementAt(i)));
+    }
+    return rows;
+  }
+
+  MainItem _setTitleAndPath(Widget pageName) {
     switch (pageName.runtimeType.toString()) {
       case "WeatherView":
-        this.title = "آب و هوا";
-        this.path = 'assets/weather.json';
-        break;
+        return MainItem(
+            title: "آب و هوا",
+            assets: 'assets/weather.json',
+            targetClass: pageName);
+
       case "PricesView":
-        this.title = "قیمت ها";
-        this.path = 'assets/price.json';
-        break;
+        return MainItem(
+            title: "قیمت ها",
+            assets: 'assets/price.json',
+            targetClass: pageName);
       case "SupportView":
-        this.title = "پشتیبانی";
-        this.path = 'assets/support.json';
+        return MainItem(
+            title: "پشتیبانی",
+            assets: 'assets/support.json',
+            targetClass: pageName);
         break;
       // case "MessagesView":
       //   this.title = "پیام";
       //   this.path = 'assets/messages.json';
       //   break;
-      case "InitialVisit":
-        this.title = "بازدید اولیه";
-        this.path = 'assets/visit.json';
-        break;
+      case "AddInitialReport":
+        return MainItem(
+            title: "بازدید اولیه",
+            assets: 'assets/visit.json',
+            targetClass: pageName);
       case "ProductVisit":
-        this.title = "بازدید بهره وری";
-        this.path = 'assets/periodic.json';
-        break;
+        return MainItem(
+            title: "بازدید بهره وری",
+            assets: 'assets/periodic.json',
+            targetClass: pageName);
       case "VetVisit":
-        this.title = "بازدید دامپزشک";
-        this.path = 'assets/vetvisit.json';
-        break;
+        return MainItem(
+            title: "بازدید دامپزشک",
+            assets: 'assets/vetvisit.json',
+            targetClass: pageName);
+      case "AddDamInitialVisit":
+        return MainItem(
+            title: "بازدید اولیه دام",
+            assets: 'assets/vetvisit.json',
+            targetClass: pageName);
+      case "AddProductInfoReport":
+        return MainItem(
+            title: "بازدید بهره وری",
+            assets: 'assets/periodic.json',
+            targetClass: pageName);
+      case "ProductStore":
+        return MainItem(
+            title: "فروشگاه",
+            assets: 'assets/productstore.json',
+            targetClass: pageName);
       default:
-        WeatherView:
-        this.title = "آب و هوا";
-        this.path = 'assets/weather.json';
+        return MainItem(
+            title: "آب و هوا",
+            assets: 'assets/weather.json',
+            targetClass: pageName);
     }
   }
+}
+
+class MainItem {
+  String title;
+  String assets;
+  Widget targetClass;
+
+  MainItem(
+      {required this.title, required this.assets, required this.targetClass});
 }

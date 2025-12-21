@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frappe_app/db/shop_info.dart';
 import 'package:frappe_app/model/new_item.dart';
 import 'package:frappe_app/model/shop_item_base_model.dart';
 import 'package:frappe_app/db/shop_item_tamin_info.dart';
+import 'package:frappe_app/model/store_data.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
@@ -12,12 +12,13 @@ import 'package:get_it/get_it.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
 import '../../../model/product_type.dart';
+import '../../../model/ware_house.dart';
 import '../../../widgets/constant.dart';
 
 class IncreaseAmountPage extends StatelessWidget {
-  ShopInfo shopInfo;
+  StoreData storeData;
 
-  IncreaseAmountPage({required this.shopInfo, required this.onAdd});
+  IncreaseAmountPage({required this.storeData, required this.onAdd});
 
   Function(ShopItemTaminInfo) onAdd;
 
@@ -29,7 +30,7 @@ class IncreaseAmountPage extends StatelessWidget {
   Rx<NewItem> _newItem = NewItem().obs;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  String _warehouse = "";
+  WarehouseItem? _warehouse = null;
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +44,9 @@ class IncreaseAmountPage extends StatelessWidget {
               FocusScope.of(context).requestFocus(new FocusNode());
               Progressbar.showProgress();
               if (await _shopService.increaseShopItem(
-                  shopInfo: shopInfo,
+                  id: storeData.id,
                   newItem: _newItem.value,
-                  warehouse: _warehouse)) {
+                  warehouse: _warehouse!.warehouseName)) {
                 Get.back();
               }
               Progressbar.dismiss();
@@ -91,18 +92,82 @@ class IncreaseAmountPage extends StatelessWidget {
                         ),
                         Column(
                           children: [
+                            // FutureBuilder(
+                            //     future: _shopService.fetchStores(),
+                            //     builder: (context, asyncSnapshot) {
+                            //       if (asyncSnapshot.hasData &&
+                            //           asyncSnapshot.data != null &&
+                            //           asyncSnapshot.data!.isNotEmpty) {
+                            //         return SizedBox(
+                            //             height: 70,
+                            //             child: DropdownSearch<StoreData>(
+                            //               validator: (_) {
+                            //                 if (_ == null) {
+                            //                   return "فروشگاه مورد نظر را انتخاب کنید.";
+                            //                 }
+                            //                 return null;
+                            //               },
+                            //               popupProps: PopupProps.menu(
+                            //                 searchDelay:
+                            //                     Duration(milliseconds: 40),
+                            //
+                            //                 showSelectedItems: true,
+                            //                 showSearchBox: true,
+                            //                 fit: FlexFit.tight,
+                            //                 // disabledItemFn: (String s) => s.startsWith('I'),
+                            //               ),
+                            //               items: (_, __) => asyncSnapshot.data!
+                            //                   .map((e) => e)
+                            //                   .toList(),
+                            //               itemAsString: (item) =>
+                            //                   item.storeName,
+                            //               compareFn: (item1, item2) =>
+                            //                   item1.id == item2.id,
+                            //               decoratorProps:
+                            //                   DropDownDecoratorProps(
+                            //                 decoration: InputDecoration(
+                            //                   labelText: "فروشگاه",
+                            //                   border: OutlineInputBorder(
+                            //                     borderSide: const BorderSide(
+                            //                         width: 2,
+                            //                         color: Colors.red),
+                            //                     //<-- SEE HERE
+                            //                     borderRadius:
+                            //                         BorderRadius.circular(20),
+                            //                   ),
+                            //                 ),
+                            //               ),
+                            //               onChanged: (_) {
+                            //                 if (_ != null) {
+                            //                   _storeId = _.id;
+                            //                 }
+                            //               },
+                            //               // selectedItem: _newItem.value.breed,
+                            //             ));
+                            //       } else if (asyncSnapshot.connectionState ==
+                            //           ConnectionState.waiting) {
+                            //         return Center(
+                            //           child: CircularProgressIndicator(),
+                            //         );
+                            //       }
+                            //       return Center(
+                            //           child: Text("فروشگاهی پیدا نشده است."));
+                            //     }),
+                            SizedBox(
+                              height: 10,
+                            ),
                             FutureBuilder(
                                 future: _shopService
-                                    .getWarehouseSupplier(shopInfo.id),
+                                    .getWarehouseSupplier(storeData.id),
                                 builder: (context, asyncSnapshot) {
                                   if (asyncSnapshot.hasData &&
                                       asyncSnapshot.data != null &&
                                       asyncSnapshot.data!.isNotEmpty) {
                                     return SizedBox(
                                         height: 70,
-                                        child: DropdownSearch<String>(
-                                          validator: (_){
-                                            if(_ ==null || _.isEmpty){
+                                        child: DropdownSearch<WarehouseItem>(
+                                          validator: (_) {
+                                            if (_ == null) {
                                               return "انبار مورد نظر را انتخاب کنید.";
                                             }
                                             return null;
@@ -113,17 +178,17 @@ class IncreaseAmountPage extends StatelessWidget {
 
                                             showSelectedItems: true,
                                             showSearchBox: true,
+
                                             fit: FlexFit.tight,
+
                                             // disabledItemFn: (String s) => s.startsWith('I'),
                                           ),
                                           items: (_, __) => asyncSnapshot.data!
                                               .map((e) => e)
                                               .toList(),
-                                          itemAsString: (item) => item ?? '',
-                                          // compareFn:
-                                          //     (item1, item2) =>
-                                          // item1.name ==
-                                          //     item2.name,
+                                          itemAsString: (item) =>
+                                              item.warehouseName ?? '',
+                                          compareFn: (item1, item2) => item1.warehouseName == item2.warehouseName,
                                           decoratorProps:
                                               DropDownDecoratorProps(
                                             decoration: InputDecoration(
@@ -143,7 +208,7 @@ class IncreaseAmountPage extends StatelessWidget {
                                               _warehouse = _;
                                             }
                                           },
-                                          selectedItem: _newItem.value.breed,
+                                          selectedItem: _warehouse,
                                         ));
                                   } else if (asyncSnapshot.connectionState ==
                                       ConnectionState.waiting) {
@@ -177,6 +242,12 @@ class IncreaseAmountPage extends StatelessWidget {
                                     .toList(),
                                 onChanged: (value) {
                                   _productType.value = value;
+                                },
+                                validator: (_) {
+                                  if (_ == null) {
+                                    return "کالا مورد نظر را انتخاب کنید.";
+                                  }
+                                  return null;
                                 },
                               ),
                             ),
@@ -217,6 +288,12 @@ class IncreaseAmountPage extends StatelessWidget {
                                                           (item1, item2) =>
                                                               item1.name ==
                                                               item2.name,
+                                                      validator: (_) {
+                                                        if (_ == null) {
+                                                          return "محصول مورد نظر را انتخاب کنید.";
+                                                        }
+                                                        return null;
+                                                      },
                                                       decoratorProps:
                                                           DropDownDecoratorProps(
                                                         decoration:
@@ -358,26 +435,30 @@ class IncreaseAmountPage extends StatelessWidget {
                                                 ),
                                               ],
                                             ),
-                                          TextFormField(
-                                            keyboardType: TextInputType.number,
-                                            validator: (_) {
-                                              if (_ == null || _.isEmpty) {
-                                                return "حداقل قیمت را وارد کنید.";
-                                              }
-                                              return null;
-                                            },
-                                            onChanged: (_) {
-                                              _newItem.value.minPrice =
-                                                  double.parse(_);
-                                            },
-                                            decoration: InputDecoration(
-                                              labelText: "حداقل قیمت",
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(20.0),
+                                          if (_productType.value ==
+                                              ProductType.dam)
+                                            TextFormField(
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              validator: (_) {
+                                                if (_ == null || _.isEmpty) {
+                                                  return "حداقل قیمت را وارد کنید.";
+                                                }
+                                                return null;
+                                              },
+                                              onChanged: (_) {
+                                                _newItem.value.minPrice =
+                                                    double.parse(_);
+                                              },
+                                              decoration: InputDecoration(
+                                                labelText: "حداقل قیمت",
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20.0),
+                                                ),
                                               ),
                                             ),
-                                          ),
                                           SizedBox(
                                             height: 10,
                                           ),
@@ -390,6 +471,10 @@ class IncreaseAmountPage extends StatelessWidget {
                                             validator: (_) {
                                               if (_ == null || _.isEmpty) {
                                                 return "حداکثر قیمت را وارد کنید.";
+                                              }
+                                              if (_productType.value ==
+                                                  ProductType.nahada) {
+                                                return null;
                                               }
                                               if (_newItem.value.minPrice >
                                                   _newItem.value.maxPrice) {

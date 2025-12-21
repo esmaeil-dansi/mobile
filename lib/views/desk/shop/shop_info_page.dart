@@ -4,8 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:frappe_app/db/dao/shop_dao.dart';
 import 'package:frappe_app/db/shop_info.dart';
 import 'package:frappe_app/model/shop_Item_model.dart';
+import 'package:frappe_app/model/store_data.dart';
 import 'package:frappe_app/repo/shop_repo.dart';
 import 'package:frappe_app/services/aut_service.dart';
 import 'package:frappe_app/services/shop_service.dart';
@@ -24,9 +26,9 @@ import '../../../model/InventoryItem.dart';
 import '../../../widgets/buttomSheetTempelate.dart';
 
 class ShopInfoPage extends StatefulWidget {
-  ShopInfo shopInfo;
+  StoreData storeData;
 
-  ShopInfoPage(this.shopInfo);
+  ShopInfoPage(this.storeData);
 
   @override
   State<ShopInfoPage> createState() => _ShopInfoPageState();
@@ -40,78 +42,43 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
     return Container(
       color: Colors.white,
       child: Scaffold(
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        // floatingActionButtonLocation: FloatingActionButtonLocation.,
         floatingActionButton: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                color: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10, left: 10),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () {
-                      Get.to(() => IncreaseAmountPage(
-                            shopInfo: widget.shopInfo,
-                            onAdd: (_) {
-                              widget.shopInfo.items.add(_);
-                              setState(() {});
-                            },
-                          ));
-                    },
-                    child: Container(
-                        width: 120,
-                        height: 50,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50),
-                            gradient: LinearGradient(colors: GRADIANT_COLOR)),
-                        child: Center(
-                            child: Text(
-                          "افزایش موجودی",
-                          style: Get.textTheme.bodyLarge
-                              ?.copyWith(color: Colors.white, fontSize: 13),
-                        ))),
-                  ),
-                ),
+          child: Container(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 10, left: 10),
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: () {
+                  Get.to(() => IncreaseAmountPage(
+                        storeData: widget.storeData,
+                        onAdd: (_) {
+                          // widget.shopInfo.items.add(_);
+                          // setState(() {});
+                        },
+                      ));
+                },
+                child: Container(
+                    width: 120,
+                    height: 50,
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(50),
+                        gradient: LinearGradient(colors: GRADIANT_COLOR)),
+                    child: Center(
+                        child: Text(
+                      "افزایش موجودی",
+                      style: Get.textTheme.bodyLarge
+                          ?.copyWith(color: Colors.white, fontSize: 13),
+                    ))),
               ),
-              Container(
-                color: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10, left: 10),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () {
-                      Get.to(() => NewShopItemPage(
-                            shopInfo: widget.shopInfo,
-                            onAdd: (_) {
-                              widget.shopInfo.items.add(_);
-                              setState(() {});
-                            },
-                          ));
-                    },
-                    child: Container(
-                        width: 120,
-                        height: 50,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50),
-                            gradient: LinearGradient(colors: GRADIANT_COLOR)),
-                        child: Center(
-                            child: Text(
-                          "فروش جدید",
-                          style: Get.textTheme.bodyLarge
-                              ?.copyWith(color: Colors.white, fontSize: 13),
-                        ))),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
         appBar: AppBar(
           title: Text(
-            widget.shopInfo.name,
+            widget.storeData.storeName,
             style: TextStyle(fontSize: 14),
           ),
           leading: IconButton(
@@ -192,7 +159,7 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                   ),
                   FutureBuilder<Map<String, List<InventoryItem>>>(
                     future: _shopService
-                        .getStockRemainChopooByWarehouse(widget.shopInfo.id),
+                        .getStockRemainChopooByWarehouse(widget.storeData.id),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(child: CircularProgressIndicator());
@@ -230,7 +197,7 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                             ),
                             const SizedBox(height: 10),
                             SizedBox(
-                              height: Get.height * 0.7,
+                              height: context.mediaQuery.size.height * 0.6,
                               child: ListView(
                                 shrinkWrap: true,
                                 children: warehouseMap.keys.map((warehouse) {
@@ -250,7 +217,7 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                                             horizontal: 12, vertical: 8),
                                         decoration: BoxDecoration(
                                           borderRadius:
-                                              BorderRadius.circular(20),
+                                              BorderRadius.circular(10),
                                           gradient: LinearGradient(
                                             colors: [
                                               Colors.blue.shade300,
@@ -259,9 +226,9 @@ class _ShopInfoPageState extends State<ShopInfoPage> {
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                                color: Colors.grey.shade300,
-                                                blurRadius: 1,
-                                                offset: Offset(1, 2))
+                                                color: Colors.black,
+                                                blurRadius: 3,
+                                                offset: Offset(2, 4))
                                           ],
                                         ),
                                         child: Row(

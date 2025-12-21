@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frappe_app/db/shop_info.dart';
 import 'package:frappe_app/model/shop_item_base_model.dart';
 import 'package:frappe_app/db/shop_item_tamin_info.dart';
+import 'package:frappe_app/model/store_data.dart';
 import 'package:frappe_app/services/shop_service.dart';
 import 'package:frappe_app/widgets/app_sliver_app_bar.dart';
 import 'package:frappe_app/widgets/progressbar_wating.dart';
@@ -13,9 +14,9 @@ import 'package:dropdown_search/dropdown_search.dart';
 import '../../../widgets/constant.dart';
 
 class NewShopItemPage extends StatelessWidget {
-  ShopInfo shopInfo;
+  StoreData storeData;
 
-  NewShopItemPage({required this.shopInfo, required this.onAdd});
+  NewShopItemPage({required this.storeData, required this.onAdd});
 
   Function(ShopItemTaminInfo) onAdd;
 
@@ -48,7 +49,7 @@ class NewShopItemPage extends StatelessWidget {
               _descriptionError.value = 'لطفاً این فیلد را پر کنید';
             }
             if (await _shopService.addShopItem(
-                shopInfo: shopInfo, info: info)) {
+                id: storeData.id, info: info)) {
               onAdd(info);
               Get.back();
             }

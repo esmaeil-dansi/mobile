@@ -27,16 +27,10 @@ class _AllShopPageState extends State<AllShopPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "فروشگاه من",
-          style: TextStyle(fontSize: 16),
-        ),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: StreamBuilder(
-          stream: _shopRepo.watchAll(),
+        child: FutureBuilder(
+          future: _shopService.fetchStores(),
           builder: (c, s) {
             if (s.hasData && s.data != null && s.data!.isNotEmpty) {
               return ListView.builder(
@@ -68,7 +62,7 @@ class _AllShopPageState extends State<AllShopPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      info.name,
+                                      info.storeName,
                                       style: TextStyle(fontSize: 12),
                                     ),
                                     Text(

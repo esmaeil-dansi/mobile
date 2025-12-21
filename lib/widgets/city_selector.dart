@@ -5,14 +5,18 @@ import 'package:frappe_app/services/visit_service.dart';
 import 'package:get_it/get_it.dart';
 
 Widget provinceSelector(Function(String) onSelect, String value) {
-  var textController = TextEditingController(text: value);
-  return TypeAheadField(
-    emptyBuilder: (c) {
-      return Text("موردی یافت نشد");
+  return TypeAheadField<String>(
+
+    suggestionsCallback: (pattern) async {
+      return cities
+          .where((s) => s.toLowerCase().contains(pattern.toLowerCase()))
+          .toList();
     },
-    builder: (context, textController, focusNode) {
+
+    builder: (context, controller, focusNode) {
+      controller.text = value;   // مقدار اولیه را ست کن
       return TextField(
-        controller: textController,
+        controller: controller,
         focusNode: focusNode,
         decoration: InputDecoration(
           border: OutlineInputBorder(
@@ -23,25 +27,56 @@ Widget provinceSelector(Function(String) onSelect, String value) {
       );
     },
 
-    suggestionsCallback: (pattern) async {
-      return cities
-          .where((suggestion) =>
-              suggestion.toLowerCase().contains(pattern.toLowerCase()))
-          .toList();
-    },
-    // Widget to build each suggestion in the list
     itemBuilder: (context, suggestion) {
-      return ListTile(
-        title: Text(suggestion),
-      );
+      return ListTile(title: Text(suggestion));
     },
-    // Callback when a suggestion is selected
+
     onSelected: (suggestion) {
-      textController.text = suggestion;
       onSelect(suggestion);
     },
   );
 }
+
+final provinceController = TextEditingController();
+
+Widget provinceSelector2(Function(String) onSelect) {
+  return TypeAheadField(
+    controller: provinceController,
+
+    builder: (context, controller, focusNode) {
+      return TextField(
+        controller: controller,
+        focusNode: focusNode,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          labelText: "استان",
+        ),
+      );
+    },
+
+    suggestionsCallback: (pattern) {
+      return cities
+          .where((c) => c.toLowerCase().contains(pattern.toLowerCase()))
+          .toList();
+    },
+    emptyBuilder: (c){
+      return Text("استان مورد نظر یافت نشد!");
+    },
+
+    itemBuilder: (context, suggestion) {
+      return ListTile(title: Text(suggestion));
+    },
+
+    onSelected: (s) {
+      provinceController.text = s;
+      onSelect(s);
+    },
+  );
+}
+
+
 
 Widget citySelector(String province, Function(String) onSelect, String value) {
   var textController = TextEditingController(text: value);

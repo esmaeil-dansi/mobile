@@ -36,31 +36,31 @@ Widget ImageView(Rx<String> path, String title,
                   }
                 });
               },
-              child: Text("الحاق عکس"))
+              child: Text("انتخاب عکس"))
           : Column(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      gradient: LinearGradient(colors: GRADIANT_COLOR)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: isNetWorkImage
-                          ? Image.network("https://icasp.ir" + path.value,
-                              headers: {
-                                  'cookie':
-                                      GetIt.I.get<HttpService>().getCookie(),
-                                })
-                          : Image.file(
-                              File(
-                                path.value,
+                LimitedBox(
+                  maxHeight: 400,
+                  child: Container(
+
+                    child: Padding(
+                      padding: const EdgeInsets.all(2.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15.0),
+                        child: isNetWorkImage
+                            ? Image.network("https://icasp.ir" + path.value,
+                                headers: {
+                                    'cookie':
+                                        GetIt.I.get<HttpService>().getCookie(),
+                                  })
+                            : Image.file(
+                                File(
+                                  path.value,
+                                ),
+                                fit: BoxFit.contain,
+                                width: Get.width,
                               ),
-                              height: 400,
-                              fit: BoxFit.fill,
-                              width: Get.width,
-                            ),
+                      ),
                     ),
                   ),
                 ),
@@ -68,23 +68,18 @@ Widget ImageView(Rx<String> path, String title,
                   Align(
                     alignment: Alignment.bottomRight,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 15, bottom: 2),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            border: Border.all(),
-                            borderRadius: BorderRadius.circular(50)),
-                        child: IconButton(
-                          onPressed: () {
-                            showSelectImageBottomSheet((_) {
-                              if (_.isNotEmpty) {
-                                path.value = _.first;
-                              }
-                            });
-                          },
-                          icon: Icon(
-                            Icons.camera_alt_outlined,
-                            color: Colors.black,
-                          ),
+                      padding: const EdgeInsets.only(top: 4, bottom: 2),
+                      child: IconButton(
+                        onPressed: () {
+                          showSelectImageBottomSheet((_) {
+                            if (_.isNotEmpty) {
+                              path.value = _.first;
+                            }
+                          });
+                        },
+                        icon: Icon(
+                          Icons.change_circle_outlined,
+                          color: Colors.blue,
                         ),
                       ),
                     ),

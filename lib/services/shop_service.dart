@@ -30,6 +30,9 @@ import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 
 import '../model/InventoryItem.dart';
+import '../model/price_check_res.dart';
+import '../model/store_data.dart';
+import '../model/ware_house.dart';
 
 class ShopService {
   var _httpService = GetIt.I.get<HttpService>();
@@ -268,10 +271,10 @@ class ShopService {
   }
 
   Future<bool> addShopItem(
-      {required ShopInfo shopInfo, required ShopItemTaminInfo info}) async {
+      {required String id, required ShopItemTaminInfo info}) async {
     try {
       var res = await _httpService.post(
-          "/api/method/add_item_chopo?name=${shopInfo.id}&supplier_items=${info.name}&amount=${info.amount}&price=${info.price}&description=${info.description}&name_supplier=${shopInfo.id}",
+          "/api/method/add_item_chopo?name=${id}&supplier_items=${info.name}&amount=${info.amount}&price=${info.price}&description=${info.description}&name_supplier=${id}",
           FormData.fromMap({}));
 
       Fluttertoast.showToast(msg: res?.data["message"]);
@@ -283,7 +286,23 @@ class ShopService {
     return false;
   }
 
-  Future<Map<String, List<InventoryItem>>> getStockRemainChopooByWarehouse(String id) async {
+  Future<List<StoreData>> fetchStores() async {
+    try {
+      var res = await _httpService
+          .get("/api/method/get_store?seller=${_autService.getUsername}");
+      List<StoreData> items = ((res!.data!["result"]
+              as Map<String, dynamic>)["data"] as List<dynamic>)
+          .map((s) => StoreData.fromJson(s))
+          .toList();
+      return items;
+    } catch (e) {
+      _logger.e(e);
+    }
+    return [];
+  }
+
+  Future<Map<String, List<InventoryItem>>> getStockRemainChopooByWarehouse(
+      String id) async {
     try {
       var res = await _httpService
           .get("/api/method/get_stock_remain_chopoo?supplier=$id");
@@ -292,7 +311,6 @@ class ShopService {
           .map((s) => InventoryItem.fromJson(s))
           .toList();
 
-      // گروه‌بندی بر اساس warehouse
       Map<String, List<InventoryItem>> grouped = {};
       for (var item in items) {
         if (!grouped.containsKey(item.warehouse)) {
@@ -308,41 +326,40 @@ class ShopService {
     }
   }
 
-
-  Future<List<String>> getWarehouseSupplier(String id) async {
-    if (kDebugMode) return ["1", "2"];
+  Future<List<WarehouseItem>> getWarehouseSupplier(String id) async {
     try {
-      var res = await _httpService
-          .get("/api/method/get_warehouse_supplier?supplier_id=$id");
-
+      var res = await _httpService.get(
+        "/api/method/get_warehouse_supplier?seller=${_autService.getUsername}&supplier_id=$id",
+      );
       if (res?.data != null && res!.data!["code"] == 2000) {
         return (res.data!["data"] as List<dynamic>)
-            .map((s) => s["warehouse_name"].toString())
+            .map((s) => WarehouseItem.fromJson(s))
             .toList();
       } else {
         _logger.e("API Error: ${res?.data?["message"]}");
-        return <String>[];
+        return [];
       }
     } catch (e) {
       _logger.e(e);
-      return <String>[];
+      return [];
     }
   }
 
   Future<bool> increaseShopItem(
-      {required ShopInfo shopInfo,
+      {required String id,
       required NewItem newItem,
       required String warehouse}) async {
     try {
       SupplierRequest supplierRequest = SupplierRequest(
-          username: _autService.getUsername,
-          password: _autService.getPassword,
-          supplierId: shopInfo.id,
+          username: _autService.getUsernameForReq,
+          password: _autService.getPasswordForReq,
+          supplierId: id,
           warehouse: warehouse,
           items: [newItem]);
       var res = await _httpService.post(
-          "/api/method/create_purchase_chopoo", FormData.fromMap({}),
-          map: supplierRequest.toJson());
+        "/api/method/create_purchase_chopoo",
+        FormData.fromMap(supplierRequest.toJson()),
+      );
 
       Fluttertoast.showToast(msg: res?.data["message"]);
       return res?.statusCode == 200;
@@ -363,8 +380,8 @@ class ShopService {
           "/api/method/add_market_transactions",
           jsonEncode({
             "id_store": items.first.shopId,
-            "username": _autService.getUsername,
-            "password": _autService.getPassword,
+            "username": _autService.getUsernameForReq,
+            "password": _autService.getPasswordForReq,
             "payment_type": paymentType,
             "id_seller": sellerName,
             "id_buyer":
@@ -488,6 +505,23 @@ class ShopService {
       Fluttertoast.showToast(msg: result?.data["message"]);
     } catch (e) {
       _logger.e(e);
+    }
+  }
+
+  Future<PriceCheckResponse?> checkPrice(
+      {required String purchase_doc,
+      required double price,
+      required String itemId}) async {
+    try {
+      var res = await _httpService.get(
+          "/api/method/check_price?purchase_doc=$purchase_doc&price=$price&item_id=$itemId");
+      if (res?.statusCode == 200) {
+        return PriceCheckResponse.fromJson(res!.data);
+      }
+    } catch (e) {
+      _logger.e(e);
+
+      return null;
     }
   }
 

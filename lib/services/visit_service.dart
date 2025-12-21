@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/db/dao/price_dao.dart';
 import 'package:frappe_app/db/price_avg.dart';
 import 'package:frappe_app/model/SortKey.dart';
+import 'package:frappe_app/model/add_dam_initial_visit_model.dart';
 import 'package:frappe_app/model/add_initial_visit_from_model.dart';
 import 'package:frappe_app/model/add_per_vsiti_form_model.dart';
 import 'package:frappe_app/model/add_product_form_model.dart';
+import 'package:frappe_app/model/add_product_info_req.dart';
 import 'package:frappe_app/model/add_vetvisit_form_model.dart';
 import 'package:frappe_app/model/agent.dart';
 import 'package:frappe_app/model/agentInfo.dart';
@@ -225,6 +228,76 @@ class VisitService {
     return [];
   }
 
+  Future<List<DamVisitReport>> fetchDamInitialVisitReport({
+    int id = 0,
+    String province = "",
+    String city = "",
+    required SortKey sortKey,
+    required SortDir sortDir,
+    int start = 0,
+  }) async {
+    final filters = <List<dynamic>>[];
+
+    if (id != 0) {
+      filters.add(["Initial Dam Visit", "name", "like", "%$id%"]);
+    }
+    if (province.isNotEmpty) {
+      filters.add(["Initial Dam Visit", "province", "=", province]);
+    }
+    if (city.isNotEmpty) {
+      filters.add(["Initial Dam Visit", "city", "=", city]);
+    }
+
+    final body = {
+      "doctype": "Initial Dam Visit",
+      "fields": [
+        "`tabInitial Dam Visit`.`workflow_state`",
+        "`tabInitial Dam Visit`.`name`",
+        "`tabInitial Dam Visit`.`owner`",
+        "`tabInitial Dam Visit`.`creation`",
+        "`tabInitial Dam Visit`.`modified`",
+        "`tabInitial Dam Visit`.`modified_by`",
+        "`tabInitial Dam Visit`.`_user_tags`",
+        "`tabInitial Dam Visit`.`_comments`",
+        "`tabInitial Dam Visit`.`_assign`",
+        "`tabInitial Dam Visit`.`_liked_by`",
+        "`tabInitial Dam Visit`.`docstatus`",
+        "`tabInitial Dam Visit`.`idx`",
+        "`tabInitial Dam Visit`.`national_id`",
+        "`tabInitial Dam Visit`.`full_name`",
+        "`tabInitial Dam Visit`.`province`",
+        "`tabInitial Dam Visit`.`city`",
+        "`tabInitial Dam Visit`.`village`",
+        "`tabInitial Dam Visit`.`bazdid_img`",
+        "`tabInitial Dam Visit`.`jay_type`",
+        "`tabInitial Dam Visit`.`tahjay_type`"
+      ],
+      "filters": filters,
+      "order_by": "`tabInitial Dam Visit`.`modified` DESC",
+      "start": start,
+      "page_length": 50,
+      "view": "List",
+      "group_by": "`tabInitial Dam Visit`.`name`",
+      "with_comment_count": 1
+    };
+
+    try {
+      final response = await _httpService.post2(
+        "/api/method/frappe.desk.reportview.get",
+        body,
+      );
+
+      final list = response!.data!["message"]["values"];
+
+      return list
+          .map<DamVisitReport>((m) => DamVisitReport.fromJson(m))
+          .toList();
+    } catch (e) {
+      _logger.e(e);
+      return [];
+    }
+  }
+
   Future<List<Report>> fetchInitialVisitReport(
       {int id = 0,
       String province = "",
@@ -398,62 +471,31 @@ class VisitService {
     return [];
   }
 
-  Future<bool> saveInitVisit(
+  Future<bool> SaveNewProductInfo(
       {required AgentInfo agentInfo,
-      required AddInitialVisitFormModel model,
+      required AddProductInfoReq model,
       required int time}) async {
-    model.owner = _autService.getUserId();
-    model.rahbar = agentInfo.rahbar;
-    model.city = agentInfo.city;
-    model.province = agentInfo.province;
-    model.mobile = agentInfo.mobile;
-    model.fullName = agentInfo.full_name;
-    model.address = agentInfo.address;
-    model.department = agentInfo.department;
+    model.username = _autService.getUsernameForReq;
+    model.password = _autService.getPasswordForReq;
     var body = json.encode(model.toJson());
+    String path = model.imageApp ?? "";
+    bool isSend = false;
     try {
-      if (model.image1 != null) {
-        body = await _uploadInitVisitFile(model.image1 ?? '', body, "image1") ??
-            body;
+      if (model.imageApp != null) {
+        model.imageApp =
+            await _uploadInitVisitFile(model.imageApp ?? '', body, "image1");
       }
-      if (model.image2 != null) {
-        body = await _uploadInitVisitFile(model.image2 ?? '', body, "image2") ??
-            body;
-      }
-      if (model.image3 != null) {
-        body = await _uploadInitVisitFile(model.image3 ?? '', body, "image3") ??
-            body;
-      }
-      var result = await _sendRequest(body);
-      unawaited(_requestRepo.save(Request(
-        filePaths: [model.image1 ?? '', model.image2 ?? ''],
-        nationId: model.nationalId!,
-        body: json.encode(model),
-        time: time,
-        type: "Initial Visit",
-        status: result?.statusCode == 200
-            ? RequestStatus.Success
-            : RequestStatus.Pending,
-      )));
-      if (result?.statusCode == 200) {
-        sendUserTag(nationalId: model.nationalId ?? "", type: "Initial Visit");
+
+      var result = await _httpService.post("/api/method/send_productivity_info",
+          FormData.fromMap(model.toJson()));
+      if (result?.data["code"].toString() == "2000") {
+        isSend = true;
+        sendUserTag(
+            nationalId: model.nationalId ?? "", type: "AddProductInfoReport");
         Fluttertoast.showToast(msg: "ثبت شد");
-        return true;
       } else {
-        await _saveInitVisitFile(time, model);
-        unawaited(_requestRepo.save(Request(
-          filePaths: [model.image1 ?? '', model.image2 ?? ''],
-          nationId: model.nationalId!,
-          body: json.encode(model),
-          time: time,
-          type: "Initial Visit",
-          status: result?.statusCode == 200
-              ? RequestStatus.Success
-              : RequestStatus.Pending,
-        )));
         Progressbar.dismiss();
         showErrorMessage(result?.data["_server_messages"]);
-        return false;
       }
     } on DioException catch (e) {
       Progressbar.dismiss();
@@ -463,7 +505,147 @@ class VisitService {
     } catch (e) {
       showErrorToast(null);
     }
-    await _saveInitVisitFile(time, model);
+    unawaited(_saveProductReq(time, model, path, isSend));
+    return isSend;
+  }
+
+  Future<void> _saveProductReq(
+      int time, AddProductInfoReq model, String path, bool isSend) async {
+    await _saveProductReportFile(time, model, path);
+
+    unawaited(_requestRepo.save(Request(
+      filePaths: [path],
+      body: json.encode(model),
+      nationId: model.nationalId!,
+      time: time,
+      type: "AddProductInfoReport",
+      status: isSend ? RequestStatus.Success : RequestStatus.Pending,
+    )));
+  }
+
+  Future<bool> saveDamInitVisit(
+      {required AgentInfo agentInfo,
+      required AddDamInitialVisitRequest model,
+      required int time}) async {
+    List<String> paths = [
+      model.bazdidImg!,
+      model.jaygahImg!,
+      model.damdarImg!,
+      model.damyarImg!
+    ];
+
+    bool isSend = false;
+
+    try {
+      if (model.bazdidImg != null) {
+        model.bazdidImg =
+            await _uploadInitVisitFile(model.bazdidImg ?? '', "", "image1");
+      }
+      if (model.jaygahImg != null) {
+        model.jaygahImg =
+            await _uploadInitVisitFile(model.jaygahImg ?? '', "", "image2");
+      }
+      if (model.damyarImg != null) {
+        model.damyarImg =
+            await _uploadInitVisitFile(model.damyarImg ?? '', "", "image3");
+      }
+      if (model.damdarImg != null) {
+        model.damdarImg =
+            await _uploadInitVisitFile(model.damdarImg ?? '', "", "image3");
+      }
+      var result = await _httpService.post3(
+          "/api/method/send_bazdid_dam", model.toJson());
+
+      if (result?.data["code"].toString() == "2000") {
+        isSend = true;
+        sendUserTag(
+            nationalId: model.nationalId ?? "", type: "Dam Initial Visit");
+        Fluttertoast.showToast(msg: "ثبت شد");
+      } else {
+        Progressbar.dismiss();
+        showErrorMessage(result?.data["_server_messages"]);
+      }
+    } on DioException catch (e) {
+      Progressbar.dismiss();
+      Future.delayed(Duration(milliseconds: 800), () {
+        handleDioError(e);
+      });
+    } catch (e) {
+      showErrorToast(null);
+    }
+    unawaited(_saveAddDamInitialVisitReq(time, model, paths, isSend));
+    return isSend;
+  }
+
+  Future<void> _saveAddDamInitialVisitReq(int time,
+      AddDamInitialVisitRequest model, List<String> paths, bool isSend) async {
+    await _saveDamInitVisitFile(time, model, paths);
+    unawaited(_requestRepo.save(Request(
+      filePaths: paths,
+      body: json.encode(model),
+      nationId: model.nationalId!,
+      time: time,
+      type: "Dam Initial Visit",
+      status: isSend ? RequestStatus.Success : RequestStatus.Pending,
+    )));
+  }
+
+  Future<bool> saveInitVisit(
+      {required AgentInfo agentInfo,
+      required AddInitialVisitFormModel model,
+      required int time}) async {
+    bool isSend = false;
+    model.owner = _autService.getUserId();
+    model.rahbar = agentInfo.rahbar;
+    model.city = agentInfo.city;
+    model.province = agentInfo.province;
+    model.mobile = agentInfo.mobile;
+    model.fullName = agentInfo.full_name;
+    model.address = agentInfo.address;
+    model.department = agentInfo.department;
+    var body = json.encode(model.toJson());
+    List<String> paths = [model.image1!, model.image2!, model.image3!];
+    try {
+      if (model.image1 != null) {
+        model.image1 =
+            await _uploadInitVisitFile(model.image1 ?? '', body, "image1");
+      }
+      if (model.image2 != null) {
+        model.image2 =
+            await _uploadInitVisitFile(model.image2 ?? '', body, "image2");
+      }
+      if (model.image3 != null) {
+        model.image3 =
+            await _uploadInitVisitFile(model.image3 ?? '', body, "image3");
+      }
+
+      var result = await _httpService.post(
+          "/api/method/send_bazdid_komite", FormData.fromMap(model.toJson()));
+      if (result?.data["code"].toString() == "2000") {
+        isSend = true;
+        sendUserTag(nationalId: model.nationalId ?? "", type: "Initial Visit");
+        try {
+          Fluttertoast.showToast(msg: "ثبت شد");
+        } catch (e) {}
+      } else {
+        Progressbar.dismiss();
+        showErrorMessage(result?.data["_server_messages"]);
+      }
+    } on DioException catch (e) {
+      Progressbar.dismiss();
+      Future.delayed(Duration(milliseconds: 800), () {
+        handleDioError(e);
+      });
+    } catch (e) {
+      showErrorToast(null);
+    }
+    unawaited(_saveInitiVisitReq(time, model, paths, isSend));
+    return isSend;
+  }
+
+  Future<void> _saveInitiVisitReq(int time, AddInitialVisitFormModel model,
+      List<String> paths, bool isSend) async {
+    await _saveInitVisitFile(time, model, paths);
 
     unawaited(_requestRepo.save(Request(
       filePaths: [model.image1 ?? '', model.image2 ?? ''],
@@ -471,33 +653,63 @@ class VisitService {
       nationId: model.nationalId!,
       time: time,
       type: "Initial Visit",
-      status: RequestStatus.Pending,
+      status: isSend ? RequestStatus.Success : RequestStatus.Pending,
     )));
-    return false;
+  }
+
+  Future<void> _saveProductReportFile(
+      int time, AddProductInfoReq model, String imageAppPath) async {
+    var path = await _fileRepo.saveFile(
+        time: time, key: "imageApp", path: imageAppPath);
+    if (path != null) {
+      model.imageApp = path;
+    }
   }
 
   Future<void> _saveInitVisitFile(
-      int time, AddInitialVisitFormModel model) async {
-    if (model.image1 != null) {
-      var path = await _fileRepo.saveFile(
-          time: time, key: "image1", path: model.image1!);
-      if (path != null) {
-        model.image1 = path;
-      }
+      int time, AddInitialVisitFormModel model, List<String> paths) async {
+    var path =
+        await _fileRepo.saveFile(time: time, key: "image1", path: paths[0]);
+    if (path != null) {
+      model.image1 = path;
     }
-    if (model.image2 != null) {
-      var path2 = await _fileRepo.saveFile(
-          time: time, key: "image2", path: model.image2!);
-      if (path2 != null) {
-        model.image2 = path2;
-      }
+
+    var path2 =
+        await _fileRepo.saveFile(time: time, key: "image2", path: paths[1]);
+    if (path2 != null) {
+      model.image2 = path2;
     }
-    if (model.image3 != null) {
-      var path3 = await _fileRepo.saveFile(
-          time: time, key: "image3", path: model.image3!);
-      if (path3 != null) {
-        model.image3 = path3;
-      }
+
+    var path3 =
+        await _fileRepo.saveFile(time: time, key: "image3", path: paths[2]);
+    if (path3 != null) {
+      model.image3 = path3;
+    }
+  }
+
+  Future<void> _saveDamInitVisitFile(
+      int time, AddDamInitialVisitRequest model, List<String> paths) async {
+    var path =
+        await _fileRepo.saveFile(time: time, key: "bazdidImg", path: paths[0]);
+    if (path != null) {
+      model.bazdidImg = path;
+    }
+    var path2 =
+        await _fileRepo.saveFile(time: time, key: "jaygahImg", path: paths[1]);
+    if (path2 != null) {
+      model.jaygahImg = path2;
+    }
+
+    var path3 =
+        await _fileRepo.saveFile(time: time, key: "damdarImg", path: paths[2]);
+    if (path3 != null) {
+      model.damdarImg = path3;
+    }
+
+    var path4 =
+        await _fileRepo.saveFile(time: time, key: "damyarImg", path: paths[3]);
+    if (path3 != null) {
+      model.damyarImg = path4;
     }
   }
 
@@ -535,16 +747,8 @@ class VisitService {
   Future<String?> _uploadInitVisitFile(
       String path, String body, String key) async {
     try {
-      if (path.isEmpty) {
-        return body;
-      }
-      var image =
-          await _fileService.uploadFile(path, "Initial Visit", fieldname: key);
-      if (image != null) {
-        var newBody = json.decode(body);
-        newBody[key] = image;
-        return json.encode(newBody);
-      }
+      return await _fileService.uploadFile(path, "Initial Visit",
+          fieldname: key);
     } catch (e) {}
     return null;
   }
@@ -1277,7 +1481,9 @@ class VisitService {
             'page_length': 100,
             'view': 'List',
             'group_by': '`tabCity`.`name`',
-            'with_comment_count': 1
+            'with_comment_count': 1,
+            'username': _autService.getUsernameForReq,
+            'password': _autService.getPasswordForReq,
           }));
       return CityUtils.extract(result?.data["message"]["values"]);
     } catch (e) {
