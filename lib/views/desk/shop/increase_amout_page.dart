@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:frappe_app/model/new_item.dart';
 import 'package:frappe_app/model/shop_item_base_model.dart';
 import 'package:frappe_app/db/shop_item_tamin_info.dart';
@@ -14,6 +15,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 import '../../../model/product_type.dart';
 import '../../../model/ware_house.dart';
 import '../../../widgets/constant.dart';
+import '../../../widgets/form/CustomTextFormField.dart';
 
 class IncreaseAmountPage extends StatelessWidget {
   StoreData storeData;
@@ -46,7 +48,8 @@ class IncreaseAmountPage extends StatelessWidget {
               if (await _shopService.increaseShopItem(
                   id: storeData.id,
                   newItem: _newItem.value,
-                  warehouse: _warehouse!.warehouseName)) {
+                  warehouse: _warehouse!.name)) {
+                Fluttertoast.showToast(msg: "افزایش موجودی انجام شد.");
                 Get.back();
               }
               Progressbar.dismiss();
@@ -92,67 +95,6 @@ class IncreaseAmountPage extends StatelessWidget {
                         ),
                         Column(
                           children: [
-                            // FutureBuilder(
-                            //     future: _shopService.fetchStores(),
-                            //     builder: (context, asyncSnapshot) {
-                            //       if (asyncSnapshot.hasData &&
-                            //           asyncSnapshot.data != null &&
-                            //           asyncSnapshot.data!.isNotEmpty) {
-                            //         return SizedBox(
-                            //             height: 70,
-                            //             child: DropdownSearch<StoreData>(
-                            //               validator: (_) {
-                            //                 if (_ == null) {
-                            //                   return "فروشگاه مورد نظر را انتخاب کنید.";
-                            //                 }
-                            //                 return null;
-                            //               },
-                            //               popupProps: PopupProps.menu(
-                            //                 searchDelay:
-                            //                     Duration(milliseconds: 40),
-                            //
-                            //                 showSelectedItems: true,
-                            //                 showSearchBox: true,
-                            //                 fit: FlexFit.tight,
-                            //                 // disabledItemFn: (String s) => s.startsWith('I'),
-                            //               ),
-                            //               items: (_, __) => asyncSnapshot.data!
-                            //                   .map((e) => e)
-                            //                   .toList(),
-                            //               itemAsString: (item) =>
-                            //                   item.storeName,
-                            //               compareFn: (item1, item2) =>
-                            //                   item1.id == item2.id,
-                            //               decoratorProps:
-                            //                   DropDownDecoratorProps(
-                            //                 decoration: InputDecoration(
-                            //                   labelText: "فروشگاه",
-                            //                   border: OutlineInputBorder(
-                            //                     borderSide: const BorderSide(
-                            //                         width: 2,
-                            //                         color: Colors.red),
-                            //                     //<-- SEE HERE
-                            //                     borderRadius:
-                            //                         BorderRadius.circular(20),
-                            //                   ),
-                            //                 ),
-                            //               ),
-                            //               onChanged: (_) {
-                            //                 if (_ != null) {
-                            //                   _storeId = _.id;
-                            //                 }
-                            //               },
-                            //               // selectedItem: _newItem.value.breed,
-                            //             ));
-                            //       } else if (asyncSnapshot.connectionState ==
-                            //           ConnectionState.waiting) {
-                            //         return Center(
-                            //           child: CircularProgressIndicator(),
-                            //         );
-                            //       }
-                            //       return Center(
-                            //           child: Text("فروشگاهی پیدا نشده است."));
-                            //     }),
                             SizedBox(
                               height: 10,
                             ),
@@ -188,7 +130,9 @@ class IncreaseAmountPage extends StatelessWidget {
                                               .toList(),
                                           itemAsString: (item) =>
                                               item.warehouseName ?? '',
-                                          compareFn: (item1, item2) => item1.warehouseName == item2.warehouseName,
+                                          compareFn: (item1, item2) =>
+                                              item1.warehouseName ==
+                                              item2.warehouseName,
                                           decoratorProps:
                                               DropDownDecoratorProps(
                                             decoration: InputDecoration(
@@ -317,6 +261,9 @@ class IncreaseAmountPage extends StatelessWidget {
                                                       onChanged: (_) {
                                                         if (_ != null) {
                                                           _infoModel.value = _;
+                                                          _newItem.value
+                                                                  .itemCode =
+                                                              _.name;
                                                         }
                                                       },
                                                       selectedItem:
@@ -448,10 +395,15 @@ class IncreaseAmountPage extends StatelessWidget {
                                               },
                                               onChanged: (_) {
                                                 _newItem.value.minPrice =
-                                                    double.parse(_);
+                                                    double.parse(
+                                                        _.replaceAll(",", ""));
                                               },
+                                              inputFormatters: [
+                                                NumberWithCommaFormatter()
+                                              ],
                                               decoration: InputDecoration(
                                                 labelText: "حداقل قیمت",
+                                                suffix: Text("ریال"),
                                                 border: OutlineInputBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(
@@ -466,8 +418,12 @@ class IncreaseAmountPage extends StatelessWidget {
                                             keyboardType: TextInputType.number,
                                             onChanged: (_) {
                                               _newItem.value.maxPrice =
-                                                  double.parse(_);
+                                                  double.parse(
+                                                      _.replaceAll(",", ""));
                                             },
+                                            inputFormatters: [
+                                              NumberWithCommaFormatter()
+                                            ],
                                             validator: (_) {
                                               if (_ == null || _.isEmpty) {
                                                 return "حداکثر قیمت را وارد کنید.";
@@ -489,6 +445,7 @@ class IncreaseAmountPage extends StatelessWidget {
                                             },
                                             decoration: InputDecoration(
                                               labelText: "حداکثر قیمت",
+                                              suffix: Text("ریال"),
                                               border: OutlineInputBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(20.0),
@@ -506,9 +463,13 @@ class IncreaseAmountPage extends StatelessWidget {
                                                 },
                                                 keyboardType:
                                                     TextInputType.number,
+                                                inputFormatters: [
+                                                  NumberWithCommaFormatter()
+                                                ],
                                                 onChanged: (_) {
                                                   _newItem.value.quantity =
-                                                      int.parse(_);
+                                                      int.parse(_.replaceAll(
+                                                          ",", ""));
                                                 },
                                                 decoration: InputDecoration(
                                                   suffix: Text(

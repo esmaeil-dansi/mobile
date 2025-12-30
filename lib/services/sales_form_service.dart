@@ -85,68 +85,6 @@ class SalesFormService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchWarehouses(
-      String? supplierId, String? seller) async {
-    try {
-      final response = await _httpService.get(
-          "/api/method/get_warehouse_supplier?seller=$seller&supplier_id=$supplierId&$credential");
-      _logger.i("Warehouses response: $response");
-      final responseData = response?.data;
-      if (responseData == null) throw Exception("پاسخ سرور خالی است");
-
-      if (responseData.containsKey('message')) {
-        final message = responseData['message'];
-
-        if (responseData['code'] == 2000) {
-          final List<dynamic> warehousesData = message['data'];
-          return warehousesData.map((warehouse) {
-            return {
-              "id": warehouse['name'].toString(),
-              "title": warehouse['warehouse_name'] ??
-                  warehouse['title'] ??
-                  warehouse['name'] ??
-                  "نامشخص"
-            };
-          }).toList();
-        } else if (responseData['code'] == 5000) {
-          throw Exception("خطا در دریافت انبارها: ${message}");
-        } else {
-          throw Exception("خطا در دریافت انبارها: ${message['message']}");
-        }
-      } else if (responseData.containsKey('result')) {
-        final Map<String, dynamic> result = responseData['result'];
-        if (result['code'] == 2000) {
-          final List<dynamic> warehousesData = result['data'];
-          return warehousesData.map((warehouse) {
-            return {
-              "id": warehouse['name'].toString(),
-              "title": warehouse['warehouse_name'] ??
-                  warehouse['title'] ??
-                  warehouse['name'] ??
-                  "نامشخص"
-            };
-          }).toList();
-        } else
-          throw Exception("خطا در دریافت انبارها: ${result['message']}");
-      } else if (responseData.containsKey('data')) {
-        final List<dynamic> warehousesData = responseData['data'];
-        return warehousesData.map((warehouse) {
-          return {
-            "id": warehouse['name'].toString(),
-            "title": warehouse['warehouse_name'] ??
-                warehouse['title'] ??
-                warehouse['name'] ??
-                "نامشخص"
-          };
-        }).toList();
-      }
-      throw Exception("ساختار پاسخ سرور نامعتبر است");
-    } catch (e) {
-      _logger.e("Error fetching warehouses: $e");
-      rethrow;
-    }
-  }
-
   Future<List<PurchaseItem>> fetchPurchaseDocuments(
       String itemCode, String warehouse) async {
     try {
@@ -154,8 +92,19 @@ class SalesFormService {
           "/api/method/purchase_list?item_code=$itemCode&warehouse=$warehouse&$credential");
       _logger.i(
           "Purchase documents response: $itemCode&warehouse=$warehouse&$credential");
-      _logger.i("data: $response");
-      final responseData = response?.data;
+
+      if (kDebugMode) {
+        return [
+          PurchaseItem(
+              purchaseDoc: "1",
+              salePrice: 100,
+              itemCode: "code",
+              quantity: 1000,
+              remainQuantity: 100,
+              itemId: "test")
+        ];
+      }
+
       return (response?.data["message"]["purchase_list"] as List<dynamic>)
           .map((item) => PurchaseItem.fromJson(item))
           .toList();
@@ -165,15 +114,16 @@ class SalesFormService {
     }
   }
 
-  Future<bool> sendSmsCode(String nationalId) async {
+  Future<bool> sendSmsCode(String nationalId, String itemsAsString) async {
     try {
-      if(kDebugMode){
+      if (kDebugMode) {
         return true;
       }
       final Map<String, dynamic> requestData = {
         "username": "chopoo",
         "password": "AqJ_Te",
         "national_id": nationalId,
+        "by_items": itemsAsString
       };
 
       final response = await _httpService.post(
@@ -202,7 +152,7 @@ class SalesFormService {
 
   Future<bool> verifySmsCode(String code, String nationalId) async {
     try {
-      if(kDebugMode){
+      if (kDebugMode) {
         return true;
       }
       final response = await _httpService.get(

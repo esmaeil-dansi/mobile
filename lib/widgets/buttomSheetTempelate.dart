@@ -4,7 +4,7 @@ import 'package:frappe_app/widgets/constant.dart';
 
 Widget bottomSheetTemplate(Widget widget) {
   return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 0),
     child: Container(
       decoration: BoxDecoration(
           gradient: LinearGradient(colors: GRADIANT_COLOR),

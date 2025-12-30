@@ -125,7 +125,7 @@ class _AddInitialReportState extends State<AddDamInitialVisit> {
                             ),
                             labelText: "اطلاعات اولیه",
                             labelStyle: TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold)),
+                                fontSize: 16, fontWeight: FontWeight.bold)),
                         child: Column(
                           children: [
                             SizedBox(
@@ -163,7 +163,7 @@ class _AddInitialReportState extends State<AddDamInitialVisit> {
                             ),
                             labelText: "اطلاعات جایگاه",
                             labelStyle: TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold)),
+                                fontSize: 16, fontWeight: FontWeight.bold)),
                         child: SingleChildScrollView(
                           child: Column(
                             children: [
@@ -361,6 +361,18 @@ class _AddInitialReportState extends State<AddDamInitialVisit> {
                                 height: 10,
                               ),
                               CustomTextFormField(
+                                label: "توضیحات دامداری",
+                                maxLine: 3,
+                                value: model.detail ?? "",
+                                onChanged: (_) {
+                                  model.detail = _;
+                                },
+                                // textInputType: TextInputType.number,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              CustomTextFormField(
                                 label: "وضعیت مرتع و پروانه چرا",
                                 maxLine: 3,
                                 value: model.martaStatus ?? "",
@@ -519,293 +531,324 @@ class _AddInitialReportState extends State<AddDamInitialVisit> {
         isScrollControlled: true,
         bottomSheetTemplate(Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: Get.height * 0.6,
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: [
-                      SizedBox(
-                        height: 30,
-                      ),
-                      CustomDropdownButtonFormField(
-                        label: "گونه دام",
-                        items: [
-                          "میش",
-                          "توقولی",
-                          "قوچ",
-                          "بره نر",
-                          "بره ماده",
-                          "بره شیری",
-                          "بز ماده",
-                          "کولار",
-                          "بز نر",
-                          "بزغاله نر",
-                          "بزغاله ماده",
-                          "بزغاله شیری",
-                        ],
-                        onChange: (_) {
-                          livestockCheck.dam = _;
-                        },
-                        value: livestockCheck.dam,
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      CustomTextFormField(
-                        label: "تعداد راس دام",
-                        textInputType: TextInputType.number,
-                        value: (livestockCheck.raas ?? "").toString(),
-                        onChanged: (_) {
-                          livestockCheck.raas = int.tryParse(_);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      FutureBuilder(
-                          future: GetIt.I.get<ShopService>().fetchBreeds(""),
-                          builder: (c, s) {
-                            if (s.hasData &&
-                                s.data != null &&
-                                s.data!.isNotEmpty) {
-                              return SizedBox(
-                                  height: 70,
-                                  child: DropdownSearch<String>(
-                                      popupProps: PopupProps.menu(
-                                        searchDelay: Duration(milliseconds: 40),
-
-                                        showSelectedItems: true,
-                                        showSearchBox: true,
-                                        fit: FlexFit.tight,
-                                        // disabledItemFn: (String s) => s.startsWith('I'),
-                                      ),
-                                      items: (_, __) =>
-                                          s.data!.map((e) => e).toList(),
-                                      itemAsString: (item) => item ?? '',
-
-                                      // compareFn:
-                                      //     (item1, item2) =>
-                                      // item1.name ==
-                                      //     item2.name,
-                                      decoratorProps: DropDownDecoratorProps(
-                                        decoration: InputDecoration(
-                                          labelText: "نژاد قالب دام",
-                                          labelStyle: TextStyle(
-                                              fontSize: 13,
-                                              color: Colors.black38),
-                                          border: OutlineInputBorder(
-                                            borderSide: const BorderSide(
-                                                width: 2, color: Colors.red),
-                                            //<-- SEE HERE
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                        ),
-                                      ),
-                                      onChanged: (_) {
-                                        if (_ != null) {
-                                          livestockCheck.nzd = _;
-                                        }
-                                      },
-                                      selectedItem: livestockCheck.nzd));
-                            } else if (s.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-                            return Center(
-                                child: Text(
-                                    "دریافت لیست نژاد با خطا مواجه شده است!"));
-                          }),
-                      CustomTextFormField(
-                        label: "وضعیت بدنی(BCS)",
-                        textInputType: TextInputType.number,
-                        value: (livestockCheck.bcs ?? "").toString(),
-                        onChanged: (_) {
-                          livestockCheck.bcs = double.tryParse(_);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      CustomTextFormField(
-                        label: "میانگین سن(ماه)",
-                        value: (livestockCheck.age ?? "").toString(),
-                        textInputType: TextInputType.number,
-                        onChanged: (_) {
-                          livestockCheck.age = int.tryParse(_);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      CustomTextFormField(
-                        label: "شماره پلاک(از-تا)",
-                        value: (livestockCheck.plk ?? "").toString(),
-                        onChanged: (_) {
-                          livestockCheck.plk = _;
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      TitleCheckBox("سقط و مرده زایی", (c) {
-                        livestockCheck.segt = c ? 1 : 0;
-                      }, value: (livestockCheck.segt ?? 0) == 1 ? true : false),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      CustomTextFormField(
-                        label: "تعداد سقط",
-                        value: (livestockCheck.segtNo ?? "").toString(),
-                        onChanged: (_) {
-                          livestockCheck.segtNo = int.tryParse(_);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      TitleCheckBox("قارچ/جرب", (c) {
-                        livestockCheck.shepesh = c ? 1 : 0;
-                      },
-                          value: (livestockCheck.shepesh ?? 0) == 1
-                              ? true
-                              : false),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      CustomTextFormField(
-                        label: "تعداد قارچ",
-                        value: (livestockCheck.shepeshNo ?? "").toString(),
-                        onChanged: (_) {
-                          livestockCheck.shepeshNo = int.tryParse(_);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      TitleCheckBox("ضعف و لاغری مفرط", (c) {
-                        livestockCheck.zaf = c ? 1 : 0;
-                      }, value: (livestockCheck.zaf ?? 0) == 1 ? true : false),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      CustomTextFormField(
-                        label: "تعداد ضعف",
-                        value: (livestockCheck.zafNo ?? "").toString(),
-                        onChanged: (_) {
-                          livestockCheck.zafNo = int.tryParse(_);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      TitleCheckBox("لنگش", (c) {
-                        livestockCheck.langesh = c ? 1 : 0;
-                      },
-                          value: (livestockCheck.langesh ?? 0) == 1
-                              ? true
-                              : false),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      CustomTextFormField(
-                        label: "تعداد لنگش",
-                        value: (livestockCheck.langeshNo ?? "").toString(),
-                        onChanged: (_) {
-                          livestockCheck.langeshNo = int.tryParse(_);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      TitleCheckBox("آسیب چشمی", (c) {
-                        // livestockCheck. = c ? 1 : 0;
-                      }, value: false),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      CustomTextFormField(
-                        label: "تعداد آسیب چشمی",
-                        onChanged: (_) {
-                          // livestockCheck.langeshNo = int.tryParse(_);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      TitleCheckBox("پیکا/پشم خواری", (c) {
-                        livestockCheck.pica = c ? 1 : 0;
-                      }, value: (livestockCheck.pica ?? 0) == 1 ? true : false),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      CustomTextFormField(
-                        label: "تعداد پیکا",
-                        value: (livestockCheck.picaNo ?? "").toString(),
-                        onChanged: (_) {
-                          livestockCheck.picaNo = int.tryParse(_);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      TitleCheckBox("سرفه", (c) {
-                        livestockCheck.sorfe = c ? 1 : 0;
-                      },
-                          value:
-                              (livestockCheck.sorfe ?? 0) == 1 ? true : false),
-                      SizedBox(
-                        height: 8,
-                      ),
-                      CustomTextFormField(
-                        label: "تعداد سرفه",
-                        value: (livestockCheck.shepeshNo ?? "").toString(),
-                        onChanged: (_) {
-                          livestockCheck.shepeshNo = int.tryParse(_);
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                    ],
+          child: SafeArea(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    height: 5,
                   ),
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-                ElevatedButton(
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                    onPressed: () {
-                      if (lk != null) {
-                        _items.value[i!] = livestockCheck;
-                      } else {
-                        if (livestockCheck.dam?.isNotEmpty ?? false) {
-                          _items.add(livestockCheck);
-                        }
-                      }
+                  Container(
+                    width: 60,
+                    height: 5,
+                    decoration: BoxDecoration(
+                        color: Colors.black38,
+                        borderRadius: BorderRadius.circular(20)),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    height: Get.height * 0.7,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        // shrinkWrap: true,
+                        children: [
+                          SizedBox(
+                            height: 30,
+                          ),
+                          CustomDropdownButtonFormField(
+                            label: "گونه دام",
+                            items: [
+                              "میش",
+                              "توقولی",
+                              "قوچ",
+                              "بره نر",
+                              "بره ماده",
+                              "بره شیری",
+                              "بز ماده",
+                              "کولار",
+                              "بز نر",
+                              "بزغاله نر",
+                              "بزغاله ماده",
+                              "بزغاله شیری",
+                            ],
+                            onChange: (_) {
+                              livestockCheck.dam = _;
+                            },
+                            value: livestockCheck.dam,
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          CustomTextFormField(
+                            label: "تعداد راس دام",
+                            textInputType: TextInputType.number,
+                            value: (livestockCheck.raas ?? "").toString(),
+                            onChanged: (_) {
+                              livestockCheck.raas = int.tryParse(_);
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          FutureBuilder(
+                              future:
+                                  GetIt.I.get<ShopService>().fetchBreeds(""),
+                              builder: (c, s) {
+                                if (s.hasData &&
+                                    s.data != null &&
+                                    s.data!.isNotEmpty) {
+                                  return SizedBox(
+                                      height: 70,
+                                      child: DropdownSearch<String>(
+                                          popupProps: PopupProps.menu(
+                                            searchDelay:
+                                                Duration(milliseconds: 40),
 
-                      Navigator.pop(context);
-                    },
-                    child: SizedBox(
-                        width: double.infinity,
-                        height: 40,
-                        child: Center(
-                            child: Text(
-                          lk != null ? "ویرایش" : "اضافه کردن",
-                          style: TextStyle(color: Colors.white),
-                        )))),
-                SizedBox(
-                  height: 50,
-                ),
-              ],
+                                            showSelectedItems: true,
+                                            showSearchBox: true,
+                                            fit: FlexFit.tight,
+                                            // disabledItemFn: (String s) => s.startsWith('I'),
+                                          ),
+                                          items: (_, __) =>
+                                              s.data!.map((e) => e).toList(),
+                                          itemAsString: (item) => item ?? '',
+
+                                          // compareFn:
+                                          //     (item1, item2) =>
+                                          // item1.name ==
+                                          //     item2.name,
+                                          decoratorProps:
+                                              DropDownDecoratorProps(
+                                            decoration: InputDecoration(
+                                              labelText: "نژاد قالب دام",
+                                              labelStyle: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.black38),
+                                              border: OutlineInputBorder(
+                                                borderSide: const BorderSide(
+                                                    width: 2,
+                                                    color: Colors.red),
+                                                //<-- SEE HERE
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                            ),
+                                          ),
+                                          onChanged: (_) {
+                                            if (_ != null) {
+                                              livestockCheck.nzd = _;
+                                            }
+                                          },
+                                          selectedItem: livestockCheck.nzd));
+                                } else if (s.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                                return Center(
+                                    child: Text(
+                                        "دریافت لیست نژاد با خطا مواجه شده است!"));
+                              }),
+                          CustomTextFormField(
+                            label: "وضعیت بدنی(BCS)",
+                            textInputType: TextInputType.number,
+                            value: (livestockCheck.bcs ?? "").toString(),
+                            onChanged: (_) {
+                              livestockCheck.bcs = double.tryParse(_);
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          CustomTextFormField(
+                            label: "میانگین سن(ماه)",
+                            value: (livestockCheck.age ?? "").toString(),
+                            textInputType: TextInputType.number,
+                            onChanged: (_) {
+                              livestockCheck.age = int.tryParse(_);
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          CustomTextFormField(
+                            label: "شماره پلاک(از-تا)",
+                            value: (livestockCheck.plk ?? "").toString(),
+                            onChanged: (_) {
+                              livestockCheck.plk = _;
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          TitleCheckBox("سقط و مرده زایی", (c) {
+                            livestockCheck.segt = c ? 1 : 0;
+                          },
+                              value: (livestockCheck.segt ?? 0) == 1
+                                  ? true
+                                  : false),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          CustomTextFormField(
+                            label: "تعداد سقط",
+                            value: (livestockCheck.segtNo ?? "").toString(),
+                            onChanged: (_) {
+                              livestockCheck.segtNo = int.tryParse(_);
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          TitleCheckBox("قارچ/جرب", (c) {
+                            livestockCheck.shepesh = c ? 1 : 0;
+                          },
+                              value: (livestockCheck.shepesh ?? 0) == 1
+                                  ? true
+                                  : false),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          CustomTextFormField(
+                            label: "تعداد قارچ",
+                            value: (livestockCheck.shepeshNo ?? "").toString(),
+                            onChanged: (_) {
+                              livestockCheck.shepeshNo = int.tryParse(_);
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          TitleCheckBox("ضعف و لاغری مفرط", (c) {
+                            livestockCheck.zaf = c ? 1 : 0;
+                          },
+                              value: (livestockCheck.zaf ?? 0) == 1
+                                  ? true
+                                  : false),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          CustomTextFormField(
+                            label: "تعداد ضعف",
+                            value: (livestockCheck.zafNo ?? "").toString(),
+                            onChanged: (_) {
+                              livestockCheck.zafNo = int.tryParse(_);
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          TitleCheckBox("لنگش", (c) {
+                            livestockCheck.langesh = c ? 1 : 0;
+                          },
+                              value: (livestockCheck.langesh ?? 0) == 1
+                                  ? true
+                                  : false),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          CustomTextFormField(
+                            label: "تعداد لنگش",
+                            value: (livestockCheck.langeshNo ?? "").toString(),
+                            onChanged: (_) {
+                              livestockCheck.langeshNo = int.tryParse(_);
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          TitleCheckBox("آسیب چشمی", (c) {
+                            // livestockCheck. = c ? 1 : 0;
+                          }, value: false),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          CustomTextFormField(
+                            label: "تعداد آسیب چشمی",
+                            onChanged: (_) {
+                              // livestockCheck.langeshNo = int.tryParse(_);
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          TitleCheckBox("پیکا/پشم خواری", (c) {
+                            livestockCheck.pica = c ? 1 : 0;
+                          },
+                              value: (livestockCheck.pica ?? 0) == 1
+                                  ? true
+                                  : false),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          CustomTextFormField(
+                            label: "تعداد پیکا",
+                            value: (livestockCheck.picaNo ?? "").toString(),
+                            onChanged: (_) {
+                              livestockCheck.picaNo = int.tryParse(_);
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                          TitleCheckBox("سرفه", (c) {
+                            livestockCheck.sorfe = c ? 1 : 0;
+                          },
+                              value: (livestockCheck.sorfe ?? 0) == 1
+                                  ? true
+                                  : false),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          CustomTextFormField(
+                            label: "تعداد سرفه",
+                            value: (livestockCheck.shepeshNo ?? "").toString(),
+                            onChanged: (_) {
+                              livestockCheck.shepeshNo = int.tryParse(_);
+                            },
+                          ),
+                          SizedBox(
+                            height: 10,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue),
+                      onPressed: () {
+                        if (lk != null) {
+                          _items.value[i!] = livestockCheck;
+                        } else {
+                          if (livestockCheck.dam?.isNotEmpty ?? false) {
+                            _items.add(livestockCheck);
+                          }
+                        }
+
+                        Navigator.pop(context);
+                      },
+                      child: SizedBox(
+                          width: double.infinity,
+                          height: 45,
+                          child: Center(
+                              child: Text(
+                            lk != null ? "ویرایش" : "اضافه کردن",
+                            style: TextStyle(color: Colors.white),
+                          )))),
+                  // SizedBox(
+                  //   height: 50,
+                  // ),
+                ],
+              ),
             ),
           ),
         )));

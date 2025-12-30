@@ -588,98 +588,7 @@ class _NewFormState extends State<SellerSteps> {
   }
 
   Widget stepWarehouseSelection() {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _salesFormService.fetchWarehouses(
-          sellerId, _shared.getString(USERNAME)),
-      builder: (_, snapshot) {
-        // Show loading indicator
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return buildStepWrapper(
-            child: const Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        // Show error state with back button
-        if (snapshot.hasError) {
-          return buildStepWrapper(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.red.shade300,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "خطا در دریافت اطلاعات انبارها",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.red.shade700,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                buildBackButton(() {
-                  step.value--;
-                }),
-              ],
-            ),
-          );
-        }
-
-        // Show empty state with back button
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return buildStepWrapper(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.inventory_2_outlined,
-                  size: 64,
-                  color: Colors.grey.shade400,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "هیچ انباری یافت نشد",
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-                const SizedBox(height: 20),
-                buildBackButton(() {
-                  step.value--;
-                }),
-              ],
-            ),
-          );
-        }
-
-        // Data loaded successfully - NO back button
-        final data = snapshot.data!;
-        _warehousesCache = data;
-
-        return buildStepWrapper(
-          child: Column(
-            children: [
-              buildDropdown(
-                label: "انتخاب انبار",
-                data: data,
-                value: warehouseId,
-                onChanged: (v) => setState(() => warehouseId = v),
-              ),
-              const SizedBox(height: 20),
-              // Only next button when we have data
-              buildNextButton(() {
-                if (warehouseId == null || warehouseId!.isEmpty) {
-                  Fluttertoast.showToast(msg: "لطفا یک انبار انتخاب کنید");
-                  return;
-                }
-                step.value++;
-              }),
-            ],
-          ),
-        );
-      },
-    );
+    return SizedBox();
   }
 
   Widget buildBackButton(VoidCallback onPressed) {
@@ -1144,16 +1053,7 @@ class _NewFormState extends State<SellerSteps> {
                         borderRadius: BorderRadius.circular(12))),
                 onPressed: canResend.value
                     ? () async {
-                        try {
-                          final ok = await _salesFormService
-                              .sendSmsCode(buyerNationalId!);
-                          if (ok) {
-                            Fluttertoast.showToast(msg: "کد ارسال شد");
-                            startCountdown();
-                          }
-                        } catch (e) {
-                          Fluttertoast.showToast(msg: e.toString());
-                        }
+
                       }
                     : null,
                 child: Text(canResend.value

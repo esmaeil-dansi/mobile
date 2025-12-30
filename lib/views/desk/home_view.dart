@@ -144,13 +144,13 @@ class _HomeViewState extends State<HomeView> {
                           },
                           child: Container(
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(25),
+                              borderRadius: BorderRadius.circular(20),
                               child: Center(
                                 child: Image.asset(
                                   item,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.fill,
                                   width: double.infinity,
-                                  height: 170,
+                                  height: 220,
                                 ),
                               ),
                             ),

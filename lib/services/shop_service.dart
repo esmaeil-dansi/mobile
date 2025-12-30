@@ -328,6 +328,9 @@ class ShopService {
 
   Future<List<WarehouseItem>> getWarehouseSupplier(String id) async {
     try {
+      if(kDebugMode){
+        return [WarehouseItem(warehouseName: "test",name: "test1")];
+      }
       var res = await _httpService.get(
         "/api/method/get_warehouse_supplier?seller=${_autService.getUsername}&supplier_id=$id",
       );
@@ -356,13 +359,13 @@ class ShopService {
           supplierId: id,
           warehouse: warehouse,
           items: [newItem]);
-      var res = await _httpService.post(
+      var res = await _httpService.post3(
         "/api/method/create_purchase_chopoo",
-        FormData.fromMap(supplierRequest.toJson()),
+        supplierRequest.toJson(),
       );
 
       Fluttertoast.showToast(msg: res?.data["message"]);
-      return res?.statusCode == 200;
+      return res!.data["code"] == 2000;
     } catch (e) {
       Fluttertoast.showToast(msg: "خطایی رخ داده است");
       _logger.e(e);

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frappe_app/utils/string_extension.dart';
+import 'package:intl/intl.dart' as intl;
 
 class CustomTextFormField extends StatefulWidget {
   String? label;
@@ -13,6 +14,7 @@ class CustomTextFormField extends StatefulWidget {
   TextEditingController? textEditingController;
   String validator;
   bool readOnly;
+  bool useSeperator;
   String value;
   Widget? prefix;
   TextInputFormatter? textInputFormatter;
@@ -26,6 +28,7 @@ class CustomTextFormField extends StatefulWidget {
       this.prefix,
       this.textInputType,
       this.readOnly = false,
+      this.useSeperator = false,
       this.textInputFormatter,
       this.onChanged,
       this.textEditingController,
@@ -82,7 +85,10 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       formatters.add(widget.textInputFormatter!);
     }
     if (widget.textInputType == TextInputType.number) {
-      formatters.add(NumberInputFormatter);
+      // formatters.add(NumberInputFormatter);
+    }
+    if (widget.useSeperator) {
+      formatters.add(NumberWithCommaFormatter());
     }
     return formatters;
   }
@@ -101,3 +107,34 @@ final NumberInputFormatter = TextInputFormatter.withFunction(
     }
   },
 );
+
+class NumberWithCommaFormatter extends TextInputFormatter {
+  final _digitReg = RegExp(r'^[\u06F0-\u06F90-9,]*$');
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (!_digitReg.hasMatch(newValue.text)) {
+      return oldValue;
+    }
+
+    final raw = newValue.text.replaceFarsiNumber().replaceAll(',', '');
+
+    if (raw.isEmpty) return newValue.copyWith(text: '');
+
+    final formatted = _formNum(raw);
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+
+  String _formNum(String s) {
+    return intl.NumberFormat.decimalPattern().format(
+      int.parse(s),
+    );
+  }
+}

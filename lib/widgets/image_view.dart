@@ -11,7 +11,7 @@ import 'package:get_it/get_it.dart';
 Widget ImageView(Rx<String> path, String title,
     {String? defaultValue,
     bool canReplace = true,
-    double labelFontSize = 20,
+    double labelFontSize = 15,
     bool isNetWorkImage = false}) {
   if (defaultValue != null) {
     path.value = defaultValue;
@@ -36,13 +36,15 @@ Widget ImageView(Rx<String> path, String title,
                   }
                 });
               },
-              child: Text("انتخاب عکس"))
+              child: Text(
+                "انتخاب عکس",
+                style: TextStyle(fontSize: 13),
+              ))
           : Column(
               children: [
                 LimitedBox(
                   maxHeight: 400,
                   child: Container(
-
                     child: Padding(
                       padding: const EdgeInsets.all(2.0),
                       child: ClipRRect(

@@ -10,6 +10,7 @@ import 'package:frappe_app/model/buyer_info.dart';
 import 'package:frappe_app/model/sale_item.dart';
 import 'package:frappe_app/model/store_data.dart';
 import 'package:frappe_app/services/shop_service.dart';
+import 'package:frappe_app/utils/string_extension.dart';
 import 'package:frappe_app/widgets/form/CustomTextFormField.dart';
 import 'package:frappe_app/services/sales_form_service.dart';
 import 'package:get/get.dart';
@@ -30,6 +31,7 @@ class SellerSteps extends StatelessWidget {
   final isOpen = false.obs;
   RxInt countdown = 60.obs;
   RxBool canResend = true.obs;
+  RxBool smsIsSend = false.obs;
   Rxn<BuyerInfo> _buyerInfo = Rxn<BuyerInfo>();
   Rxn<StoreData> _storeData = Rxn<StoreData>();
   final _items = <SaleItem>[].obs;
@@ -139,15 +141,39 @@ class SellerSteps extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: Container(
                   child: ElevatedButton(
-                      onPressed: _items.isEmpty
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green),
+                      onPressed: _items.isEmpty || smsIsSend.value
                           ? null
-                          : () {
-                              getVerificationCode();
+                          : () async {
+                              smsIsSend.value = true;
+                              final ok = await _salesFormService.sendSmsCode(
+                                  _buyerInfo.value!.nationalId,
+                                  _getItemsAsString());
+                              smsIsSend.value = false;
+                              if (ok) {
+                                canResend.value = false;
+                                _startTimer();
+                                showCodeInput();
+                              } else {
+                                Fluttertoast.showToast(
+                                    msg: "خطایی در ارسال کد تایید رخ داده است");
+                              }
                             },
                       child: Container(
                           height: 50,
                           width: double.infinity,
-                          child: Center(child: Text("ادامه")))),
+                          alignment: Alignment.center,
+                          child: !smsIsSend.value
+                              ? Center(
+                                  child: Text(
+                                  "دریافت کد تایید",
+                                  style: TextStyle(color: Colors.white),
+                                ))
+                              : SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: CircularProgressIndicator()))),
                 ),
               ),
             ))
@@ -502,7 +528,7 @@ class SellerSteps extends StatelessWidget {
   double sumItems() {
     double sum = 0;
     _items.forEach((item) {
-      sum = (item.quantity * item.salePrice).toDouble();
+      sum = sum + (item.quantity * item.salePrice).toDouble();
     });
     return sum;
   }
@@ -522,384 +548,402 @@ class SellerSteps extends StatelessWidget {
         isScrollControlled: true,
         bottomSheetTemplate(Padding(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(''),
-                SizedBox(
-                  height: Get.height * 0.6,
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: [
-                      FutureBuilder<List<SalesItemModel>>(
-                        future: _salesFormService.fetchItems(),
-                        builder: (_, snapshot) {
-                          if (!snapshot.hasData) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-                          final items = snapshot.data!;
-                          return Column(
-                            children: [
-                              SizedBox(
-                                  height: 70,
-                                  child: DropdownSearch<SalesItemModel>(
-                                      popupProps: PopupProps.menu(
-                                        searchDelay: Duration(milliseconds: 40),
+          child: SafeArea(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(''),
+                  SizedBox(
+                    height: Get.height * 0.6,
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        FutureBuilder<List<SalesItemModel>>(
+                          future: _salesFormService.fetchItems(),
+                          builder: (_, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+                            final items = snapshot.data!;
+                            return Column(
+                              children: [
+                                SizedBox(
+                                    height: 70,
+                                    child: DropdownSearch<SalesItemModel>(
+                                        popupProps: PopupProps.menu(
+                                          searchDelay:
+                                              Duration(milliseconds: 40),
 
-                                        showSelectedItems: true,
-                                        showSearchBox: true,
-                                        fit: FlexFit.tight,
-                                        // disabledItemFn: (String s) => s.startsWith('I'),
-                                      ),
-                                      items: (_, __) => items,
-                                      itemAsString: (item) =>
-                                          item.itemName ?? '',
-                                      compareFn: (item1, item2) =>
-                                          item1.itemName == item2.itemName,
-                                      decoratorProps: DropDownDecoratorProps(
-                                        decoration: InputDecoration(
-                                          labelText: "انتخاب کالا",
-                                          labelStyle: TextStyle(
-                                              fontSize: 13,
-                                              color: Colors.black38),
-                                          border: OutlineInputBorder(
-                                            borderSide: const BorderSide(
-                                                width: 2, color: Colors.red),
-                                            //<-- SEE HERE
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
+                                          showSelectedItems: true,
+                                          showSearchBox: true,
+                                          fit: FlexFit.tight,
+                                          // disabledItemFn: (String s) => s.startsWith('I'),
                                         ),
-                                      ),
-                                      onChanged: (_) {
-                                        if (_ != null) {
-                                          _salesItemModel.value = _;
-                                        }
-                                      },
-                                      selectedItem: _salesItemModel.value)),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Obx(() => _salesItemModel.value != null
-                                  ? Column(
-                                      children: [
-                                        SizedBox(
-                                            height: 70,
-                                            child: FutureBuilder(
-                                                future: _salesFormService
-                                                    .fetchPurchaseDocuments(
-                                                        _salesItemModel
-                                                            .value!.itemName,
-                                                        _warehouse.value!.name),
-                                                builder:
-                                                    (context, asyncSnapshot) {
-                                                  if (asyncSnapshot
-                                                          .connectionState ==
-                                                      ConnectionState.waiting) {
-                                                    return SizedBox(
-                                                        height: 4,
-                                                        child:
-                                                            CircularProgressIndicator());
-                                                  }
-                                                  if (!snapshot.hasData ||
-                                                      snapshot.data!.isEmpty) {
-                                                    return Text(
-                                                        "سندی یافت نشده است!");
-                                                  }
-                                                  final items =
-                                                      asyncSnapshot.data!;
-                                                  return DropdownSearch<
-                                                          PurchaseItem>(
-                                                      popupProps:
-                                                          PopupProps.menu(
-                                                        searchDelay: Duration(
-                                                            milliseconds: 40),
-
-                                                        showSelectedItems: true,
-                                                        showSearchBox: true,
-                                                        fit: FlexFit.tight,
-                                                        // disabledItemFn: (String s) => s.startsWith('I'),
-                                                      ),
-                                                      items: (_, __) => items,
-                                                      itemAsString: (item) =>
-                                                          "قیمت فروش:" +
-                                                              _formatPrice(item
-                                                                      .salePrice
-                                                                      .toDouble())
-                                                                  .toString() +
-                                                              "/" +
-                                                              "موجودی:" +
-                                                              item.remainQuantity
-                                                                  .toString() ??
-                                                          '',
-                                                      compareFn:
-                                                          (item1, item2) =>
-                                                              item1.itemCode ==
-                                                              item2.itemCode,
-                                                      decoratorProps:
-                                                          DropDownDecoratorProps(
-                                                        decoration:
-                                                            InputDecoration(
-                                                          labelText:
-                                                              "انتخاب سند خرید",
-                                                          labelStyle: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors
-                                                                  .black38),
-                                                          border:
-                                                              OutlineInputBorder(
-                                                            borderSide:
-                                                                const BorderSide(
-                                                                    width: 2,
-                                                                    color: Colors
-                                                                        .red),
-                                                            //<-- SEE HERE
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        20),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      onChanged: (_) {
-                                                        if (_ != null) {
-                                                          purchaseItem.value =
-                                                              _;
-                                                        }
-                                                      },
-                                                      selectedItem:
-                                                          purchaseItem.value);
-                                                })),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        SizedBox(
-                                          height: 70,
-                                          child: TextFormField(
-                                            inputFormatters: [
-                                              NumberInputFormatter
-                                            ],
-                                            validator: (_) {
-                                              if (_ == null || _.isEmpty) {
-                                                return "مقدار را وارد کنید";
-                                              }
-                                              if(int.parse(_) ==0){
-                                                return "مقدار باید بزرگتر از ۰ باشد.";
-                                              }
-                                              if (purchaseItem.value != null) {
-                                                var value = int.parse(_);
-                                                if (value >
-                                                    purchaseItem
-                                                        .value!.quantity) {
-                                                  return "مقدار درخواستی بیشتر از موجودی است!";
-                                                }
-                                              }
-                                              return null;
-                                            },
-                                            controller: _amountController,
-                                            keyboardType: TextInputType.number,
-                                            decoration: InputDecoration(
-                                              suffixIcon: Padding(
-                                                padding: const EdgeInsets.only(
-                                                    top: 8, left: 8),
-                                                child: Text(
-                                                    _salesItemModel.value!.uom),
-                                              ),
-                                              labelText: "مقدار",
-                                              labelStyle: TextStyle(
-                                                  color: Colors.black38,
-                                                  fontSize: 13),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(20.0),
-                                              ),
+                                        items: (_, __) => items,
+                                        itemAsString: (item) =>
+                                            item.itemName ?? '',
+                                        compareFn: (item1, item2) =>
+                                            item1.itemName == item2.itemName,
+                                        decoratorProps: DropDownDecoratorProps(
+                                          decoration: InputDecoration(
+                                            labelText: "انتخاب کالا",
+                                            labelStyle: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.black38),
+                                            border: OutlineInputBorder(
+                                              borderSide: const BorderSide(
+                                                  width: 2, color: Colors.red),
+                                              //<-- SEE HERE
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
                                             ),
                                           ),
                                         ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        if (_salesItemModel.value != null &&
-                                            _salesItemModel
-                                                .value!.damType.isNotEmpty)
-                                          CustomTextFormField(
-                                            textEditingController:
-                                                _priceTextController,
-                                            onChanged: (_) {},
-                                            // textInputFormatter:
-                                            // NumberWithCommaFormatter(),
-                                            label: "قیمت",
-                                            prefix: Text('تومان'),
-                                            textInputType: TextInputType.number,
-                                          ),
-                                      ],
-                                    )
-                                  : SizedBox()),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: 30,
-                ),
-                Obx(() => ElevatedButton(
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                    onPressed: loading.value
-                        ? null
-                        : () async {
-                            if (item != null) {
-                              _items.value[i!] = newItem;
-                            } else {
-                              if (_formKey.currentState!.validate() ?? false) {
-                                var price = _salesItemModel
-                                        .value!.damType.isNotEmpty
-                                    ? double.parse(_priceTextController.text)
-                                    : purchaseItem.value!.salePrice;
-                                if (_salesItemModel.value != null &&
-                                    purchaseItem.value != null) {
-                                  if (_salesItemModel
-                                      .value!.damType.isNotEmpty) {
-                                    if (_priceTextController.text.isEmpty) {
-                                      Fluttertoast.showToast(
-                                          msg: "قیمت را وارد کنید");
-                                    } else if (int.parse(
-                                            _priceTextController.text) ==
-                                        0) {
-                                      Fluttertoast.showToast(
-                                          msg: "قیمت باید بزرگتر از ۰ باشد");
-                                    } else {
-                                      loading.value = true;
-                                      var res = await _shopService.checkPrice(
-                                          purchase_doc:
-                                              purchaseItem.value!.purchaseDoc,
-                                          price: double.parse(
-                                              _priceTextController.text),
-                                          itemId: purchaseItem.value!.itemId);
-                                      loading.value = false;
-                                      if (res != null) {
-                                        if (res.ok) {
-                                          _items.add(SaleItem(
-                                              unit: _salesItemModel.value!.uom,
-                                              itemCode:
-                                                  purchaseItem.value!.itemCode,
-                                              quantity: int.parse(
-                                                  _amountController.text),
-                                              itemId:
-                                                  purchaseItem.value!.itemId,
-                                              salePrice: int.parse(
-                                                  _priceTextController.text),
-                                              purchaseDoc: purchaseItem
-                                                  .value!.purchaseDoc));
-                                          Navigator.pop(context);
-                                        } else {
-                                          showDialog(
-                                              context: context,
-                                              builder: (c) => AlertDialog(
-                                                    actions: [
-                                                      ElevatedButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(c);
+                                        onChanged: (_) {
+                                          if (_ != null) {
+                                            _salesItemModel.value = _;
+                                          }
+                                        },
+                                        selectedItem: _salesItemModel.value)),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                Obx(() => _salesItemModel.value != null
+                                    ? Column(
+                                        children: [
+                                          SizedBox(
+                                              height: 70,
+                                              child: FutureBuilder(
+                                                  future: _salesFormService
+                                                      .fetchPurchaseDocuments(
+                                                          _salesItemModel
+                                                              .value!.itemName,
+                                                          _warehouse
+                                                              .value!.name),
+                                                  builder:
+                                                      (context, asyncSnapshot) {
+                                                    if (asyncSnapshot
+                                                            .connectionState ==
+                                                        ConnectionState
+                                                            .waiting) {
+                                                      return SizedBox(
+                                                          height: 4,
+                                                          child:
+                                                              CircularProgressIndicator());
+                                                    }
+                                                    if (!snapshot.hasData ||
+                                                        snapshot
+                                                            .data!.isEmpty) {
+                                                      return Text(
+                                                          "سندی یافت نشده است!");
+                                                    }
+                                                    final items =
+                                                        asyncSnapshot.data!;
+                                                    return DropdownSearch<
+                                                            PurchaseItem>(
+                                                        popupProps:
+                                                            PopupProps.menu(
+                                                          searchDelay: Duration(
+                                                              milliseconds: 40),
+
+                                                          showSelectedItems:
+                                                              true,
+                                                          showSearchBox: true,
+                                                          fit: FlexFit.tight,
+                                                          // disabledItemFn: (String s) => s.startsWith('I'),
+                                                        ),
+                                                        items: (_, __) => items,
+                                                        itemAsString: (item) =>
+                                                            "قیمت فروش:" +
+                                                                _formatPrice(item
+                                                                        .salePrice
+                                                                        .toDouble())
+                                                                    .toString() +
+                                                                "/" +
+                                                                "موجودی:" +
+                                                                item.remainQuantity
+                                                                    .toString() ??
+                                                            '',
+                                                        compareFn: (item1,
+                                                                item2) =>
+                                                            item1.itemCode ==
+                                                            item2.itemCode,
+                                                        decoratorProps:
+                                                            DropDownDecoratorProps(
+                                                          decoration:
+                                                              InputDecoration(
+                                                            labelText:
+                                                                "انتخاب سند خرید",
+                                                            labelStyle: TextStyle(
+                                                                fontSize: 13,
+                                                                color: Colors
+                                                                    .black38),
+                                                            border:
+                                                                OutlineInputBorder(
+                                                              borderSide:
+                                                                  const BorderSide(
+                                                                      width: 2,
+                                                                      color: Colors
+                                                                          .red),
+                                                              //<-- SEE HERE
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          20),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        onChanged: (_) {
+                                                          if (_ != null) {
+                                                            purchaseItem.value =
+                                                                _;
+                                                          }
                                                         },
-                                                        child: Text("فهمیدم"),
-                                                      )
-                                                    ],
-                                                    content: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.error,
-                                                          color: Colors.red,
-                                                        ),
-                                                        Text(
-                                                            "قیمت وارد شده در بازه مجاز قرار ندارد!"),
-                                                        SizedBox(
-                                                          height: 10,
-                                                        ),
-                                                        Text(
-                                                            "قیمت وارده:\t\t${_formatPrice(price.toDouble())}"),
-                                                        Row(
-                                                          children: [
-                                                            Text(
-                                                                "حداکثر قیمت:\t\t"),
-                                                            Text(_formatPrice(res
-                                                                    .max
-                                                                    .toDouble())
-                                                                .toString())
-                                                          ],
-                                                        ),
-                                                        Row(
-                                                          children: [
-                                                            Text(
-                                                                "حداقل قیمت: \t\t"),
-                                                            Text(_formatPrice(res
-                                                                    .min
-                                                                    .toDouble())
-                                                                .toString())
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ));
-                                        }
-                                      } else {
+                                                        selectedItem:
+                                                            purchaseItem.value);
+                                                  })),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          SizedBox(
+                                            height: 70,
+                                            child: TextFormField(
+                                              inputFormatters: [
+                                                NumberWithCommaFormatter()
+                                              ],
+                                              validator: (_) {
+                                                if (_ == null || _.isEmpty) {
+                                                  return "مقدار را وارد کنید";
+                                                }
+                                                if (int.parse(_.replaceAll(
+                                                        ",", "")) ==
+                                                    0) {
+                                                  return "مقدار باید بزرگتر از ۰ باشد.";
+                                                }
+                                                if (purchaseItem.value !=
+                                                    null) {
+                                                  var value = int.parse(
+                                                      _.replaceAll(',', ''));
+                                                  if (value >
+                                                      purchaseItem
+                                                          .value!.quantity) {
+                                                    return "مقدار درخواستی بیشتر از موجودی است!";
+                                                  }
+                                                }
+                                                return null;
+                                              },
+                                              controller: _amountController,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              decoration: InputDecoration(
+                                                suffixIcon: Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 8, left: 8),
+                                                  child: Text(_salesItemModel
+                                                      .value!.uom),
+                                                ),
+                                                labelText: "مقدار",
+                                                labelStyle: TextStyle(
+                                                    color: Colors.black38,
+                                                    fontSize: 13),
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20.0),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          if (_salesItemModel.value != null &&
+                                              _salesItemModel
+                                                  .value!.damType.isNotEmpty)
+                                            CustomTextFormField(
+                                              useSeperator: true,
+                                              textEditingController:
+                                                  _priceTextController,
+                                              onChanged: (_) {},
+                                              // textInputFormatter:
+                                              // NumberWithCommaFormatter(),
+                                              label: "قیمت",
+                                              prefix: Text('ریال'),
+                                              textInputType:
+                                                  TextInputType.number,
+                                            ),
+                                        ],
+                                      )
+                                    : SizedBox()),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Obx(() => ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green),
+                      onPressed: loading.value
+                          ? null
+                          : () async {
+                              if (item != null) {
+                                _items.value[i!] = newItem;
+                              } else {
+                                if (_formKey.currentState!.validate() ??
+                                    false) {
+                                  var price = _salesItemModel
+                                          .value!.damType.isNotEmpty
+                                      ? double.parse(_priceTextController.text
+                                          .replaceAll(",", ""))
+                                      : purchaseItem.value!.salePrice;
+                                  if (_salesItemModel.value != null &&
+                                      purchaseItem.value != null) {
+                                    if (_salesItemModel
+                                        .value!.damType.isNotEmpty) {
+                                      if (_priceTextController.text.isEmpty) {
                                         Fluttertoast.showToast(
-                                            msg:
-                                                "خطایی در چک کردن قیمت رخ داده است");
+                                            msg: "قیمت را وارد کنید");
+                                      } else if (int.parse(_priceTextController
+                                              .text
+                                              .replaceAll(",", "")) ==
+                                          0) {
+                                        Fluttertoast.showToast(
+                                            msg: "قیمت باید بزرگتر از ۰ باشد");
+                                      } else {
+                                        loading.value = true;
+                                        var res = await _shopService.checkPrice(
+                                            purchase_doc:
+                                                purchaseItem.value!.purchaseDoc,
+                                            price: price.toDouble(),
+                                            itemId: purchaseItem.value!.itemId);
+                                        loading.value = false;
+                                        if (res != null) {
+                                          if (res.ok) {
+                                            _items.add(SaleItem(
+                                                unit:
+                                                    _salesItemModel.value!.uom,
+                                                itemCode: purchaseItem
+                                                    .value!.itemCode,
+                                                quantity: int.parse(
+                                                    _amountController.text),
+                                                itemId:
+                                                    purchaseItem.value!.itemId,
+                                                salePrice: price,
+                                                purchaseDoc: purchaseItem
+                                                    .value!.purchaseDoc));
+                                            Navigator.pop(context);
+                                          } else {
+                                            showDialog(
+                                                context: context,
+                                                builder: (c) => AlertDialog(
+                                                      actions: [
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            Navigator.pop(c);
+                                                          },
+                                                          child: Text("فهمیدم"),
+                                                        )
+                                                      ],
+                                                      content: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.error,
+                                                            color: Colors.red,
+                                                          ),
+                                                          Text(
+                                                              "قیمت وارد شده در بازه مجاز قرار ندارد!"),
+                                                          SizedBox(
+                                                            height: 10,
+                                                          ),
+                                                          Text(
+                                                              "قیمت وارده: \t\t${_formatPrice(price.toDouble())}"),
+                                                          Divider(),
+                                                          Row(
+                                                            children: [
+                                                              Text(
+                                                                  "حداقل قیمت: \t\t"),
+                                                              Text(_formatPrice(res
+                                                                      .min
+                                                                      .toDouble())
+                                                                  .toString())
+                                                            ],
+                                                          ),
+                                                          Divider(),
+                                                          Row(
+                                                            children: [
+                                                              Text(
+                                                                  "حداکثر قیمت: \t\t"),
+                                                              Text(_formatPrice(res
+                                                                      .max
+                                                                      .toDouble())
+                                                                  .toString())
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ));
+                                          }
+                                        } else {
+                                          Fluttertoast.showToast(
+                                              msg:
+                                                  "خطایی در چک کردن قیمت رخ داده است");
+                                        }
                                       }
+                                    } else {
+                                      _items.add(SaleItem(
+                                          unit: _salesItemModel.value!.uom,
+                                          itemCode:
+                                              _salesItemModel.value!.itemName,
+                                          quantity:
+                                              int.parse(_amountController.text),
+                                          itemId:
+                                              _salesItemModel.value!.itemName,
+                                          salePrice:
+                                              purchaseItem.value!.salePrice,
+                                          purchaseDoc:
+                                              purchaseItem.value!.purchaseDoc));
+                                      Navigator.pop(context);
                                     }
-                                  } else {
-                                    _items.add(SaleItem(
-                                        unit: _salesItemModel.value!.uom,
-                                        itemCode:
-                                            _salesItemModel.value!.itemName,
-                                        quantity:
-                                            int.parse(_amountController.text),
-                                        itemId: _salesItemModel.value!.itemName,
-                                        salePrice:
-                                            purchaseItem.value!.salePrice,
-                                        purchaseDoc:
-                                            purchaseItem.value!.purchaseDoc));
-                                    Navigator.pop(context);
                                   }
                                 }
                               }
-                            }
-                          },
-                    child: SizedBox(
-                        width: double.infinity,
-                        height: 40,
-                        child: loading.value
-                            ? Center(
-                                child: SizedBox(
-                                    height: 30,
-                                    width: 30,
-                                    child: CircularProgressIndicator()))
-                            : Center(
-                                child: Text(
-                                item != null ? "ویرایش" : "اضافه کردن",
-                                style: TextStyle(color: Colors.white),
-                              ))))),
-                SizedBox(
-                  height: 50,
-                ),
-              ],
+                            },
+                      child: SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: loading.value
+                              ? Center(
+                                  child: SizedBox(
+                                      height: 30,
+                                      width: 30,
+                                      child: CircularProgressIndicator()))
+                              : Center(
+                                  child: Text(
+                                  item != null ? "ویرایش" : "اضافه کردن",
+                                  style: TextStyle(color: Colors.white),
+                                ))))),
+                ],
+              ),
             ),
           ),
         )));
   }
 
-  void getVerificationCode() {
+  void showCodeInput() {
     TextEditingController _codeController = TextEditingController();
     Get.bottomSheet(buildStepWrapper(
       child: Column(
@@ -929,7 +973,7 @@ class SellerSteps extends StatelessWidget {
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 24),
-          Obx(() => ElevatedButton(
+          Obx(() => TextButton(
                 style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -937,8 +981,9 @@ class SellerSteps extends StatelessWidget {
                 onPressed: canResend.value
                     ? () async {
                         try {
-                          final ok = await _salesFormService
-                              .sendSmsCode(_buyerInfo.value!.nationalId);
+                          final ok = await _salesFormService.sendSmsCode(
+                              _buyerInfo.value!.nationalId,
+                              _getItemsAsString());
                           if (ok) {
                             Fluttertoast.showToast(msg: "کد ارسال شد");
                             canResend.value = false;
@@ -953,9 +998,7 @@ class SellerSteps extends StatelessWidget {
                 child: SizedBox(
                   height: 40,
                   child: Center(
-                    child: Text(canResend.value
-                        ? "ارسال کد"
-                        : "ارسال مجدد در ${countdown.value} ثانیه"),
+                    child: Text("ارسال مجدد در ${countdown.value} ثانیه"),
                   ),
                 ),
               )),
@@ -984,6 +1027,25 @@ class SellerSteps extends StatelessWidget {
         ],
       ),
     ));
+  }
+
+  String _getItemsAsString() {
+    String result = "";
+    _items.forEach((item) {
+      result = result +
+          item.quantity.toString() +
+          "\t" +
+          item.unit +
+          "\t" +
+          item.itemCode +
+          "\t" +
+          "به ارزش" +
+          (item.quantity * item.salePrice).toString() +
+          "\t" +
+          "ریال" +
+          "\n";
+    });
+    return result;
   }
 
   void stepFinalSubmit(BuildContext context) {
@@ -1291,7 +1353,7 @@ class NumberWithCommaFormatter extends TextInputFormatter {
       return oldValue;
     }
 
-    final raw = newValue.text.replaceAll(',', '');
+    final raw = newValue.text.replaceFarsiNumber().replaceAll(',', '');
 
     if (raw.isEmpty) return newValue.copyWith(text: '');
 
